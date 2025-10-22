@@ -1,0 +1,213 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}Пользователи - MLM Admin Panel{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Пользователи</span>
+        <a href="{% url 'admin_panel:add_user' %}" class="btn btn-success">Добавить пользователя</a>
+    </div>
+    <div class="card-body">
+        <!-- Фильтры -->
+        <div class="d-flex mb-2" style="gap: 1rem;">
+            <div class="form-group mb-0" style="flex: 1;">
+                <input type="text" class="form-control" id="search" placeholder="Поиск по имени, username, email..." value="{{ search }}">
+            </div>
+            <div class="form-group mb-0">
+                <select class="form-control" id="status-filter">
+                    <option value="">Все статусы</option>
+                    <option value="participant" {% if status == 'participant' %}selected{% endif %}>Участник</option>
+                    <option value="partner" {% if status == 'partner' %}selected{% endif %}>Партнер</option>
+                </select>
+            </div>
+            <div class="form-group mb-0">
+                <select class="form-control" id="rank-filter">
+                    <option value="">Все ранги</option>
+                    <option value="0" {% if rank == "0" %}selected{% endif %}>Ранг 0</option>
+                    <option value="1" {% if rank == "1" %}selected{% endif %}>ПУ1</option>
+                    <option value="2" {% if rank == "2" %}selected{% endif %}>ПУ2</option>
+                    <option value="3" {% if rank == "3" %}selected{% endif %}>ПУ3</option>
+                    <option value="4" {% if rank == "4" %}selected{% endif %}>ПУ4</option>
+                    <option value="5" {% if rank == "5" %}selected{% endif %}>ПУ5</option>
+                    <option value="6" {% if rank == "6" %}selected{% endif %}>ПУ6</option>
+                    <option value="7" {% if rank == "7" %}selected{% endif %}>ПУ7</option>
+                    <option value="8" {% if rank == "8" %}selected{% endif %}>ПУ8</option>
+                    <option value="9" {% if rank == "9" %}selected{% endif %}>ПУ9</option>
+                    <option value="10" {% if rank == "10" %}selected{% endif %}>ПУ10</option>
+                </select>
+            </div>
+            <button class="btn" onclick="applyFilters()">Применить</button>
+        </div>
+
+        <!-- Таблица пользователей -->
+        <div style="overflow-x: auto;">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>
+                            <input type="checkbox" id="select-all">
+                        </th>
+                        <th>Баланс</th>
+                        <th>Заказы</th>
+                        <th>Пригласитель</th>
+                        <th>Пользователь</th>
+                        <th>Партнер 1го уровня</th>
+                        <th>Партнер 2го уровня</th>
+                        <th>Партнер 3го уровня</th>
+                        <th>Покупки (сумма)</th>
+                        <th>Вознаграждения</th>
+                        <th>Выплаты</th>
+                        <th>Осталось выплатить</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>
+                            <input type="checkbox" name="selected_users" value="{{ user.id }}">
+                        </td>
+                        <td class="{% if user.balance > 0 %}text-success{% endif %}">
+                            {{ user.balance|floatformat:2 }} PZ
+                        </td>
+                        <td>
+                            {{ user.total_purchases|floatformat:2 }} PZ {{ user.partners_level_1|add:user.partners_level_2|add:user.partners_level_3 }} шт
+                        </td>
+                        <td>
+                            {% if user.inviter %}
+                                @{{ user.inviter.username }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div style="width: 30px; height: 30px; border-radius: 50%; background-color: #007bff; color: white; display: flex; align-items: center; justify-content: center; margin-right: 10px; font-weight: bold;">
+                                    {{ user.first_name|first|default:user.username|first|upper }}
+                                </div>
+                                {{ user.get_full_name }} @{{ user.username }}
+                            </div>
+                        </td>
+                        <td>{{ user.partners_level_1 }}</td>
+                        <td>{{ user.partners_level_2 }}</td>
+                        <td>{{ user.partners_level_3 }}</td>
+                        <td>{{ user.total_purchases|floatformat:2 }} PZ</td>
+                        <td>{{ user.total_rewards|floatformat:2 }} PZ</td>
+                        <td>{{ user.total_payouts|floatformat:2 }} PZ</td>
+                        <td>{{ user.remaining_payout|floatformat:2 }} PZ</td>
+                        <td>
+                            <div class="d-flex" style="gap: 5px;">
+                                <button class="btn btn-sm" style="background: green; color: white;" onclick="viewUser({{ user.id }})" title="Просмотр">
+                                    📄
+                                </button>
+                                <button class="btn btn-sm" style="background: blue; color: white;" onclick="editUser({{ user.id }})" title="Редактировать">
+                                    👁
+                                </button>
+                                <button class="btn btn-sm" style="background: blue; color: white;" onclick="refreshUser({{ user.id }})" title="Обновить">
+                                    🔄
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="13" class="text-center text-muted">Нет пользователей</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для обработки платежа -->
+<div id="paymentModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 2rem; border-radius: 8px; min-width: 400px;">
+        <h3>Обработка платежа</h3>
+        <form id="paymentForm">
+            <input type="hidden" id="payment-user-id" name="user_id">
+            <div class="form-group">
+                <label>Сумма (PZ)</label>
+                <input type="number" class="form-control" name="amount" step="0.01" min="0" required>
+            </div>
+            <div class="d-flex justify-content-between">
+                <button type="button" class="btn btn-danger" onclick="closePaymentModal()">Отмена</button>
+                <button type="submit" class="btn btn-success">Обработать платеж</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function applyFilters() {
+    const search = document.getElementById('search').value;
+    const status = document.getElementById('status-filter').value;
+    const rank = document.getElementById('rank-filter').value;
+    
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    if (status) params.append('status', status);
+    if (rank) params.append('rank', rank);
+    
+    window.location.href = '{% url "admin_panel:users_table" %}?' + params.toString();
+}
+
+function viewUser(userId) {
+    window.open('{% url "admin_panel:user_detail" 0 %}'.replace('0', userId), '_blank');
+}
+
+function editUser(userId) {
+    window.open('/admin/users/user/' + userId + '/change/', '_blank');
+}
+
+function refreshUser(userId) {
+    // Обновление данных пользователя
+    location.reload();
+}
+
+function processPayment(userId) {
+    document.getElementById('payment-user-id').value = userId;
+    document.getElementById('paymentModal').style.display = 'block';
+}
+
+function closePaymentModal() {
+    document.getElementById('paymentModal').style.display = 'none';
+    document.getElementById('paymentForm').reset();
+}
+
+document.getElementById('paymentForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    fetch('{% url "admin_panel:process_payment" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Платеж успешно обработан!');
+            location.reload();
+        } else {
+            alert('Ошибка: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Ошибка: ' + error);
+    });
+});
+
+// Выбор всех пользователей
+document.getElementById('select-all').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('input[name="selected_users"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = this.checked;
+    });
+});
+</script>
+{% endblock %}
