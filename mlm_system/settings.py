@@ -91,7 +91,7 @@ WSGI_APPLICATION = 'mlm_system.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # Database configuration
-# Check for MongoDB URL first (Railway MongoDB)
+# Check for MongoDB Atlas URL first
 if config('MONGO_URL', default=None):
     DATABASES = {
         'default': {
@@ -102,6 +102,7 @@ if config('MONGO_URL', default=None):
                 'username': config('MONGO_USERNAME', default=''),
                 'password': config('MONGO_PASSWORD', default=''),
                 'authSource': config('MONGO_AUTH_SOURCE', default='admin'),
+                'authMechanism': 'SCRAM-SHA-1',
             }
         }
     }
