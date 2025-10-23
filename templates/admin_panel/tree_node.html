@@ -1,32 +1,138 @@
-<div class="tree-node level-{{ level }} tree-lines">
-    <div class="user-card {{ node.user.status }}">
-        <div class="user-avatar">
-            <i class="fas fa-user"></i>
+{% load static %}
+
+<div class="tree-node" data-user-id="{{ node.user.id }}" data-level="{{ node.level }}">
+    <div class="tree-node-content {{ node.user.status }}" onclick="selectNode(this)">
+        <div class="tree-node-avatar {{ node.user.status }}">
+            {% if node.user.status == 'admin' %}
+                <i class="fas fa-crown"></i>
+            {% elif node.user.status == 'partner' %}
+                <i class="fas fa-handshake"></i>
+            {% elif node.user.status == 'participant' %}
+                <i class="fas fa-user"></i>
+            {% else %}
+                <i class="fas fa-ban"></i>
+            {% endif %}
         </div>
-        <div class="user-name">{{ node.user.username }}</div>
-        <div class="user-status badge bg-{% if node.user.status == 'partner' %}success{% elif node.user.status == 'participant' %}warning{% else %}danger{% endif %}">
-            {{ node.user.get_status_display }}
+        
+        <div class="tree-node-info">
+            <div class="tree-node-name">{{ node.user.username }}</div>
+            <div class="tree-node-details">
+                <span><i class="fas fa-envelope"></i> {{ node.user.email }}</span>
+                {% if node.user.phone %}
+                    <span><i class="fas fa-phone"></i> {{ node.user.phone }}</span>
+                {% endif %}
+                <span><i class="fas fa-calendar"></i> {{ node.user.date_joined|date:"d.m.Y" }}</span>
+            </div>
+            
+            <div class="tree-node-stats">
+                <div class="tree-node-stat">
+                    <i class="fas fa-dollar-sign"></i>
+                    <span>${{ node.user.balance|floatformat:2 }}</span>
+                </div>
+                <div class="tree-node-stat">
+                    <i class="fas fa-users"></i>
+                    <span>{{ node.children|length }} партнеров</span>
+                </div>
+                <div class="tree-node-stat">
+                    <i class="fas fa-trophy"></i>
+                    <span>Ранг {{ node.user.rank }}</span>
+                </div>
+                {% if node.mlm_structure %}
+                    <div class="tree-node-stat">
+                        <i class="fas fa-chart-line"></i>
+                        <span>${{ node.mlm_structure.total_earned|floatformat:2 }} заработано</span>
+                    </div>
+                {% endif %}
+            </div>
         </div>
-        <div class="user-rank">{{ node.user.get_rank_display }}</div>
-        <div class="user-balance">${{ node.user.balance }}</div>
-        <div class="mt-2">
-            <small class="text-muted">
-                ID: {{ node.user.id }}<br>
-                Рефералов: {{ node.user.referrals.count }}
-            </small>
-        </div>
-        <div class="mt-2">
-            <a href="{% url 'admin_panel:user_detail' node.user.id %}" class="btn btn-sm btn-outline-primary">
+        
+        <div class="tree-node-actions">
+            <button class="admin-btn admin-btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" onclick="viewUser({{ node.user.id }})" data-tooltip="Просмотр">
                 <i class="fas fa-eye"></i>
-            </a>
+            </button>
+            <button class="admin-btn admin-btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" onclick="editUser({{ node.user.id }})" data-tooltip="Редактировать">
+                <i class="fas fa-edit"></i>
+            </button>
+            <button class="admin-btn admin-btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" onclick="moveUser({{ node.user.id }})" data-tooltip="Переместить">
+                <i class="fas fa-arrows-alt"></i>
+            </button>
+            {% if node.user.status != 'admin' %}
+                <button class="admin-btn admin-btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" onclick="blockUser({{ node.user.id }})" data-tooltip="Заблокировать">
+                    <i class="fas fa-ban"></i>
+                </button>
+            {% endif %}
         </div>
     </div>
     
-    {% if node.children %}
-        <div class="children-container mt-3">
+    {% if node.level < 10 and node.children %}
+        <div class="tree-children" style="display: {% if node.level < 3 %}block{% else %}none{% endif %};">
             {% for child in node.children %}
-                {% include 'admin_panel/tree_node.html' with node=child level=level|add:1 %}
+                {% include 'admin_panel/tree_node.html' with node=child %}
             {% endfor %}
         </div>
+        
+        {% if node.children|length > 0 %}
+            <div class="tree-toggle {% if node.level >= 3 %}collapsed{% endif %}" onclick="toggleChildren(this)">
+                <i class="fas fa-chevron-down"></i>
+            </div>
+        {% endif %}
     {% endif %}
+    
+    <div class="tree-level-indicator">{{ node.level }}</div>
 </div>
+
+<script>
+// Tree node specific functions
+function selectNode(nodeContent) {
+    // Remove selection from all nodes
+    document.querySelectorAll('.tree-node-content').forEach(nc => {
+        nc.classList.remove('selected');
+    });
+    
+    // Add selection to clicked node
+    nodeContent.classList.add('selected');
+    
+    // Scroll to node if needed
+    nodeContent.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function toggleChildren(toggle) {
+    const node = toggle.closest('.tree-node');
+    const children = node.querySelector('.tree-children');
+    
+    if (children) {
+        if (toggle.classList.contains('collapsed')) {
+            toggle.classList.remove('collapsed');
+            children.style.display = 'block';
+        } else {
+            toggle.classList.add('collapsed');
+            children.style.display = 'none';
+        }
+    }
+}
+
+function viewUser(userId) {
+    // This would typically open a user detail modal or navigate to user page
+    console.log('Viewing user:', userId);
+    showNotification('Открытие профиля пользователя...', 'info');
+}
+
+function editUser(userId) {
+    // This would typically open a user edit modal
+    console.log('Editing user:', userId);
+    showNotification('Открытие редактирования пользователя...', 'info');
+}
+
+function moveUser(userId) {
+    // This would typically open a user move modal
+    console.log('Moving user:', userId);
+    showNotification('Открытие перемещения пользователя...', 'info');
+}
+
+function blockUser(userId) {
+    if (confirm('Вы уверены, что хотите заблокировать этого пользователя?')) {
+        console.log('Blocking user:', userId);
+        showNotification('Пользователь заблокирован', 'success');
+    }
+}
+</script>

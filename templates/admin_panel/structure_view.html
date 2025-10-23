@@ -1,245 +1,510 @@
-{% extends 'base/base.html' %}
+{% extends 'admin_panel/base.html' %}
+{% load static %}
 
-{% block title %}Структура MLM - Админ-панель{% endblock %}
+{% block title %}Структура MLM - TRINARY MLM{% endblock %}
 
-{% block extra_css %}
-<style>
-    .tree-container {
-        overflow-x: auto;
-        padding: 20px;
-    }
-    .tree-node {
-        display: inline-block;
-        margin: 10px;
-        text-align: center;
-        vertical-align: top;
-    }
-    .user-card {
-        background: white;
-        border: 2px solid #e9ecef;
-        border-radius: 10px;
-        padding: 15px;
-        min-width: 200px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        transition: all 0.3s;
-    }
-    .user-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-    }
-    .user-card.partner {
-        border-color: #28a745;
-        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-    }
-    .user-card.participant {
-        border-color: #ffc107;
-        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
-    }
-    .user-card.inactive {
-        border-color: #dc3545;
-        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
-    }
-    .user-avatar {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 10px;
-        color: white;
-        font-size: 20px;
-    }
-    .user-name {
-        font-weight: bold;
-        margin-bottom: 5px;
-    }
-    .user-status {
-        font-size: 12px;
-        padding: 2px 8px;
-        border-radius: 15px;
-        margin-bottom: 5px;
-    }
-    .user-rank {
-        font-size: 11px;
-        color: #6c757d;
-    }
-    .user-balance {
-        font-size: 12px;
-        color: #28a745;
-        font-weight: bold;
-    }
-    .tree-lines {
-        position: relative;
-    }
-    .tree-lines::before {
-        content: '';
-        position: absolute;
-        top: -10px;
-        left: 50%;
-        width: 2px;
-        height: 20px;
-        background: #dee2e6;
-        transform: translateX(-50%);
-    }
-    .level-0 .tree-lines::before {
-        display: none;
-    }
-    .controls {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 1000;
-    }
-    .zoom-controls {
-        background: white;
-        border-radius: 10px;
-        padding: 10px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-</style>
-{% endblock %}
+{% block breadcrumb %}Структура MLM{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3 mb-0">
-        <i class="fas fa-sitemap text-primary"></i> MLM Структура
-    </h1>
-    <div>
-        <a href="{% url 'admin_panel:dashboard' %}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-2"></i> Назад
-        </a>
-        <button class="btn btn-primary" onclick="toggleFullscreen()">
-            <i class="fas fa-expand me-2"></i> Полный экран
-        </button>
-    </div>
-</div>
-
-<!-- Элементы управления -->
-<div class="controls">
-    <div class="zoom-controls">
-        <div class="btn-group-vertical" role="group">
-            <button class="btn btn-sm btn-outline-primary" onclick="zoomIn()">
-                <i class="fas fa-plus"></i>
-            </button>
-            <button class="btn btn-sm btn-outline-primary" onclick="zoomOut()">
-                <i class="fas fa-minus"></i>
-            </button>
-            <button class="btn btn-sm btn-outline-primary" onclick="resetZoom()">
-                <i class="fas fa-search"></i>
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Статистика структуры -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card stats-card">
-            <div class="card-body text-center">
-                <i class="fas fa-users fa-2x mb-2"></i>
-                <h4 id="total-users">0</h4>
-                <p class="mb-0">Всего пользователей</p>
+<!-- Structure Header -->
+<div class="admin-table-container">
+    <div class="admin-table-header">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="admin-table-title">Структура MLM</h3>
+            <div style="display: flex; gap: 0.5rem;">
+                <button class="admin-btn admin-btn-primary" onclick="expandAll()" data-tooltip="Развернуть все">
+                    <i class="fas fa-expand-arrows-alt"></i>
+                    Развернуть все
+                </button>
+                <button class="admin-btn admin-btn-outline" onclick="collapseAll()" data-tooltip="Свернуть все">
+                    <i class="fas fa-compress-arrows-alt"></i>
+                    Свернуть все
+                </button>
+                <button class="admin-btn admin-btn-success" onclick="exportStructure()" data-tooltip="Экспорт структуры">
+                    <i class="fas fa-download"></i>
+                    Экспорт
+                </button>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card stats-card">
-            <div class="card-body text-center">
-                <i class="fas fa-handshake fa-2x mb-2"></i>
-                <h4 id="total-partners">0</h4>
-                <p class="mb-0">Партнеров</p>
+    
+    <!-- Structure Controls -->
+    <div style="padding: 1.5rem 2rem; border-bottom: 1px solid rgba(0, 0, 0, 0.1);">
+        <div style="display: grid; grid-template-columns: auto 1fr auto; gap: 1rem; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <label for="maxDepth">Глубина:</label>
+                <select id="maxDepth" class="admin-form-select" style="width: 100px;" onchange="updateDepth()">
+                    <option value="3">3 уровня</option>
+                    <option value="5">5 уровней</option>
+                    <option value="10">10 уровней</option>
+                    <option value="0">Все</option>
+                </select>
+            </div>
+            
+            <div class="admin-search" style="position: relative;">
+                <i class="fas fa-search admin-search-icon"></i>
+                <input type="text" placeholder="Поиск по имени пользователя..." id="structureSearch" style="width: 100%;">
+            </div>
+            
+            <div style="display: flex; gap: 0.5rem;">
+                <button class="admin-btn admin-btn-outline" onclick="showStats()" data-tooltip="Статистика">
+                    <i class="fas fa-chart-bar"></i>
+                </button>
+                <button class="admin-btn admin-btn-outline" onclick="refreshStructure()" data-tooltip="Обновить">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card stats-card">
-            <div class="card-body text-center">
-                <i class="fas fa-user-clock fa-2x mb-2"></i>
-                <h4 id="total-participants">0</h4>
-                <p class="mb-0">Участников</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card stats-card">
-            <div class="card-body text-center">
-                <i class="fas fa-sitemap fa-2x mb-2"></i>
-                <h4 id="max-level">0</h4>
-                <p class="mb-0">Максимальный уровень</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Дерево структуры -->
-<div class="card">
-    <div class="card-body p-0">
-        <div class="tree-container" id="tree-container">
+    
+    <!-- Structure Tree -->
+    <div style="padding: 2rem; min-height: 500px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+        <div id="structureTree" class="mlm-tree">
             {% if structure_tree %}
-                {% include 'admin_panel/tree_node.html' with node=structure_tree level=0 %}
+                {% include 'admin_panel/tree_node.html' with node=structure_tree %}
             {% else %}
-                <div class="text-center text-muted p-5">
-                    <i class="fas fa-sitemap fa-3x mb-3"></i>
-                    <br>
-                    Структура пуста
+                <div style="text-align: center; padding: 3rem; color: #6c757d;">
+                    <i class="fas fa-sitemap" style="font-size: 3rem; color: #e9ecef; margin-bottom: 1rem;"></i>
+                    <h4>Структура пуста</h4>
+                    <p>Добавьте пользователей в систему для отображения структуры</p>
                 </div>
             {% endif %}
         </div>
     </div>
 </div>
+
+<!-- Structure Statistics -->
+<div class="dashboard-grid" style="margin-top: 2rem;">
+    <div class="dashboard-card">
+        <div class="dashboard-card-header">
+            <div class="dashboard-card-title">Всего в структуре</div>
+            <div class="dashboard-card-icon">
+                <i class="fas fa-users"></i>
+            </div>
+        </div>
+        <div class="dashboard-card-value">{{ total_in_structure|default:0 }}</div>
+    </div>
+    
+    <div class="dashboard-card success">
+        <div class="dashboard-card-header">
+            <div class="dashboard-card-title">Активные партнеры</div>
+            <div class="dashboard-card-icon">
+                <i class="fas fa-handshake"></i>
+            </div>
+        </div>
+        <div class="dashboard-card-value">{{ active_partners|default:0 }}</div>
+    </div>
+    
+    <div class="dashboard-card warning">
+        <div class="dashboard-card-header">
+            <div class="dashboard-card-title">Максимальная глубина</div>
+            <div class="dashboard-card-icon">
+                <i class="fas fa-layer-group"></i>
+            </div>
+        </div>
+        <div class="dashboard-card-value">{{ max_depth|default:0 }}</div>
+    </div>
+    
+    <div class="dashboard-card info">
+        <div class="dashboard-card-header">
+            <div class="dashboard-card-title">Средний уровень</div>
+            <div class="dashboard-card-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+        </div>
+        <div class="dashboard-card-value">{{ avg_level|default:0|floatformat:1 }}</div>
+    </div>
+</div>
+
+<!-- Structure Legend -->
+<div class="admin-table-container" style="margin-top: 2rem;">
+    <div class="admin-table-header">
+        <h3 class="admin-table-title">Легенда структуры</h3>
+    </div>
+    <div style="padding: 2rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: rgba(40, 167, 69, 0.1); border-radius: 8px;">
+                <div class="admin-user-avatar" style="background: var(--gradient-success);">
+                    <i class="fas fa-crown"></i>
+                </div>
+                <div>
+                    <div style="font-weight: 600;">Администратор</div>
+                    <div style="font-size: 0.9rem; color: #6c757d;">Полные права</div>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: rgba(102, 126, 234, 0.1); border-radius: 8px;">
+                <div class="admin-user-avatar" style="background: var(--gradient-primary);">
+                    <i class="fas fa-handshake"></i>
+                </div>
+                <div>
+                    <div style="font-weight: 600;">Партнер</div>
+                    <div style="font-size: 0.9rem; color: #6c757d;">Активный участник</div>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: rgba(255, 193, 7, 0.1); border-radius: 8px;">
+                <div class="admin-user-avatar" style="background: var(--gradient-warning);">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div>
+                    <div style="font-weight: 600;">Участник</div>
+                    <div style="font-size: 0.9rem; color: #6c757d;">Ожидает активации</div>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: rgba(220, 53, 69, 0.1); border-radius: 8px;">
+                <div class="admin-user-avatar" style="background: var(--gradient-danger);">
+                    <i class="fas fa-ban"></i>
+                </div>
+                <div>
+                    <div style="font-weight: 600;">Заблокирован</div>
+                    <div style="font-size: 0.9rem; color: #6c757d;">Неактивный</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
-{% block extra_js %}
-<script>
-let currentZoom = 1;
-let isFullscreen = false;
-
-function zoomIn() {
-    currentZoom += 0.1;
-    document.getElementById('tree-container').style.transform = `scale(${currentZoom})`;
+{% block extra_css %}
+<style>
+.mlm-tree {
+    position: relative;
+    overflow: auto;
+    max-height: 600px;
 }
 
-function zoomOut() {
-    if (currentZoom > 0.1) {
-        currentZoom -= 0.1;
-        document.getElementById('tree-container').style.transform = `scale(${currentZoom})`;
+.tree-node {
+    position: relative;
+    margin: 1rem 0;
+    transition: all 0.3s ease;
+}
+
+.tree-node:hover {
+    transform: scale(1.02);
+}
+
+.tree-node-content {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.tree-node-content:hover {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.tree-node-content.admin {
+    border-color: var(--success-color);
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.1) 0%, rgba(255, 255, 255, 0.95) 100%);
+}
+
+.tree-node-content.partner {
+    border-color: var(--primary-color);
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(255, 255, 255, 0.95) 100%);
+}
+
+.tree-node-content.participant {
+    border-color: var(--warning-color);
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 255, 255, 0.95) 100%);
+}
+
+.tree-node-content.blocked {
+    border-color: var(--danger-color);
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.1) 0%, rgba(255, 255, 255, 0.95) 100%);
+    opacity: 0.7;
+}
+
+.tree-node-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 600;
+    position: relative;
+}
+
+.tree-node-avatar.admin {
+    background: var(--gradient-success);
+}
+
+.tree-node-avatar.partner {
+    background: var(--gradient-primary);
+}
+
+.tree-node-avatar.participant {
+    background: var(--gradient-warning);
+}
+
+.tree-node-avatar.blocked {
+    background: var(--gradient-danger);
+}
+
+.tree-node-info {
+    flex: 1;
+}
+
+.tree-node-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--dark-color);
+    margin-bottom: 0.25rem;
+}
+
+.tree-node-details {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.tree-node-stats {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.tree-node-stat {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.tree-node-actions {
+    display: flex;
+    gap: 0.25rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.tree-node-content:hover .tree-node-actions {
+    opacity: 1;
+}
+
+.tree-children {
+    margin-left: 2rem;
+    border-left: 2px solid rgba(102, 126, 234, 0.2);
+    padding-left: 1rem;
+    position: relative;
+}
+
+.tree-children::before {
+    content: '';
+    position: absolute;
+    left: -1px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--primary-color), transparent);
+}
+
+.tree-toggle {
+    position: absolute;
+    left: -1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tree-toggle:hover {
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.tree-toggle.collapsed {
+    transform: translateY(-50%) rotate(-90deg);
+}
+
+.tree-level-indicator {
+    position: absolute;
+    left: -2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(102, 126, 234, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.search-highlight {
+    background: rgba(255, 193, 7, 0.3) !important;
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .tree-children {
+        margin-left: 1rem;
     }
-}
-
-function resetZoom() {
-    currentZoom = 1;
-    document.getElementById('tree-container').style.transform = `scale(${currentZoom})`;
-}
-
-function toggleFullscreen() {
-    const container = document.getElementById('tree-container');
-    if (!isFullscreen) {
-        container.requestFullscreen();
-        isFullscreen = true;
-    } else {
-        document.exitFullscreen();
-        isFullscreen = false;
-    }
-}
-
-// Подсчет статистики
-function updateStats() {
-    const totalUsers = document.querySelectorAll('.user-card').length;
-    const totalPartners = document.querySelectorAll('.user-card.partner').length;
-    const totalParticipants = document.querySelectorAll('.user-card.participant').length;
-    const maxLevel = Math.max(...Array.from(document.querySelectorAll('.tree-node')).map(node => {
-        return parseInt(node.className.match(/level-(\d+)/)?.[1] || 0);
-    }));
     
-    document.getElementById('total-users').textContent = totalUsers;
-    document.getElementById('total-partners').textContent = totalPartners;
-    document.getElementById('total-participants').textContent = totalParticipants;
-    document.getElementById('max-level').textContent = maxLevel;
+    .tree-node-content {
+        padding: 0.75rem 1rem;
+    }
+    
+    .tree-node-details {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block page_js %}
+// Structure view specific JavaScript
+console.log('Structure view loaded');
+
+let currentDepth = 3;
+let isExpanded = true;
+
+// Search functionality
+document.getElementById('structureSearch').addEventListener('input', function() {
+    const query = this.value.toLowerCase();
+    const nodes = document.querySelectorAll('.tree-node-content');
+    
+    nodes.forEach(node => {
+        const text = node.textContent.toLowerCase();
+        if (text.includes(query)) {
+            node.classList.add('search-highlight');
+            node.closest('.tree-node').style.display = '';
+        } else {
+            node.classList.remove('search-highlight');
+            if (query) {
+                node.closest('.tree-node').style.display = 'none';
+            } else {
+                node.closest('.tree-node').style.display = '';
+            }
+        }
+    });
+});
+
+// Update depth
+function updateDepth() {
+    currentDepth = parseInt(document.getElementById('maxDepth').value);
+    console.log('Updating depth to:', currentDepth);
+    // This would typically reload the structure with new depth
 }
 
-// Обновляем статистику при загрузке
-document.addEventListener('DOMContentLoaded', updateStats);
-</script>
+// Expand all nodes
+function expandAll() {
+    const toggles = document.querySelectorAll('.tree-toggle');
+    toggles.forEach(toggle => {
+        toggle.classList.remove('collapsed');
+        const children = toggle.closest('.tree-node').querySelector('.tree-children');
+        if (children) {
+            children.style.display = '';
+        }
+    });
+    isExpanded = true;
+    showNotification('Все узлы развернуты', 'success');
+}
+
+// Collapse all nodes
+function collapseAll() {
+    const toggles = document.querySelectorAll('.tree-toggle');
+    toggles.forEach(toggle => {
+        toggle.classList.add('collapsed');
+        const children = toggle.closest('.tree-node').querySelector('.tree-children');
+        if (children) {
+            children.style.display = 'none';
+        }
+    });
+    isExpanded = false;
+    showNotification('Все узлы свернуты', 'info');
+}
+
+// Export structure
+function exportStructure() {
+    showNotification('Экспорт структуры начат...', 'info');
+    // This would typically generate and download a file
+}
+
+// Show statistics
+function showStats() {
+    showNotification('Статистика структуры загружается...', 'info');
+    // This would typically show a modal with detailed statistics
+}
+
+// Refresh structure
+function refreshStructure() {
+    showNotification('Структура обновляется...', 'info');
+    // This would typically reload the page or fetch fresh data
+    setTimeout(() => {
+        location.reload();
+    }, 1000);
+}
+
+// Tree node click handlers
+document.addEventListener('click', function(e) {
+    if (e.target.closest('.tree-toggle')) {
+        const toggle = e.target.closest('.tree-toggle');
+        const node = toggle.closest('.tree-node');
+        const children = node.querySelector('.tree-children');
+        
+        if (children) {
+            if (toggle.classList.contains('collapsed')) {
+                toggle.classList.remove('collapsed');
+                children.style.display = '';
+            } else {
+                toggle.classList.add('collapsed');
+                children.style.display = 'none';
+            }
+        }
+    }
+    
+    if (e.target.closest('.tree-node-content')) {
+        const nodeContent = e.target.closest('.tree-node-content');
+        const node = nodeContent.closest('.tree-node');
+        
+        // Highlight selected node
+        document.querySelectorAll('.tree-node-content').forEach(nc => {
+            nc.classList.remove('selected');
+        });
+        nodeContent.classList.add('selected');
+        
+        // Show node details (this would typically open a modal or sidebar)
+        console.log('Selected node:', nodeContent);
+    }
+});
+
+// Add tree node selection styles
+const style = document.createElement('style');
+style.textContent = `
+    .tree-node-content.selected {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2) !important;
+    }
+`;
+document.head.appendChild(style);
 {% endblock %}

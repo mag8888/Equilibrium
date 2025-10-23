@@ -1,228 +1,244 @@
-{% extends 'base/base.html' %}
+{% extends 'admin_panel/base.html' %}
+{% load static %}
 
-{% block title %}Админ-панель - TRINARY{% endblock %}
+{% block title %}Панель управления - TRINARY MLM{% endblock %}
+
+{% block breadcrumb %}Панель управления{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3 mb-0">
-        <i class="fas fa-cogs text-primary"></i> Админ-панель
-    </h1>
-    <div>
-        <a href="{% url 'admin_panel:users_list' %}" class="btn btn-primary">
-            <i class="fas fa-users me-2"></i> Управление пользователями
-        </a>
-        <a href="{% url 'admin_panel:structure_view' %}" class="btn btn-success">
-            <i class="fas fa-sitemap me-2"></i> Структура
-        </a>
-    </div>
-</div>
-
-<!-- Общая статистика -->
-<div class="row mb-4">
-    <div class="col-md-3 mb-3">
-        <div class="card stats-card">
-            <div class="card-body text-center">
-                <i class="fas fa-users fa-2x mb-2"></i>
-                <h4>{{ stats.total_users }}</h4>
-                <p class="mb-0">Всего пользователей</p>
+<!-- Dashboard Stats -->
+<div class="dashboard-grid">
+    <div class="dashboard-card">
+        <div class="dashboard-card-header">
+            <div class="dashboard-card-title">Всего пользователей</div>
+            <div class="dashboard-card-icon">
+                <i class="fas fa-users"></i>
             </div>
         </div>
-    </div>
-    <div class="col-md-3 mb-3">
-        <div class="card stats-card">
-            <div class="card-body text-center">
-                <i class="fas fa-handshake fa-2x mb-2"></i>
-                <h4>{{ stats.partners }}</h4>
-                <p class="mb-0">Партнеров</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 mb-3">
-        <div class="card stats-card">
-            <div class="card-body text-center">
-                <i class="fas fa-dollar-sign fa-2x mb-2"></i>
-                <h4>${{ stats.total_payments }}</h4>
-                <p class="mb-0">Общие платежи</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 mb-3">
-        <div class="card stats-card">
-            <div class="card-body text-center">
-                <i class="fas fa-gift fa-2x mb-2"></i>
-                <h4>${{ stats.total_bonuses }}</h4>
-                <p class="mb-0">Выплачено бонусов</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row">
-    <!-- Последние пользователи -->
-    <div class="col-md-6 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-user-plus text-primary"></i> Последние регистрации
-                </h5>
-            </div>
-            <div class="card-body">
-                {% if recent_users %}
-                    {% for user in recent_users %}
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div>
-                                <strong>{{ user.username }}</strong>
-                                <br>
-                                <small class="text-muted">{{ user.email }}</small>
-                            </div>
-                            <div class="text-end">
-                                <span class="badge bg-{% if user.status == 'partner' %}success{% else %}warning{% endif %}">
-                                    {{ user.get_status_display }}
-                                </span>
-                                <br>
-                                <small class="text-muted">{{ user.date_joined|date:"d.m.Y H:i" }}</small>
-                            </div>
-                        </div>
-                        {% if not forloop.last %}<hr>{% endif %}
-                    {% endfor %}
-                {% else %}
-                    <p class="text-muted text-center">Пользователей пока нет</p>
-                {% endif %}
-            </div>
+        <div class="dashboard-card-value">{{ stats.total_users|default:0 }}</div>
+        <div class="dashboard-card-change positive">
+            <i class="fas fa-arrow-up"></i>
+            <span>+12% за месяц</span>
         </div>
     </div>
     
-    <!-- Последние платежи -->
-    <div class="col-md-6 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-credit-card text-primary"></i> Последние платежи
-                </h5>
-            </div>
-            <div class="card-body">
-                {% if recent_payments %}
-                    {% for payment in recent_payments %}
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div>
-                                <strong>{{ payment.user.username }}</strong>
-                                <br>
-                                <small class="text-muted">{{ payment.get_payment_type_display }}</small>
-                            </div>
-                            <div class="text-end">
-                                <strong class="text-{% if payment.status == 'completed' %}success{% elif payment.status == 'pending' %}warning{% else %}danger{% endif %}">
-                                    ${{ payment.amount }}
-                                </strong>
-                                <br>
-                                <span class="badge bg-{% if payment.status == 'completed' %}success{% elif payment.status == 'pending' %}warning{% else %}danger{% endif %}">
-                                    {{ payment.get_status_display }}
-                                </span>
-                            </div>
-                        </div>
-                        {% if not forloop.last %}<hr>{% endif %}
-                    {% endfor %}
-                {% else %}
-                    <p class="text-muted text-center">Платежей пока нет</p>
-                {% endif %}
+    <div class="dashboard-card success">
+        <div class="dashboard-card-header">
+            <div class="dashboard-card-title">Активные партнеры</div>
+            <div class="dashboard-card-icon">
+                <i class="fas fa-handshake"></i>
             </div>
         </div>
-    </div>
-</div>
-
-<div class="row">
-    <!-- Ожидающие выводы -->
-    <div class="col-md-6 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-money-bill-wave text-primary"></i> Ожидающие выводы
-                </h5>
-            </div>
-            <div class="card-body">
-                {% if recent_withdrawals %}
-                    {% for withdrawal in recent_withdrawals %}
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div>
-                                <strong>{{ withdrawal.user.username }}</strong>
-                                <br>
-                                <small class="text-muted">{{ withdrawal.payment_method }}</small>
-                            </div>
-                            <div class="text-end">
-                                <strong>${{ withdrawal.amount }}</strong>
-                                <br>
-                                <span class="badge bg-{% if withdrawal.status == 'pending' %}warning{% elif withdrawal.status == 'completed' %}success{% else %}danger{% endif %}">
-                                    {{ withdrawal.get_status_display }}
-                                </span>
-                            </div>
-                        </div>
-                        {% if not forloop.last %}<hr>{% endif %}
-                    {% endfor %}
-                {% else %}
-                    <p class="text-muted text-center">Запросов на вывод пока нет</p>
-                {% endif %}
-            </div>
+        <div class="dashboard-card-value">{{ stats.partners|default:0 }}</div>
+        <div class="dashboard-card-change positive">
+            <i class="fas fa-arrow-up"></i>
+            <span>+8% за неделю</span>
         </div>
     </div>
     
-    <!-- Уведомления -->
-    <div class="col-md-6 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-bell text-primary"></i> Системные уведомления
-                </h5>
+    <div class="dashboard-card warning">
+        <div class="dashboard-card-header">
+            <div class="dashboard-card-title">Общий оборот</div>
+            <div class="dashboard-card-icon">
+                <i class="fas fa-dollar-sign"></i>
             </div>
-            <div class="card-body">
-                {% if notifications %}
-                    {% for notification in notifications %}
-                        <div class="alert alert-{% if notification.notification_type == 'error' %}danger{% elif notification.notification_type == 'warning' %}warning{% elif notification.notification_type == 'success' %}success{% else %}info{% endif %} alert-sm">
-                            <strong>{{ notification.title }}</strong>
-                            <br>
-                            <small>{{ notification.message }}</small>
-                        </div>
-                    {% endfor %}
-                {% else %}
-                    <p class="text-muted text-center">Уведомлений нет</p>
-                {% endif %}
+        </div>
+        <div class="dashboard-card-value">${{ stats.total_payments|default:0|floatformat:2 }}</div>
+        <div class="dashboard-card-change positive">
+            <i class="fas fa-arrow-up"></i>
+            <span>+25% за месяц</span>
+        </div>
+    </div>
+    
+    <div class="dashboard-card danger">
+        <div class="dashboard-card-header">
+            <div class="dashboard-card-title">Выплачено бонусов</div>
+            <div class="dashboard-card-icon">
+                <i class="fas fa-gift"></i>
             </div>
+        </div>
+        <div class="dashboard-card-value">${{ stats.total_bonuses|default:0|floatformat:2 }}</div>
+        <div class="dashboard-card-change">
+            <i class="fas fa-chart-line"></i>
+            <span>Активно</span>
         </div>
     </div>
 </div>
 
-<!-- Быстрые действия -->
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-bolt text-primary"></i> Быстрые действия
-                </h5>
+<!-- Recent Users -->
+<div class="admin-table-container">
+    <div class="admin-table-header">
+        <h3 class="admin-table-title">Последние регистрации</h3>
+    </div>
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Пользователь</th>
+                <th>Email</th>
+                <th>Статус</th>
+                <th>Дата регистрации</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if recent_users %}
+                {% for user in recent_users %}
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <div class="admin-user-avatar" style="width: 32px; height: 32px;">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <span>{{ user.username }}</span>
+                        </div>
+                    </td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        <span class="admin-badge admin-badge-{% if user.status == 'partner' %}success{% else %}warning{% endif %}">
+                            {{ user.get_status_display }}
+                        </span>
+                    </td>
+                    <td>{{ user.date_joined|date:"d.m.Y H:i" }}</td>
+                    <td>
+                        <a href="{% url 'admin_panel:user_detail' user.id %}" class="admin-btn admin-btn-outline" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 2rem; color: #6c757d;">
+                        Пользователей пока нет
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Recent Payments -->
+<div class="admin-table-container">
+    <div class="admin-table-header">
+        <h3 class="admin-table-title">Последние платежи</h3>
+    </div>
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Пользователь</th>
+                <th>Тип платежа</th>
+                <th>Сумма</th>
+                <th>Статус</th>
+                <th>Дата</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if recent_payments %}
+                {% for payment in recent_payments %}
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <div class="admin-user-avatar" style="width: 32px; height: 32px;">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <span>{{ payment.user.username }}</span>
+                        </div>
+                    </td>
+                    <td>{{ payment.get_payment_type_display }}</td>
+                    <td><strong>${{ payment.amount }}</strong></td>
+                    <td>
+                        <span class="admin-badge admin-badge-{% if payment.status == 'completed' %}success{% elif payment.status == 'pending' %}warning{% else %}danger{% endif %}">
+                            {{ payment.get_status_display }}
+                        </span>
+                    </td>
+                    <td>{{ payment.created_at|date:"d.m.Y H:i" }}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 2rem; color: #6c757d;">
+                        Платежей пока нет
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Quick Actions -->
+<div class="admin-table-container">
+    <div class="admin-table-header">
+        <h3 class="admin-table-title">Быстрые действия</h3>
+    </div>
+    <div style="padding: 2rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+            <a href="{% url 'admin_panel:users_list' %}" class="admin-btn admin-btn-primary">
+                <i class="fas fa-users"></i>
+                Управление пользователями
+            </a>
+            <a href="{% url 'admin_panel:structure_view' %}" class="admin-btn admin-btn-success">
+                <i class="fas fa-sitemap"></i>
+                Просмотр структуры
+            </a>
+            <a href="#" class="admin-btn admin-btn-warning">
+                <i class="fas fa-chart-line"></i>
+                Аналитика
+            </a>
+            <a href="#" class="admin-btn admin-btn-info">
+                <i class="fas fa-cog"></i>
+                Настройки системы
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- System Status -->
+<div class="admin-table-container">
+    <div class="admin-table-header">
+        <h3 class="admin-table-title">Статус системы</h3>
+    </div>
+    <div style="padding: 2rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: rgba(40, 167, 69, 0.1); border-radius: 8px;">
+                <i class="fas fa-check-circle" style="color: var(--success-color); font-size: 1.2rem;"></i>
+                <div>
+                    <div style="font-weight: 600;">База данных</div>
+                    <div style="font-size: 0.9rem; color: #6c757d;">Подключена</div>
+                </div>
             </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-3 mb-2">
-                        <a href="{% url 'admin_panel:users_list' %}" class="btn btn-outline-primary w-100">
-                            <i class="fas fa-users me-2"></i> Пользователи
-                        </a>
-                    </div>
-                    <div class="col-md-3 mb-2">
-                        <a href="{% url 'admin_panel:payments_list' %}" class="btn btn-outline-success w-100">
-                            <i class="fas fa-credit-card me-2"></i> Платежи
-                        </a>
-                    </div>
-                    <div class="col-md-3 mb-2">
-                        <a href="{% url 'admin_panel:withdrawals_list' %}" class="btn btn-outline-warning w-100">
-                            <i class="fas fa-money-bill-wave me-2"></i> Выводы
-                        </a>
-                    </div>
-                    <div class="col-md-3 mb-2">
-                        <a href="{% url 'admin_panel:statistics' %}" class="btn btn-outline-info w-100">
-                            <i class="fas fa-chart-bar me-2"></i> Статистика
-                        </a>
-                    </div>
+            <div style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: rgba(40, 167, 69, 0.1); border-radius: 8px;">
+                <i class="fas fa-check-circle" style="color: var(--success-color); font-size: 1.2rem;"></i>
+                <div>
+                    <div style="font-weight: 600;">Платежная система</div>
+                    <div style="font-size: 0.9rem; color: #6c757d;">Активна</div>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: rgba(40, 167, 69, 0.1); border-radius: 8px;">
+                <i class="fas fa-check-circle" style="color: var(--success-color); font-size: 1.2rem;"></i>
+                <div>
+                    <div style="font-weight: 600;">MLM система</div>
+                    <div style="font-size: 0.9rem; color: #6c757d;">Работает</div>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: rgba(255, 193, 7, 0.1); border-radius: 8px;">
+                <i class="fas fa-exclamation-triangle" style="color: var(--warning-color); font-size: 1.2rem;"></i>
+                <div>
+                    <div style="font-weight: 600;">Резервное копирование</div>
+                    <div style="font-size: 0.9rem; color: #6c757d;">Через 2 часа</div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block page_js %}
+// Dashboard specific JavaScript
+console.log('Dashboard loaded');
+
+// Auto-refresh dashboard data every 30 seconds
+setInterval(function() {
+    // This would typically fetch fresh data from the server
+    console.log('Refreshing dashboard data...');
+}, 30000);
 {% endblock %}

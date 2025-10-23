@@ -1,0 +1,147 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}TRINARY MLM Admin{% endblock %}</title>
+    
+    <!-- Modern CSS -->
+    <link rel="stylesheet" href="{% static 'css/admin-modern.css' %}">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar" id="adminSidebar">
+            <div class="admin-sidebar-header">
+                <a href="{% url 'admin_panel:dashboard' %}" class="admin-logo">
+                    <div class="admin-logo-icon">
+                        <i class="fas fa-cube"></i>
+                    </div>
+                    <span class="admin-logo-text">TRINARY MLM</span>
+                </a>
+            </div>
+            
+            <nav class="admin-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Основное</div>
+                    <a href="{% url 'admin_panel:dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                        <i class="fas fa-tachometer-alt nav-item-icon"></i>
+                        <span class="nav-item-text">Панель управления</span>
+                    </a>
+                    <a href="{% url 'admin_panel:users_list' %}" class="nav-item {% if request.resolver_match.url_name == 'users_list' %}active{% endif %}">
+                        <i class="fas fa-users nav-item-icon"></i>
+                        <span class="nav-item-text">Пользователи</span>
+                    </a>
+                    <a href="{% url 'admin_panel:structure_view' %}" class="nav-item {% if request.resolver_match.url_name == 'structure_view' %}active{% endif %}">
+                        <i class="fas fa-sitemap nav-item-icon"></i>
+                        <span class="nav-item-text">Структура MLM</span>
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Финансы</div>
+                    <a href="#" class="nav-item">
+                        <i class="fas fa-dollar-sign nav-item-icon"></i>
+                        <span class="nav-item-text">Платежи</span>
+                    </a>
+                    <a href="#" class="nav-item">
+                        <i class="fas fa-chart-line nav-item-icon"></i>
+                        <span class="nav-item-text">Бонусы</span>
+                    </a>
+                    <a href="#" class="nav-item">
+                        <i class="fas fa-credit-card nav-item-icon"></i>
+                        <span class="nav-item-text">Выплаты</span>
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Настройки</div>
+                    <a href="#" class="nav-item">
+                        <i class="fas fa-cog nav-item-icon"></i>
+                        <span class="nav-item-text">Система</span>
+                    </a>
+                    <a href="#" class="nav-item">
+                        <i class="fas fa-bell nav-item-icon"></i>
+                        <span class="nav-item-text">Уведомления</span>
+                    </a>
+                    <a href="#" class="nav-item">
+                        <i class="fas fa-chart-bar nav-item-icon"></i>
+                        <span class="nav-item-text">Аналитика</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="admin-main" id="adminMain">
+            <!-- Header -->
+            <header class="admin-header">
+                <div class="admin-header-left">
+                    <button class="sidebar-toggle" id="sidebarToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    
+                    <nav class="admin-breadcrumb">
+                        <a href="{% url 'admin_panel:dashboard' %}">Главная</a>
+                        <i class="fas fa-chevron-right"></i>
+                        <span>{% block breadcrumb %}{% endblock %}</span>
+                    </nav>
+                </div>
+                
+                <div class="admin-header-right">
+                    <div class="admin-search">
+                        <i class="fas fa-search admin-search-icon"></i>
+                        <input type="text" placeholder="Поиск пользователей, платежей..." id="adminSearch">
+                    </div>
+                    
+                    <div class="admin-user" data-tooltip="Настройки профиля">
+                        <div class="admin-user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <span>{{ user.get_full_name|default:user.username }}</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Content -->
+            <div class="admin-content">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="admin-alert admin-alert-{{ message.tags }}">
+                            <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+    
+    <!-- Modern JavaScript -->
+    <script src="{% static 'js/admin-modern.js' %}"></script>
+    
+    {% block extra_js %}{% endblock %}
+    
+    <script>
+        // Initialize admin panel
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add any page-specific initialization here
+            {% block page_js %}{% endblock %}
+        });
+    </script>
+</body>
+</html>

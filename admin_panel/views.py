@@ -127,13 +127,23 @@ def users_list(request):
     if rank:
         users = users.filter(rank=rank)
     
+    # Статистика для дашборда
+    total_users = User.objects.count()
+    active_partners = User.objects.filter(status='partner').count()
+    new_users_week = User.objects.filter(date_joined__gte=timezone.now() - timezone.timedelta(days=7)).count()
+    total_balance = User.objects.aggregate(Sum('balance'))['balance__sum'] or 0
+    
     # Пагинация
     paginator = Paginator(users, 25)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
     context = {
-        'page_obj': page_obj,
+        'users': page_obj,
+        'total_users': total_users,
+        'active_partners': active_partners,
+        'new_users_week': new_users_week,
+        'total_balance': total_balance,
         'search': search,
         'status': status,
         'rank': rank,
@@ -439,9 +449,19 @@ def structure_view(request):
     
     structure_tree = build_tree(root_user) if root_user else None
     
+    # Статистика структуры
+    total_in_structure = MLMStructure.objects.count()
+    active_partners = User.objects.filter(status='partner').count()
+    max_depth = MLMStructure.objects.aggregate(max_level=Count('level'))['max_level'] or 0
+    avg_level = MLMStructure.objects.aggregate(avg_level=Count('level'))['avg_level'] or 0
+    
     context = {
         'structure_tree': structure_tree,
         'root_user': root_user,
+        'total_in_structure': total_in_structure,
+        'active_partners': active_partners,
+        'max_depth': max_depth,
+        'avg_level': avg_level,
     }
     
     return render(request, 'admin_panel/structure_view.html', context)

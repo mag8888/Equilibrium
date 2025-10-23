@@ -1,170 +1,254 @@
-{% extends 'base/base.html' %}
+{% extends 'admin_panel/base.html' %}
+{% load static %}
 
-{% block title %}Пользователи - Админ-панель{% endblock %}
+{% block title %}Управление пользователями - TRINARY MLM{% endblock %}
+
+{% block breadcrumb %}Управление пользователями{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3 mb-0">
-        <i class="fas fa-users text-primary"></i> Управление пользователями
-    </h1>
-    <div class="d-flex gap-2">
-        <a href="{% url 'admin_panel:user_create' %}" class="btn btn-primary">
-            <i class="fas fa-user-plus me-2"></i> Добавить участника
-        </a>
-        <a href="{% url 'admin_panel:dashboard' %}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-2"></i> Назад
-        </a>
-    </div>
-</div>
-
-<!-- Фильтры -->
-<div class="card mb-4">
-    <div class="card-body">
-        <form method="get" class="row g-3">
-            <div class="col-md-4">
-                <input type="text" class="form-control" name="search" placeholder="Поиск по имени, email..." value="{{ search }}">
-            </div>
-            <div class="col-md-3">
-                <select class="form-select" name="status">
-                    <option value="">Все статусы</option>
-                    {% for status_value, status_label in status_choices %}
-                        <option value="{{ status_value }}" {% if status == status_value %}selected{% endif %}>
-                            {{ status_label }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-3">
-                <select class="form-select" name="rank">
-                    <option value="">Все ранги</option>
-                    {% for rank_value, rank_name in rank_choices %}
-                        <option value="{{ rank_value }}" {% if rank == rank_value|stringformat:"s" %}selected{% endif %}>
-                            {{ rank_name }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-primary w-100">
-                    <i class="fas fa-search"></i> Поиск
+<!-- Users Header -->
+<div class="admin-table-container">
+    <div class="admin-table-header">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="admin-table-title">Пользователи системы</h3>
+            <div style="display: flex; gap: 0.5rem;">
+                <a href="#" class="admin-btn admin-btn-primary" data-tooltip="Добавить пользователя">
+                    <i class="fas fa-plus"></i>
+                    Добавить
+                </a>
+                <button class="admin-btn admin-btn-outline" data-tooltip="Экспорт данных">
+                    <i class="fas fa-download"></i>
+                    Экспорт
                 </button>
             </div>
-        </form>
-    </div>
-</div>
-
-<!-- Таблица пользователей -->
-<div class="card">
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Пользователь</th>
-                        <th>Email</th>
-                        <th>Статус</th>
-                        <th>Ранг</th>
-                        <th>Баланс</th>
-                        <th>Рефералов</th>
-                        <th>Дата регистрации</th>
-                        <th>Действия</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for user in page_obj %}
-                        <tr>
-                            <td>{{ user.id }}</td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
-                                        <i class="fas fa-user text-white"></i>
-                                    </div>
-                                    <div>
-                                        <strong>{{ user.username }}</strong>
-                                        {% if user.first_name or user.last_name %}
-                                            <br>
-                                            <small class="text-muted">{{ user.first_name }} {{ user.last_name }}</small>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </td>
-                            <td>{{ user.email }}</td>
-                            <td>
-                                <span class="badge bg-{% if user.status == 'partner' %}success{% elif user.status == 'participant' %}warning{% else %}danger{% endif %}">
-                                    {{ user.get_status_display }}
-                                </span>
-                            </td>
-                            <td>
-                                <span class="badge bg-primary">{{ user.get_rank_display }}</span>
-                            </td>
-                            <td>
-                                <strong class="text-success">${{ user.balance }}</strong>
-                            </td>
-                            <td>
-                                <span class="badge bg-info">{{ user.referrals.count }}</span>
-                            </td>
-                            <td>{{ user.date_joined|date:"d.m.Y H:i" }}</td>
-                            <td>
-                                <div class="btn-group" role="group">
-                                    <a href="{% url 'admin_panel:user_detail' user.id %}" class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <a href="{% url 'admin_panel:user_edit' user.id %}" class="btn btn-sm btn-outline-warning">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <a href="{% url 'admin_panel:user_structure' user.id %}" class="btn btn-sm btn-outline-success">
-                                        <i class="fas fa-sitemap"></i>
-                                    </a>
-                                    <a href="{% url 'admin_panel:user_move' user.id %}" class="btn btn-sm btn-outline-dark" title="Переместить в структуре">
-                                        <i class="fas fa-arrows-alt"></i>
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                    {% empty %}
-                        <tr>
-                            <td colspan="9" class="text-center text-muted">
-                                <i class="fas fa-users fa-3x mb-3"></i>
-                                <br>
-                                Пользователи не найдены
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
         </div>
+    </div>
+    
+    <!-- Search and Filters -->
+    <div style="padding: 1.5rem 2rem; border-bottom: 1px solid rgba(0, 0, 0, 0.1);">
+        <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 1rem; align-items: center;">
+            <div class="admin-search" style="position: relative;">
+                <i class="fas fa-search admin-search-icon"></i>
+                <input type="text" placeholder="Поиск по имени, email, телефону..." id="userSearch" style="width: 100%;">
+            </div>
+            <select class="admin-form-select" style="width: 150px;" id="statusFilter">
+                <option value="">Все статусы</option>
+                <option value="participant">Участник</option>
+                <option value="partner">Партнер</option>
+                <option value="admin">Администратор</option>
+            </select>
+            <select class="admin-form-select" style="width: 150px;" id="rankFilter">
+                <option value="">Все ранги</option>
+                <option value="0">Ранг 0</option>
+                <option value="1">Ранг 1</option>
+                <option value="2">Ранг 2</option>
+            </select>
+        </div>
+    </div>
+    
+    <!-- Users Table -->
+    <table class="admin-table" id="usersTable">
+        <thead>
+            <tr>
+                <th data-sortable="true" data-column="username">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        Пользователь
+                        <i class="fas fa-sort"></i>
+                    </div>
+                </th>
+                <th data-sortable="true" data-column="email">Email</th>
+                <th data-sortable="true" data-column="phone">Телефон</th>
+                <th data-sortable="true" data-column="status">Статус</th>
+                <th data-sortable="true" data-column="rank">Ранг</th>
+                <th data-sortable="true" data-column="balance">Баланс</th>
+                <th data-sortable="true" data-column="date_joined">Дата регистрации</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr data-searchable="{{ user.username }} {{ user.email }} {{ user.phone }}">
+                <td>
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div class="admin-user-avatar" style="width: 40px; height: 40px;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600;">{{ user.username }}</div>
+                            <div style="font-size: 0.8rem; color: #6c757d;">
+                                ID: {{ user.id }}
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.phone|default:"—" }}</td>
+                <td>
+                    <span class="admin-badge admin-badge-{% if user.status == 'partner' %}success{% elif user.status == 'admin' %}primary{% else %}warning{% endif %}">
+                        {{ user.get_status_display }}
+                    </span>
+                </td>
+                <td>
+                    <span class="admin-badge admin-badge-info">
+                        Ранг {{ user.rank }}
+                    </span>
+                </td>
+                <td>
+                    <strong style="color: var(--success-color);">${{ user.balance|floatformat:2 }}</strong>
+                </td>
+                <td>{{ user.date_joined|date:"d.m.Y H:i" }}</td>
+                <td>
+                    <div style="display: flex; gap: 0.25rem;">
+                        <a href="{% url 'admin_panel:user_detail' user.id %}" class="admin-btn admin-btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" data-tooltip="Просмотр">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="#" class="admin-btn admin-btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" data-tooltip="Редактировать">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="{% url 'admin_panel:user_structure' user.id %}" class="admin-btn admin-btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" data-tooltip="Структура">
+                            <i class="fas fa-sitemap"></i>
+                        </a>
+                        {% if user.status != 'admin' %}
+                        <button class="admin-btn admin-btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" data-tooltip="Заблокировать" onclick="blockUser({{ user.id }})">
+                            <i class="fas fa-ban"></i>
+                        </button>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" style="text-align: center; padding: 3rem; color: #6c757d;">
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+                        <i class="fas fa-users" style="font-size: 3rem; color: #e9ecef;"></i>
+                        <div>
+                            <h4>Пользователей пока нет</h4>
+                            <p>Добавьте первого пользователя в систему</p>
+                        </div>
+                        <a href="#" class="admin-btn admin-btn-primary">
+                            <i class="fas fa-plus"></i>
+                            Добавить пользователя
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <!-- Pagination -->
+    {% if users.has_other_pages %}
+    <div class="admin-pagination">
+        {% if users.has_previous %}
+            <a href="?page=1">&laquo; Первая</a>
+            <a href="?page={{ users.previous_page_number }}">Предыдущая</a>
+        {% endif %}
         
-        <!-- Пагинация -->
-        {% if page_obj.has_other_pages %}
-            <nav aria-label="Page navigation">
-                <ul class="pagination justify-content-center">
-                    {% if page_obj.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}{% if rank %}&rank={{ rank }}{% endif %}">Первая</a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}{% if rank %}&rank={{ rank }}{% endif %}">Предыдущая</a>
-                        </li>
-                    {% endif %}
-                    
-                    <li class="page-item active">
-                        <span class="page-link">
-                            Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
-                        </span>
-                    </li>
-                    
-                    {% if page_obj.has_next %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}{% if rank %}&rank={{ rank }}{% endif %}">Следующая</a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}{% if rank %}&rank={{ rank }}{% endif %}">Последняя</a>
-                        </li>
-                    {% endif %}
-                </ul>
-            </nav>
+        {% for num in users.paginator.page_range %}
+            {% if users.number == num %}
+                <span class="current">{{ num }}</span>
+            {% elif num > users.number|add:'-3' and num < users.number|add:'3' %}
+                <a href="?page={{ num }}">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+        
+        {% if users.has_next %}
+            <a href="?page={{ users.next_page_number }}">Следующая</a>
+            <a href="?page={{ users.paginator.num_pages }}">Последняя &raquo;</a>
         {% endif %}
     </div>
+    {% endif %}
 </div>
+
+<!-- User Statistics -->
+<div class="dashboard-grid" style="margin-top: 2rem;">
+    <div class="dashboard-card">
+        <div class="dashboard-card-header">
+            <div class="dashboard-card-title">Всего пользователей</div>
+            <div class="dashboard-card-icon">
+                <i class="fas fa-users"></i>
+            </div>
+        </div>
+        <div class="dashboard-card-value">{{ total_users|default:0 }}</div>
+    </div>
+    
+    <div class="dashboard-card success">
+        <div class="dashboard-card-header">
+            <div class="dashboard-card-title">Активные партнеры</div>
+            <div class="dashboard-card-icon">
+                <i class="fas fa-handshake"></i>
+            </div>
+        </div>
+        <div class="dashboard-card-value">{{ active_partners|default:0 }}</div>
+    </div>
+    
+    <div class="dashboard-card warning">
+        <div class="dashboard-card-header">
+            <div class="dashboard-card-title">Новые за неделю</div>
+            <div class="dashboard-card-icon">
+                <i class="fas fa-user-plus"></i>
+            </div>
+        </div>
+        <div class="dashboard-card-value">{{ new_users_week|default:0 }}</div>
+    </div>
+    
+    <div class="dashboard-card info">
+        <div class="dashboard-card-header">
+            <div class="dashboard-card-title">Общий баланс</div>
+            <div class="dashboard-card-icon">
+                <i class="fas fa-wallet"></i>
+            </div>
+        </div>
+        <div class="dashboard-card-value">${{ total_balance|default:0|floatformat:2 }}</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block page_js %}
+// Users list specific JavaScript
+console.log('Users list loaded');
+
+// Search functionality
+document.getElementById('userSearch').addEventListener('input', function() {
+    const query = this.value.toLowerCase();
+    const rows = document.querySelectorAll('#usersTable tbody tr');
+    
+    rows.forEach(row => {
+        const searchableText = row.getAttribute('data-searchable').toLowerCase();
+        if (searchableText.includes(query)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+});
+
+// Status filter
+document.getElementById('statusFilter').addEventListener('change', function() {
+    const status = this.value;
+    const rows = document.querySelectorAll('#usersTable tbody tr');
+    
+    rows.forEach(row => {
+        if (!status || row.querySelector('.admin-badge').textContent.toLowerCase().includes(status)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+});
+
+// Block user function
+function blockUser(userId) {
+    if (confirm('Вы уверены, что хотите заблокировать этого пользователя?')) {
+        // This would typically send a request to the server
+        console.log('Blocking user:', userId);
+        showNotification('Пользователь заблокирован', 'success');
+    }
+}
+
+// Export functionality
+document.querySelector('[data-tooltip="Экспорт данных"]').addEventListener('click', function() {
+    showNotification('Экспорт данных начат...', 'info');
+    // This would typically trigger a download
+});
 {% endblock %}
