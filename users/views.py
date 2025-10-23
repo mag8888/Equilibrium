@@ -12,14 +12,17 @@ import json
 
 
 def home(request):
-    """Главная страница - простой HTML"""
+    """Главная страница - простой HTML с принудительным обновлением"""
     html = """
     <!DOCTYPE html>
     <html lang="ru">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>TRINARY MLM</title>
+        <title>TRINARY MLM - Система работает!</title>
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+        <meta http-equiv="Pragma" content="no-cache">
+        <meta http-equiv="Expires" content="0">
         <style>
             body {
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -30,17 +33,31 @@ def home(request):
                 justify-content: center;
                 color: white;
                 margin: 0;
+                animation: fadeIn 1s ease-in;
+            }
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
             }
             .container {
                 text-align: center;
                 max-width: 800px;
                 padding: 2rem;
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(20px);
+                border-radius: 20px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
             }
             .logo {
                 font-size: 4rem;
                 font-weight: 700;
                 margin-bottom: 1rem;
                 text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+                animation: pulse 2s infinite;
+            }
+            @keyframes pulse {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.05); }
             }
             .subtitle {
                 font-size: 1.5rem;
@@ -71,11 +88,29 @@ def home(request):
             .status {
                 margin-top: 2rem;
                 padding: 1rem;
-                background: rgba(255, 255, 255, 0.1);
-                border-radius: 8px;
+                background: rgba(40, 167, 69, 0.2);
+                border: 2px solid rgba(40, 167, 69, 0.3);
+                border-radius: 12px;
                 font-size: 0.9rem;
             }
+            .timestamp {
+                margin-top: 1rem;
+                font-size: 0.8rem;
+                opacity: 0.7;
+            }
         </style>
+        <script>
+            // Принудительное обновление каждые 30 секунд
+            setTimeout(() => {
+                location.reload(true);
+            }, 30000);
+            
+            // Показать время загрузки
+            document.addEventListener('DOMContentLoaded', function() {
+                const timestamp = new Date().toLocaleString('ru-RU');
+                document.querySelector('.timestamp').textContent = 'Загружено: ' + timestamp;
+            });
+        </script>
     </head>
     <body>
         <div class="container">
@@ -91,12 +126,17 @@ def home(request):
             <div class="status">
                 <strong>✅ Система запущена и работает!</strong><br>
                 <small>Современный дизайн • Glass morphism • Адаптивная верстка</small>
+                <div class="timestamp"></div>
             </div>
         </div>
     </body>
     </html>
     """
-    return HttpResponse(html)
+    return HttpResponse(html, headers={
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+    })
 
 
 def register(request):
