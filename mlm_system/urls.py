@@ -22,11 +22,12 @@ from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('admin-panel/', include('admin_panel.urls')),
-    path('api/users/', include('users.urls')),
-    path('api/payments/', include('payments.urls')),
+    # path('admin-panel/', include('admin_panel.urls')),
+    # path('api/users/', include('users.urls')),
+    # path('api/payments/', include('payments.urls')),
     path('health/', views.health_check, name='health_check'),
-    path('', admin.site.urls),  # Redirect root to admin for testing
+    path('test/', views.simple_test, name='simple_test'),
+    path('', views.simple_test),  # Redirect root to simple test
 ]
 
 if settings.DEBUG:

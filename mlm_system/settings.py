@@ -41,17 +41,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
-    # Third party apps
+    # Third party apps (simplified for Railway)
     'rest_framework',
     'corsheaders',
-    'django_extensions',
-    'django_filters',
-    'import_export',
     
-    # Local apps
-    'users',
-    'admin_panel',
-    'payments',
+    # Local apps (commented out for testing)
+    # 'users',
+    # 'admin_panel', 
+    # 'payments',
 ]
 
 MIDDLEWARE = [
