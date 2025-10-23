@@ -1,224 +1,94 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}TRINARY MLM System{% endblock %}</title>
+    <title>{% block title %}TRINARY MLM{% endblock %}</title>
     
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Modern CSS -->
+    <link rel="stylesheet" href="{% static 'css/admin-modern.css' %}">
     
-    <style>
-        :root {
-            --accent: #6366f1;
-            --accent-dark: #4f46e5;
-            --sidebar-bg: #ffffff;
-            --surface-bg: #ffffff;
-            --page-bg: #f3f4f6;
-            --text-muted: #6b7280;
-            --border-color: #e5e7eb;
-        }
-
-        body {
-            background-color: var(--page-bg);
-            color: #111827;
-        }
-
-        .sidebar {
-            min-height: 100vh;
-            background: var(--sidebar-bg);
-            border-right: 1px solid var(--border-color);
-            padding: 1.5rem;
-        }
-
-        .sidebar-brand {
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            color: #111827;
-        }
-
-        .sidebar-profile {
-            background: #f5f5ff;
-            border-radius: 16px;
-            padding: 1rem;
-        }
-
-        .sidebar-avatar {
-            width: 56px;
-            height: 56px;
-            border-radius: 16px;
-            background: var(--accent);
-            color: #ffffff;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.3rem;
-        }
-
-        .sidebar .nav-link {
-            color: #1f2937;
-            border-radius: 12px;
-            margin: 4px 0;
-            padding: 0.65rem 0.85rem;
-            font-weight: 500;
-            transition: color 0.2s ease, background 0.2s ease, transform 0.2s ease;
-        }
-
-        .sidebar .nav-link i {
-            width: 18px;
-            text-align: center;
-            color: var(--text-muted);
-        }
-
-        .sidebar .nav-link:hover,
-        .sidebar .nav-link.active {
-            color: var(--accent);
-            background: rgba(99, 102, 241, 0.12);
-            transform: translateX(4px);
-        }
-
-        .main-content {
-            min-height: 100vh;
-            background: var(--page-bg);
-        }
-
-        .card {
-            background: var(--surface-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 18px;
-            box-shadow: 0 20px 40px -30px rgba(79, 70, 229, 0.35);
-        }
-
-        .stats-card {
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
-            color: #ffffff;
-        }
-
-        .btn-primary {
-            background: var(--accent);
-            border: none;
-            border-radius: 12px;
-            padding: 0.65rem 1.4rem;
-        }
-
-        .btn-primary:hover {
-            background: var(--accent-dark);
-        }
-
-        .btn-outline-secondary,
-        .btn-outline-dark,
-        .btn-outline-warning,
-        .btn-outline-success,
-        .btn-outline-primary {
-            border-radius: 12px;
-        }
-
-        .badge {
-            border-radius: 8px;
-            padding: 0.45em 0.55em;
-        }
-
-        .table thead th {
-            color: var(--text-muted);
-            font-weight: 600;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .alert {
-            border-radius: 12px;
-        }
-    </style>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 sidebar">
-                <div class="d-flex flex-column h-100">
-                    <h4 class="sidebar-brand text-center mb-4">
-                        <i class="fas fa-sitemap me-2 text-primary"></i>TRINARY
-                    </h4>
-                    
-                    {% if user.is_authenticated %}
-                        <div class="sidebar-profile text-center mb-4">
-                            <div class="sidebar-avatar mb-2">
-                                <i class="fas fa-user"></i>
-                            </div>
-                            <p class="mb-0 fw-semibold">{{ user.username }}</p>
-                            <small class="text-muted">{{ user.get_status_display }}</small>
-                        </div>
-                    {% endif %}
-                    
-                    <nav class="nav flex-column flex-grow-1">
-                        {% if user.is_authenticated %}
-                            <a class="nav-link" href="{% url 'users:dashboard' %}">
-                                <i class="fas fa-tachometer-alt me-2"></i> Дашборд
-                            </a>
-                            <a class="nav-link" href="{% url 'users:structure' %}">
-                                <i class="fas fa-sitemap me-2"></i> Структура
-                            </a>
-                            <a class="nav-link" href="{% url 'users:referrals' %}">
-                                <i class="fas fa-users me-2"></i> Рефералы
-                            </a>
-                            <a class="nav-link" href="{% url 'mlm:bonuses' %}">
-                                <i class="fas fa-gift me-2"></i> Бонусы
-                            </a>
-                            <a class="nav-link" href="{% url 'mlm:withdraw' %}">
-                                <i class="fas fa-money-bill-wave me-2"></i> Вывод средств
-                            </a>
-                            <a class="nav-link" href="{% url 'users:profile' %}">
-                                <i class="fas fa-user-cog me-2"></i> Профиль
-                            </a>
-                            
-                            {% if user.is_staff %}
-                                <hr class="my-3">
-                                <a class="nav-link" href="{% url 'admin_panel:dashboard' %}">
-                                    <i class="fas fa-cogs me-2"></i> Админ-панель
-                                </a>
-                            {% endif %}
-                            
-                            <hr class="my-3">
-                            <a class="nav-link" href="{% url 'users:logout' %}">
-                                <i class="fas fa-sign-out-alt me-2"></i> Выход
-                            </a>
-                        {% else %}
-                            <a class="nav-link" href="{% url 'users:login' %}">
-                                <i class="fas fa-sign-in-alt me-2"></i> Вход
-                            </a>
-                            <a class="nav-link" href="{% url 'users:register' %}">
-                                <i class="fas fa-user-plus me-2"></i> Регистрация
-                            </a>
-                        {% endif %}
-                    </nav>
-                </div>
-            </div>
+    <!-- Navigation -->
+    <nav style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); padding: 1rem 2rem; border-bottom: 1px solid rgba(0, 0, 0, 0.1); position: sticky; top: 0; z-index: 100;">
+        <div style="display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto;">
+            <a href="{% url 'users:home' %}" style="font-size: 1.5rem; font-weight: 700; color: var(--primary-color); text-decoration: none;">
+                <i class="fas fa-cube" style="margin-right: 0.5rem;"></i>
+                TRINARY MLM
+            </a>
             
-            <!-- Main Content -->
-            <div class="col-md-9 col-lg-10 main-content">
-                <div class="p-4">
-                    <!-- Messages -->
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                    
-                    <!-- Page Content -->
-                    {% block content %}{% endblock %}
-                </div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'users:dashboard' %}" class="admin-btn admin-btn-outline" style="padding: 0.5rem 1rem;">
+                        <i class="fas fa-tachometer-alt"></i>
+                        Панель
+                    </a>
+                    <a href="{% url 'users:logout' %}" class="admin-btn admin-btn-danger" style="padding: 0.5rem 1rem;">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Выйти
+                    </a>
+                {% else %}
+                    <a href="{% url 'users:login' %}" class="admin-btn admin-btn-outline" style="padding: 0.5rem 1rem;">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Войти
+                    </a>
+                    <a href="{% url 'users:register' %}" class="admin-btn admin-btn-primary" style="padding: 0.5rem 1rem;">
+                        <i class="fas fa-user-plus"></i>
+                        Регистрация
+                    </a>
+                {% endif %}
+                
+                <a href="{% url 'admin_panel:dashboard' %}" class="admin-btn admin-btn-success" style="padding: 0.5rem 1rem;">
+                    <i class="fas fa-cogs"></i>
+                    Админ
+                </a>
             </div>
         </div>
-    </div>
+    </nav>
     
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Messages -->
+    {% if messages %}
+        <div style="max-width: 1200px; margin: 0 auto; padding: 1rem 2rem;">
+            {% for message in messages %}
+                <div class="admin-alert admin-alert-{{ message.tags }}" style="margin-bottom: 0.5rem;">
+                    <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    <!-- Content -->
+    <main style="min-height: calc(100vh - 200px);">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer style="background: var(--dark-color); color: white; padding: 2rem; text-align: center; margin-top: 4rem;">
+        <div style="max-width: 1200px; margin: 0 auto;">
+            <h3 style="margin-bottom: 1rem;">TRINARY MLM</h3>
+            <p style="opacity: 0.8; margin-bottom: 1rem;">Современная MLM система с передовыми технологиями</p>
+            <div style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap;">
+                <a href="{% url 'users:home' %}" style="color: white; text-decoration: none; opacity: 0.8;">Главная</a>
+                <a href="{% url 'users:register' %}" style="color: white; text-decoration: none; opacity: 0.8;">Регистрация</a>
+                <a href="{% url 'admin_panel:dashboard' %}" style="color: white; text-decoration: none; opacity: 0.8;">Админ-панель</a>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Modern JavaScript -->
+    <script src="{% static 'js/admin-modern.js' %}"></script>
     
     {% block extra_js %}{% endblock %}
 </body>
