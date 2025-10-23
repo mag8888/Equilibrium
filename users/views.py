@@ -163,6 +163,7 @@ def register(request):
 @csrf_exempt
 def login_view(request):
     """Полностью статический вход в систему"""
+    error_msg = ""
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
@@ -173,8 +174,9 @@ def login_view(request):
             return redirect('admin_panel:dashboard')
         else:
             error_msg = "Неверные данные для входа"
-    else:
-        error_msg = ""
+    
+    # Простой HTML без сложных f-строк
+    error_html = f'<div class="error">{error_msg}</div>' if error_msg else ''
     
     html = f"""
     <!DOCTYPE html>
@@ -433,7 +435,7 @@ def login_view(request):
                 <p>Современная система управления</p>
             </div>
             
-            {'<div class="error">' + error_msg + '</div>' if error_msg else ''}
+            {error_html}
             
             <form method="post">
                 <div class="form-group">
