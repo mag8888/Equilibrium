@@ -12,16 +12,14 @@ import json
 
 
 def home(request):
-    """Главная страница - простой HTML с принудительным обновлением"""
-    import time
-    timestamp = int(time.time())
-    html = f"""
+    """Главная страница - максимально простая"""
+    html = """
     <!DOCTYPE html>
     <html lang="ru">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>TRINARY MLM - Система работает! (v{timestamp})</title>
+        <title>TRINARY MLM - Работает!</title>
         <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
         <meta http-equiv="Pragma" content="no-cache">
         <meta http-equiv="Expires" content="0">
@@ -126,10 +124,8 @@ def home(request):
             </div>
             
             <div class="status">
-                <strong>✅ Система запущена и работает!</strong><br>
-                <small>Современный дизайн • Glass morphism • Адаптивная верстка</small><br>
-                <small>Версия: {timestamp} • Время: {time.strftime('%H:%M:%S')}</small>
-                <div class="timestamp"></div>
+                <strong>✅ СИСТЕМА РАБОТАЕТ!</strong><br>
+                <small>Современный дизайн • Glass morphism • Адаптивная верстка</small>
             </div>
         </div>
     </body>
@@ -139,9 +135,7 @@ def home(request):
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
         'Expires': '0',
-        'X-Timestamp': str(timestamp),
-        'X-Version': f'v{timestamp}',
-        'X-Content-Type': 'text/html; charset=utf-8'
+        'Content-Type': 'text/html; charset=utf-8'
     })
 
 
