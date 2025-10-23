@@ -1,0 +1,183 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Мои рефералы - TRINARY{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+        <i class="fas fa-users text-primary"></i> Мои рефералы
+    </h1>
+    <div>
+        <a href="{% url 'users:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i> Назад
+        </a>
+    </div>
+</div>
+
+<!-- Статистика рефералов -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-users fa-2x mb-2"></i>
+                <h4>{{ stats.total }}</h4>
+                <p class="mb-0">Всего рефералов</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-handshake fa-2x mb-2"></i>
+                <h4>{{ stats.partners }}</h4>
+                <p class="mb-0">Партнеров</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-user-clock fa-2x mb-2"></i>
+                <h4>{{ stats.participants }}</h4>
+                <p class="mb-0">Участников</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-user-times fa-2x mb-2"></i>
+                <h4>{{ stats.inactive }}</h4>
+                <p class="mb-0">Неактивных</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Реферальная ссылка -->
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title">
+            <i class="fas fa-share-alt text-primary"></i> Ваша реферальная ссылка
+        </h5>
+        <div class="input-group">
+            <input type="text" class="form-control" id="referral-link" value="{{ referral_link }}" readonly>
+            <button class="btn btn-outline-primary" type="button" onclick="copyReferralLink()">
+                <i class="fas fa-copy"></i> Копировать
+            </button>
+        </div>
+        <div class="mt-2">
+            <small class="text-muted">
+                Поделитесь этой ссылкой с друзьями. Каждый, кто зарегистрируется по вашей ссылке, станет вашим рефералом.
+            </small>
+        </div>
+    </div>
+</div>
+
+<!-- Список рефералов -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-list"></i> Список рефералов
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if referrals %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Пользователь</th>
+                            <th>Email</th>
+                            <th>Статус</th>
+                            <th>Ранг</th>
+                            <th>Баланс</th>
+                            <th>Дата регистрации</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for referral in referrals %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
+                                            <i class="fas fa-user text-white"></i>
+                                        </div>
+                                        <div>
+                                            <strong>{{ referral.username }}</strong>
+                                            {% if referral.first_name or referral.last_name %}
+                                                <br>
+                                                <small class="text-muted">{{ referral.first_name }} {{ referral.last_name }}</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ referral.email }}</td>
+                                <td>
+                                    <span class="badge bg-{% if referral.status == 'partner' %}success{% elif referral.status == 'participant' %}warning{% else %}danger{% endif %}">
+                                        {{ referral.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">{{ referral.get_rank_display }}</span>
+                                </td>
+                                <td>
+                                    <strong class="text-success">${{ referral.balance }}</strong>
+                                </td>
+                                <td>{{ referral.date_joined|date:"d.m.Y H:i" }}</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'admin_panel:user_detail' referral.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'admin_panel:user_structure' referral.id %}" class="btn btn-sm btn-outline-success">
+                                            <i class="fas fa-sitemap"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center text-muted p-5">
+                <i class="fas fa-users fa-3x mb-3"></i>
+                <br>
+                <h5>У вас пока нет рефералов</h5>
+                <p>Поделитесь своей реферальной ссылкой с друзьями, чтобы привлечь новых участников!</p>
+                <button class="btn btn-primary" onclick="copyReferralLink()">
+                    <i class="fas fa-share-alt me-2"></i> Скопировать реферальную ссылку
+                </button>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function copyReferralLink() {
+    const referralLink = document.getElementById('referral-link');
+    referralLink.select();
+    referralLink.setSelectionRange(0, 99999);
+    document.execCommand('copy');
+    
+    // Показываем уведомление
+    const button = event.target.closest('button');
+    if (button) {
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check"></i> Скопировано!';
+        button.classList.remove('btn-outline-primary', 'btn-primary');
+        button.classList.add('btn-success');
+        
+        setTimeout(() => {
+            button.innerHTML = originalHTML;
+            button.classList.remove('btn-success');
+            button.classList.add('btn-outline-primary');
+        }, 2000);
+    } else {
+        alert('Реферальная ссылка скопирована в буфер обмена!');
+    }
+}
+</script>
+{% endblock %}

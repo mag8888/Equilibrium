@@ -1,0 +1,134 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Бонусы - TRINARY{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+        <i class="fas fa-gift text-primary"></i> Мои бонусы
+    </h1>
+    <div>
+        <a href="{% url 'users:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i> Назад
+        </a>
+    </div>
+</div>
+
+<!-- Сводка по бонусам -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-gift fa-2x mb-2"></i>
+                <h4>{{ summary.total_bonuses }}</h4>
+                <p class="mb-0">Всего бонусов</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-dollar-sign fa-2x mb-2"></i>
+                <h4>${{ summary.total_amount }}</h4>
+                <p class="mb-0">Общая сумма</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-check-circle fa-2x mb-2"></i>
+                <h4>${{ summary.green_amount }}</h4>
+                <p class="mb-0">Зеленые бонусы</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-times-circle fa-2x mb-2"></i>
+                <h4>${{ summary.red_amount }}</h4>
+                <p class="mb-0">Красные бонусы</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Фильтры -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <select class="form-select" name="type">
+                    <option value="">Все типы бонусов</option>
+                    <option value="green" {% if bonus_type == 'green' %}selected{% endif %}>Зеленые бонусы</option>
+                    <option value="red" {% if bonus_type == 'red' %}selected{% endif %}>Красные бонусы</option>
+                    <option value="spillover" {% if bonus_type == 'spillover' %}selected{% endif %}>Спилловер</option>
+                    <option value="matching" {% if bonus_type == 'matching' %}selected{% endif %}>Матчинг</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-filter"></i> Фильтр
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Список бонусов -->
+<div class="card">
+    <div class="card-body">
+        {% if bonuses %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Дата</th>
+                            <th>Тип</th>
+                            <th>Сумма</th>
+                            <th>Описание</th>
+                            <th>От кого</th>
+                            <th>Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for bonus in bonuses %}
+                            <tr>
+                                <td>{{ bonus.created_at|date:"d.m.Y H:i" }}</td>
+                                <td>
+                                    <span class="badge bg-{% if bonus.bonus_type == 'green' %}success{% elif bonus.bonus_type == 'red' %}danger{% else %}info{% endif %}">
+                                        {{ bonus.get_bonus_type_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong class="text-success">${{ bonus.amount }}</strong>
+                                </td>
+                                <td>{{ bonus.description }}</td>
+                                <td>
+                                    {% if bonus.from_user %}
+                                        {{ bonus.from_user.username }}
+                                    {% else %}
+                                        <span class="text-muted">Система</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-{% if bonus.is_paid %}success{% else %}warning{% endif %}">
+                                        {% if bonus.is_paid %}Выплачен{% else %}Ожидает{% endif %}
+                                    </span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center text-muted p-5">
+                <i class="fas fa-gift fa-3x mb-3"></i>
+                <br>
+                Бонусов пока нет
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

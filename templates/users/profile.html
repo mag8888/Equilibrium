@@ -1,0 +1,177 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Профиль - TRINARY{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+        <i class="fas fa-user-cog text-primary"></i> Мой профиль
+    </h1>
+    <div>
+        <a href="{% url 'users:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i> Назад
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-edit"></i> Редактирование профиля
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="first_name" class="form-label">Имя</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" 
+                                   value="{{ user.first_name }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="last_name" class="form-label">Фамилия</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" 
+                                   value="{{ user.last_name }}">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="phone" class="form-label">Телефон</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" 
+                                   value="{{ user.phone }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="telegram_username" class="form-label">Telegram</label>
+                            <input type="text" class="form-control" id="telegram_username" name="telegram_username" 
+                                   value="{{ user.telegram_username }}" placeholder="@username">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="bio" class="form-label">О себе</label>
+                        <textarea class="form-control" id="bio" name="bio" rows="3" 
+                                  placeholder="Расскажите о себе...">{% if user.profile %}{{ user.profile.bio }}{% endif %}</textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="country" class="form-label">Страна</label>
+                            <input type="text" class="form-control" id="country" name="country" 
+                                   value="{% if user.profile %}{{ user.profile.country }}{% endif %}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="city" class="form-label">Город</label>
+                            <input type="text" class="form-control" id="city" name="city" 
+                                   value="{% if user.profile %}{{ user.profile.city }}{% endif %}">
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i> Сохранить изменения
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Информация о профиле -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle"></i> Информация о профиле
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                        <i class="fas fa-user fa-2x text-white"></i>
+                    </div>
+                </div>
+                
+                <div class="mb-2">
+                    <strong>Имя пользователя:</strong><br>
+                    {{ user.username }}
+                </div>
+                
+                <div class="mb-2">
+                    <strong>Email:</strong><br>
+                    {{ user.email }}
+                </div>
+                
+                <div class="mb-2">
+                    <strong>Статус:</strong><br>
+                    <span class="badge bg-{% if user.status == 'partner' %}success{% else %}warning{% endif %}">
+                        {{ user.get_status_display }}
+                    </span>
+                </div>
+                
+                <div class="mb-2">
+                    <strong>Ранг:</strong><br>
+                    <span class="badge bg-primary">{{ user.get_rank_display }}</span>
+                </div>
+                
+                <div class="mb-2">
+                    <strong>Реферальный код:</strong><br>
+                    <code>{{ user.referral_code }}</code>
+                </div>
+                
+                <div class="mb-2">
+                    <strong>Дата регистрации:</strong><br>
+                    {{ user.date_joined|date:"d.m.Y" }}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Реферальная ссылка -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-share-alt"></i> Реферальная ссылка
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="referral-link" 
+                           value="{{ request.build_absolute_uri }}{{ user.get_referral_link }}" readonly>
+                    <button class="btn btn-outline-primary" type="button" onclick="copyReferralLink()">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                <small class="text-muted">
+                    Поделитесь этой ссылкой с друзьями для привлечения новых участников
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyReferralLink() {
+    const referralLink = document.getElementById('referral-link');
+    referralLink.select();
+    referralLink.setSelectionRange(0, 99999);
+    document.execCommand('copy');
+    
+    // Показываем уведомление
+    const button = event.target.closest('button');
+    const originalHTML = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-check"></i>';
+    button.classList.remove('btn-outline-primary');
+    button.classList.add('btn-success');
+    
+    setTimeout(() => {
+        button.innerHTML = originalHTML;
+        button.classList.remove('btn-success');
+        button.classList.add('btn-outline-primary');
+    }, 2000);
+}
+</script>
+{% endblock %}

@@ -91,8 +91,7 @@ ipython_config.py
 #   install all needed dependencies.
 #Pipfile.lock
 
-# PEP 582; used by e.g. github.com/David-OConnor/pyenv and github.com/pyenv/pyenv
-#   __version__ = "1.2.3"
+# PEP 582; used by e.g. github.com/David-OConnor/pyflow
 __pypackages__/
 
 # Celery stuff
@@ -130,20 +129,9 @@ dmypy.json
 .pyre/
 
 # Django
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-
-# Static files
 staticfiles/
-static/
-
-# Media files
 media/
-
-# Logs
-logs/
+*.log
 
 # IDE
 .vscode/

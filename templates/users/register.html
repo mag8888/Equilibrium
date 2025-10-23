@@ -1,0 +1,78 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Регистрация - TRINARY{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <h2 class="text-primary">
+                        <i class="fas fa-user-plus"></i> Регистрация
+                    </h2>
+                    <p class="text-muted">Присоединяйтесь к TRINARY MLM системе</p>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Имя пользователя</label>
+                        <input type="text" class="form-control" id="username" name="username" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Пароль</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password_confirm" class="form-label">Подтверждение пароля</label>
+                        <input type="password" class="form-control" id="password_confirm" name="password_confirm" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="referral_code" class="form-label">Реферальный код (необязательно)</label>
+                        <input type="text" class="form-control" id="referral_code" name="referral_code" value="{{ referral_code }}">
+                        <div class="form-text">Если у вас есть реферальный код, введите его</div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-user-plus me-2"></i> Зарегистрироваться
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="text-center mt-4">
+                    <p class="text-muted">
+                        Уже есть аккаунт? 
+                        <a href="{% url 'users:login' %}" class="text-primary">Войти</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Информация о системе -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title text-primary">
+                    <i class="fas fa-info-circle"></i> О системе TRINARY
+                </h5>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check text-success me-2"></i> Трехуровневая структура</li>
+                    <li><i class="fas fa-check text-success me-2"></i> Зеленые и красные бонусы</li>
+                    <li><i class="fas fa-check text-success me-2"></i> Автоматическое размещение</li>
+                    <li><i class="fas fa-check text-success me-2"></i> Прозрачная система выплат</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

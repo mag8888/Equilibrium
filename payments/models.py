@@ -1,34 +1,51 @@
 from django.db import models
-from users.models import User
+from django.contrib.auth import get_user_model
+from django.utils import timezone
+
+User = get_user_model()
 
 
-class Payment(models.Model):
-    """Модель для отслеживания платежей"""
+class PaymentMethod(models.Model):
+    """Модель для способов оплаты"""
     
-    PAYMENT_STATUS = [
-        ('pending', 'Ожидает'),
-        ('completed', 'Завершен'),
-        ('failed', 'Неудачный'),
-        ('refunded', 'Возвращен'),
-    ]
+    name = models.CharField(max_length=100)
+    is_active = models.BooleanField(default=True)
+    min_amount = models.DecimalField(max_digits=10, decimal_places=2, default=1.00)
+    max_amount = models.DecimalField(max_digits=10, decimal_places=2, default=10000.00)
+    commission_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
+    commission_fixed = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='payments')
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    status = models.CharField(max_length=20, choices=PAYMENT_STATUS, default='pending')
+    # Настройки для разных способов оплаты
+    settings = models.JSONField(default=dict, blank=True)
     
-    # Детали платежа
-    payment_method = models.CharField(max_length=50, blank=True)
-    transaction_id = models.CharField(max_length=100, blank=True)
-    
-    # Метаданные
-    description = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    completed_at = models.DateTimeField(null=True, blank=True)
-    
-    class Meta:
-        verbose_name = 'Платеж'
-        verbose_name_plural = 'Платежи'
-        ordering = ['-created_at']
+    created_at = models.DateTimeField(default=timezone.now)
     
     def __str__(self):
-        return f"{self.user.username} - {self.amount} - {self.get_status_display()}"
+        return self.name
+    
+    class Meta:
+        verbose_name = 'Способ оплаты'
+        verbose_name_plural = 'Способы оплаты'
+
+
+class PaymentGateway(models.Model):
+    """Модель для платежных шлюзов"""
+    
+    name = models.CharField(max_length=100)
+    is_active = models.BooleanField(default=True)
+    api_url = models.URLField()
+    api_key = models.CharField(max_length=200)
+    secret_key = models.CharField(max_length=200)
+    
+    # Настройки
+    settings = models.JSONField(default=dict, blank=True)
+    webhook_url = models.URLField(blank=True)
+    
+    created_at = models.DateTimeField(default=timezone.now)
+    
+    def __str__(self):
+        return self.name
+    
+    class Meta:
+        verbose_name = 'Платежный шлюз'
+        verbose_name_plural = 'Платежные шлюзы'

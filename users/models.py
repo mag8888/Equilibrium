@@ -1,15 +1,16 @@
-from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.db import models
 from django.utils import timezone
 import uuid
 
 
 class User(AbstractUser):
-    """Модель пользователя с расширенными полями для MLM системы"""
+    """Расширенная модель пользователя для MLM системы"""
     
     STATUS_CHOICES = [
         ('participant', 'Участник'),
         ('partner', 'Партнер'),
+        ('inactive', 'Неактивный'),
     ]
     
     RANK_CHOICES = [
@@ -27,44 +28,27 @@ class User(AbstractUser):
     ]
     
     # Основные поля
-    username = models.CharField(max_length=150, unique=True)
-    email = models.EmailField(blank=True, null=True)
-    first_name = models.CharField(max_length=30, blank=True)
-    last_name = models.CharField(max_length=30, blank=True)
+    email = models.EmailField(unique=True)
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    telegram_username = models.CharField(max_length=100, blank=True, null=True)
     
     # MLM поля
+    referral_code = models.CharField(max_length=10, unique=True, blank=True)
+    invited_by = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='referrals')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='participant')
     rank = models.IntegerField(choices=RANK_CHOICES, default=0)
+    
+    # Финансовые поля
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    total_earned = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     
-    # Реферальная система
-    inviter = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='referrals')
-    referral_code = models.CharField(max_length=20, unique=True, blank=True)
-    
-    # Статистика партнеров
-    partners_level_1 = models.IntegerField(default=0)
-    partners_level_2 = models.IntegerField(default=0)
-    partners_level_3 = models.IntegerField(default=0)
-    
-    # Финансовая статистика
-    total_purchases = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    total_rewards = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    total_payouts = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    remaining_payout = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    
-    # Метаданные
-    is_active = models.BooleanField(default=True)
+    # Даты
     date_joined = models.DateTimeField(default=timezone.now)
-    last_login = models.DateTimeField(blank=True, null=True)
+    last_payment_date = models.DateTimeField(null=True, blank=True)
     
-    # Поля для админки
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    class Meta:
-        verbose_name = 'Пользователь'
-        verbose_name_plural = 'Пользователи'
-        ordering = ['-created_at']
+    # Административные поля
+    is_verified = models.BooleanField(default=False)
+    is_active_mlm = models.BooleanField(default=True)
     
     def save(self, *args, **kwargs):
         if not self.referral_code:
@@ -78,71 +62,44 @@ class User(AbstractUser):
             if not User.objects.filter(referral_code=code).exists():
                 return code
     
-    def get_full_name(self):
-        """Возвращает полное имя пользователя"""
-        return f"{self.first_name} {self.last_name}".strip() or self.username
+    def get_referral_link(self):
+        """Возвращает реферальную ссылку"""
+        return f"/register/?ref={self.referral_code}"
     
-    def get_display_name(self):
-        """Возвращает отображаемое имя для админки"""
-        return f"{self.get_full_name()} @{self.username}"
+    def get_partners_count(self):
+        """Возвращает количество партнеров в первой линии"""
+        return self.referrals.filter(status='partner').count()
+    
+    def can_upgrade_rank(self):
+        """Проверяет, может ли пользователь повысить ранг"""
+        return self.get_partners_count() >= 3 and self.status == 'partner'
     
     def __str__(self):
-        return self.get_display_name()
-
-
-class PartnerStructure(models.Model):
-    """Модель для отслеживания структуры партнеров"""
-    
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='structure')
-    parent = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='children')
-    level = models.IntegerField(default=0)  # Уровень в структуре (0 = корень)
-    position = models.IntegerField(default=0)  # Позиция среди братьев (0, 1, 2)
-    
-    # Статистика по уровням
-    children_count = models.IntegerField(default=0)
-    total_children = models.IntegerField(default=0)
-    
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+        return f"{self.username} ({self.get_status_display()})"
     
     class Meta:
-        verbose_name = 'Структура партнера'
-        verbose_name_plural = 'Структуры партнеров'
-        ordering = ['level', 'position']
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
+
+
+class UserProfile(models.Model):
+    """Дополнительный профиль пользователя"""
+    
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    first_name = models.CharField(max_length=100, blank=True)
+    last_name = models.CharField(max_length=100, blank=True)
+    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
+    bio = models.TextField(blank=True)
+    country = models.CharField(max_length=100, blank=True)
+    city = models.CharField(max_length=100, blank=True)
+    
+    # Дополнительные поля для MLM
+    preferred_language = models.CharField(max_length=10, default='ru')
+    timezone = models.CharField(max_length=50, default='UTC')
     
     def __str__(self):
-        return f"{self.user.username} - Уровень {self.level}, Позиция {self.position}"
-
-
-class Bonus(models.Model):
-    """Модель для отслеживания бонусов"""
-    
-    BONUS_TYPES = [
-        ('green', 'Зеленый бонус (наставнику)'),
-        ('red', 'Красный бонус (участнику)'),
-        ('level_up', 'Бонус за повышение ранга'),
-        ('referral', 'Реферальный бонус'),
-    ]
-    
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bonuses')
-    bonus_type = models.CharField(max_length=20, choices=BONUS_TYPES)
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    description = models.TextField(blank=True)
-    
-    # Связанные пользователи
-    from_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='bonuses_given')
-    
-    # Статус
-    is_paid = models.BooleanField(default=False)
-    paid_at = models.DateTimeField(null=True, blank=True)
-    
-    created_at = models.DateTimeField(auto_now_add=True)
+        return f"Профиль {self.user.username}"
     
     class Meta:
-        verbose_name = 'Бонус'
-        verbose_name_plural = 'Бонусы'
-        ordering = ['-created_at']
-    
-    def __str__(self):
-        return f"{self.user.username} - {self.get_bonus_type_display()} - {self.amount}"
-
+        verbose_name = 'Профиль пользователя'
+        verbose_name_plural = 'Профили пользователей'

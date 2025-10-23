@@ -1,0 +1,228 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Админ-панель - TRINARY{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+        <i class="fas fa-cogs text-primary"></i> Админ-панель
+    </h1>
+    <div>
+        <a href="{% url 'admin_panel:users_list' %}" class="btn btn-primary">
+            <i class="fas fa-users me-2"></i> Управление пользователями
+        </a>
+        <a href="{% url 'admin_panel:structure_view' %}" class="btn btn-success">
+            <i class="fas fa-sitemap me-2"></i> Структура
+        </a>
+    </div>
+</div>
+
+<!-- Общая статистика -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-users fa-2x mb-2"></i>
+                <h4>{{ stats.total_users }}</h4>
+                <p class="mb-0">Всего пользователей</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-handshake fa-2x mb-2"></i>
+                <h4>{{ stats.partners }}</h4>
+                <p class="mb-0">Партнеров</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-dollar-sign fa-2x mb-2"></i>
+                <h4>${{ stats.total_payments }}</h4>
+                <p class="mb-0">Общие платежи</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-gift fa-2x mb-2"></i>
+                <h4>${{ stats.total_bonuses }}</h4>
+                <p class="mb-0">Выплачено бонусов</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Последние пользователи -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-plus text-primary"></i> Последние регистрации
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_users %}
+                    {% for user in recent_users %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong>{{ user.username }}</strong>
+                                <br>
+                                <small class="text-muted">{{ user.email }}</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-{% if user.status == 'partner' %}success{% else %}warning{% endif %}">
+                                    {{ user.get_status_display }}
+                                </span>
+                                <br>
+                                <small class="text-muted">{{ user.date_joined|date:"d.m.Y H:i" }}</small>
+                            </div>
+                        </div>
+                        {% if not forloop.last %}<hr>{% endif %}
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center">Пользователей пока нет</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Последние платежи -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-credit-card text-primary"></i> Последние платежи
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_payments %}
+                    {% for payment in recent_payments %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong>{{ payment.user.username }}</strong>
+                                <br>
+                                <small class="text-muted">{{ payment.get_payment_type_display }}</small>
+                            </div>
+                            <div class="text-end">
+                                <strong class="text-{% if payment.status == 'completed' %}success{% elif payment.status == 'pending' %}warning{% else %}danger{% endif %}">
+                                    ${{ payment.amount }}
+                                </strong>
+                                <br>
+                                <span class="badge bg-{% if payment.status == 'completed' %}success{% elif payment.status == 'pending' %}warning{% else %}danger{% endif %}">
+                                    {{ payment.get_status_display }}
+                                </span>
+                            </div>
+                        </div>
+                        {% if not forloop.last %}<hr>{% endif %}
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center">Платежей пока нет</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Ожидающие выводы -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-money-bill-wave text-primary"></i> Ожидающие выводы
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_withdrawals %}
+                    {% for withdrawal in recent_withdrawals %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong>{{ withdrawal.user.username }}</strong>
+                                <br>
+                                <small class="text-muted">{{ withdrawal.payment_method }}</small>
+                            </div>
+                            <div class="text-end">
+                                <strong>${{ withdrawal.amount }}</strong>
+                                <br>
+                                <span class="badge bg-{% if withdrawal.status == 'pending' %}warning{% elif withdrawal.status == 'completed' %}success{% else %}danger{% endif %}">
+                                    {{ withdrawal.get_status_display }}
+                                </span>
+                            </div>
+                        </div>
+                        {% if not forloop.last %}<hr>{% endif %}
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center">Запросов на вывод пока нет</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Уведомления -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-bell text-primary"></i> Системные уведомления
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if notifications %}
+                    {% for notification in notifications %}
+                        <div class="alert alert-{% if notification.notification_type == 'error' %}danger{% elif notification.notification_type == 'warning' %}warning{% elif notification.notification_type == 'success' %}success{% else %}info{% endif %} alert-sm">
+                            <strong>{{ notification.title }}</strong>
+                            <br>
+                            <small>{{ notification.message }}</small>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center">Уведомлений нет</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Быстрые действия -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt text-primary"></i> Быстрые действия
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'admin_panel:users_list' %}" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-users me-2"></i> Пользователи
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'admin_panel:payments_list' %}" class="btn btn-outline-success w-100">
+                            <i class="fas fa-credit-card me-2"></i> Платежи
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'admin_panel:withdrawals_list' %}" class="btn btn-outline-warning w-100">
+                            <i class="fas fa-money-bill-wave me-2"></i> Выводы
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'admin_panel:statistics' %}" class="btn btn-outline-info w-100">
+                            <i class="fas fa-chart-bar me-2"></i> Статистика
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

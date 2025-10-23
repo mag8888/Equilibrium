@@ -1,0 +1,203 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Моя структура - TRINARY{% endblock %}
+
+{% block extra_css %}
+<style>
+    .tree-container {
+        overflow-x: auto;
+        padding: 20px;
+    }
+    .tree-node {
+        display: inline-block;
+        margin: 10px;
+        text-align: center;
+        vertical-align: top;
+    }
+    .user-card {
+        background: white;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 15px;
+        min-width: 200px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        transition: all 0.3s;
+    }
+    .user-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    }
+    .user-card.partner {
+        border-color: #28a745;
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    }
+    .user-card.participant {
+        border-color: #ffc107;
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    }
+    .user-card.inactive {
+        border-color: #dc3545;
+        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    }
+    .user-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 10px;
+        color: white;
+        font-size: 20px;
+    }
+    .user-name {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    .user-status {
+        font-size: 12px;
+        padding: 2px 8px;
+        border-radius: 15px;
+        margin-bottom: 5px;
+    }
+    .user-rank {
+        font-size: 11px;
+        color: #6c757d;
+    }
+    .user-balance {
+        font-size: 12px;
+        color: #28a745;
+        font-weight: bold;
+    }
+    .tree-lines {
+        position: relative;
+    }
+    .tree-lines::before {
+        content: '';
+        position: absolute;
+        top: -10px;
+        left: 50%;
+        width: 2px;
+        height: 20px;
+        background: #dee2e6;
+        transform: translateX(-50%);
+    }
+    .level-0 .tree-lines::before {
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+        <i class="fas fa-sitemap text-primary"></i> Моя структура
+    </h1>
+    <div>
+        <a href="{% url 'users:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i> Назад
+        </a>
+    </div>
+</div>
+
+<!-- Информация о структуре -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-users fa-2x mb-2"></i>
+                <h4>{{ children.count }}</h4>
+                <p class="mb-0">Прямых рефералов</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-handshake fa-2x mb-2"></i>
+                <h4>{{ children|length }}</h4>
+                <p class="mb-0">Партнеров в структуре</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-level-up-alt fa-2x mb-2"></i>
+                <h4>{% if mlm_structure %}{{ mlm_structure.level }}{% else %}0{% endif %}</h4>
+                <p class="mb-0">Ваш уровень</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-dollar-sign fa-2x mb-2"></i>
+                <h4>${{ user.balance }}</h4>
+                <p class="mb-0">Ваш баланс</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Дерево структуры -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-sitemap"></i> Структура MLM
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="tree-container" id="tree-container">
+            {% if structure_tree %}
+                {% include 'users/tree_node.html' with node=structure_tree level=0 %}
+            {% else %}
+                <div class="text-center text-muted p-5">
+                    <i class="fas fa-sitemap fa-3x mb-3"></i>
+                    <br>
+                    <h5>Структура пуста</h5>
+                    <p>Привлеките рефералов, чтобы увидеть структуру</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Легенда -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5><i class="fas fa-info-circle text-primary"></i> Легенда</h5>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="user-card partner me-3" style="width: 60px; height: 40px; padding: 5px;">
+                                <div style="font-size: 12px;">Партнер</div>
+                            </div>
+                            <span>Партнер (оплатил $100)</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="user-card participant me-3" style="width: 60px; height: 40px; padding: 5px;">
+                                <div style="font-size: 12px;">Участник</div>
+                            </div>
+                            <span>Участник (не оплатил)</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="user-card inactive me-3" style="width: 60px; height: 40px; padding: 5px;">
+                                <div style="font-size: 12px;">Неактивный</div>
+                            </div>
+                            <span>Неактивный пользователь</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

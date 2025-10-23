@@ -1,0 +1,141 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Вывод средств - TRINARY{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+        <i class="fas fa-money-bill-wave text-primary"></i> Вывод средств
+    </h1>
+    <div>
+        <a href="{% url 'users:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i> Назад
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Форма вывода -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-credit-card"></i> Запрос на вывод
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <strong>Доступно для вывода:</strong> ${{ user.balance }}
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="amount" class="form-label">Сумма для вывода</label>
+                        <input type="number" class="form-control" id="amount" name="amount" 
+                               min="1" max="{{ user.balance }}" step="0.01" required>
+                        <div class="form-text">Минимальная сумма: $1</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="payment_method" class="form-label">Способ получения</label>
+                        <select class="form-select" id="payment_method" name="payment_method" required>
+                            <option value="">Выберите способ</option>
+                            <option value="bank_card">Банковская карта</option>
+                            <option value="bank_transfer">Банковский перевод</option>
+                            <option value="electronic_wallet">Электронный кошелек</option>
+                            <option value="cryptocurrency">Криптовалюта</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="payment_details" class="form-label">Детали для выплаты</label>
+                        <textarea class="form-control" id="payment_details" name="payment_details" 
+                                  rows="3" placeholder="Укажите реквизиты для получения средств..." required></textarea>
+                        <div class="form-text">Укажите полные реквизиты для получения средств</div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-paper-plane me-2"></i> Отправить запрос
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- История выводов -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-history"></i> История выводов
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if withdrawals %}
+                    {% for withdrawal in withdrawals %}
+                        <div class="d-flex justify-content-between align-items-center mb-3 p-3 border rounded">
+                            <div>
+                                <strong>${{ withdrawal.amount }}</strong>
+                                <br>
+                                <small class="text-muted">{{ withdrawal.payment_method }}</small>
+                                <br>
+                                <small class="text-muted">{{ withdrawal.created_at|date:"d.m.Y H:i" }}</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-{% if withdrawal.status == 'completed' %}success{% elif withdrawal.status == 'pending' %}warning{% elif withdrawal.status == 'processing' %}info{% else %}danger{% endif %}">
+                                    {{ withdrawal.get_status_display }}
+                                </span>
+                                {% if withdrawal.processed_at %}
+                                    <br>
+                                    <small class="text-muted">{{ withdrawal.processed_at|date:"d.m.Y" }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center text-muted p-4">
+                        <i class="fas fa-money-bill-wave fa-2x mb-2"></i>
+                        <br>
+                        Запросов на вывод пока нет
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Информация о выводах -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5><i class="fas fa-info-circle text-primary"></i> Информация о выводах</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Условия вывода:</h6>
+                        <ul>
+                            <li>Минимальная сумма: $1</li>
+                            <li>Максимальная сумма: весь доступный баланс</li>
+                            <li>Время обработки: 1-3 рабочих дня</li>
+                            <li>Комиссия: 0%</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Доступные способы:</h6>
+                        <ul>
+                            <li>Банковская карта</li>
+                            <li>Банковский перевод</li>
+                            <li>Электронные кошельки</li>
+                            <li>Криптовалюты</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,147 +1,286 @@
-from rest_framework import viewsets, status
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
-from django.contrib.auth import authenticate
-from django.db.models import Q
-from .models import User, Bonus
-from payments.models import Payment
-from .serializers import UserSerializer, BonusSerializer, PaymentSerializer
-from .services import MLMService
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.http import JsonResponse
+from django.db import transaction
+from django.utils import timezone
+from .models import User, UserProfile
+from mlm.models import MLMStructure, Payment, Bonus, MLMSettings
+from mlm.utils import place_user_in_structure, calculate_bonuses
+import json
 
 
-class UserViewSet(viewsets.ModelViewSet):
-    """ViewSet для управления пользователями"""
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
-    
-    def get_queryset(self):
-        queryset = User.objects.all()
+def register(request):
+    """Регистрация пользователя по реферальной ссылке"""
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        password_confirm = request.POST.get('password_confirm')
+        referral_code = request.POST.get('referral_code')
         
-        # Фильтрация по статусу
-        status = self.request.query_params.get('status', None)
-        if status:
-            queryset = queryset.filter(status=status)
+        # Валидация
+        if password != password_confirm:
+            messages.error(request, 'Пароли не совпадают')
+            return render(request, 'users/register.html')
         
-        # Фильтрация по рангу
-        rank = self.request.query_params.get('rank', None)
-        if rank:
-            queryset = queryset.filter(rank=rank)
+        if User.objects.filter(username=username).exists():
+            messages.error(request, 'Пользователь с таким именем уже существует')
+            return render(request, 'users/register.html')
         
-        # Поиск
-        search = self.request.query_params.get('search', None)
-        if search:
-            queryset = queryset.filter(
-                Q(username__icontains=search) |
-                Q(first_name__icontains=search) |
-                Q(last_name__icontains=search) |
-                Q(email__icontains=search)
-            )
+        if User.objects.filter(email=email).exists():
+            messages.error(request, 'Пользователь с таким email уже существует')
+            return render(request, 'users/register.html')
         
-        return queryset.order_by('-created_at')
-    
-    @action(detail=True, methods=['post'])
-    def process_payment(self, request, pk=None):
-        """Обработка платежа для пользователя"""
-        user = self.get_object()
-        amount = request.data.get('amount')
+        # Поиск пригласившего
+        inviter = None
+        if referral_code:
+            try:
+                inviter = User.objects.get(referral_code=referral_code)
+            except User.DoesNotExist:
+                messages.error(request, 'Неверный реферальный код')
+                return render(request, 'users/register.html')
         
-        if not amount:
-            return Response({'error': 'Сумма не указана'}, status=status.HTTP_400_BAD_REQUEST)
-        
+        # Создание пользователя
         try:
-            payment = MLMService.process_payment(user, float(amount))
-            return Response({
-                'success': True,
-                'payment_id': payment.id,
-                'new_balance': float(user.balance)
-            })
+            with transaction.atomic():
+                user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    password=password,
+                    invited_by=inviter,
+                    status='participant',
+                    rank=0
+                )
+                
+                # Создание профиля
+                UserProfile.objects.create(user=user)
+                
+                # Размещение в структуре
+                if inviter:
+                    place_user_in_structure(user, inviter)
+                
+                messages.success(request, 'Регистрация успешна! Теперь вы можете войти в систему.')
+                return redirect('users:login')
+                
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            messages.error(request, f'Ошибка при регистрации: {str(e)}')
+            return render(request, 'users/register.html')
     
-    @action(detail=True, methods=['get'])
-    def structure(self, request, pk=None):
-        """Получение структуры пользователя"""
-        user = self.get_object()
-        structure = user.structure
-        children = structure.children.all() if hasattr(structure, 'children') else []
-        
-        return Response({
-            'user': UserSerializer(user).data,
-            'structure': {
-                'level': structure.level,
-                'position': structure.position,
-                'children_count': structure.children_count,
-                'total_children': structure.total_children,
-            },
-            'children': UserSerializer(children, many=True).data
-        })
-    
-    @action(detail=True, methods=['get'])
-    def bonuses(self, request, pk=None):
-        """Получение бонусов пользователя"""
-        user = self.get_object()
-        bonuses = Bonus.objects.filter(user=user).order_by('-created_at')
-        serializer = BonusSerializer(bonuses, many=True)
-        return Response(serializer.data)
-    
-    @action(detail=True, methods=['get'])
-    def payments(self, request, pk=None):
-        """Получение платежей пользователя"""
-        user = self.get_object()
-        payments = Payment.objects.filter(user=user).order_by('-created_at')
-        serializer = PaymentSerializer(payments, many=True)
-        return Response(serializer.data)
+    # GET запрос
+    referral_code = request.GET.get('ref', '')
+    return render(request, 'users/register.html', {'referral_code': referral_code})
 
 
-class RegisterView(APIView):
-    """Регистрация нового пользователя"""
+def login_view(request):
+    """Вход в систему"""
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            messages.success(request, f'Добро пожаловать, {user.username}!')
+            return redirect('users:dashboard')
+        else:
+            messages.error(request, 'Неверное имя пользователя или пароль')
     
-    def post(self, request):
-        username = request.data.get('username')
-        email = request.data.get('email', '')
-        first_name = request.data.get('first_name', '')
-        last_name = request.data.get('last_name', '')
-        referral_code = request.data.get('referral_code')
+    return render(request, 'users/login.html')
+
+
+def logout_view(request):
+    """Выход из системы"""
+    logout(request)
+    messages.info(request, 'Вы вышли из системы')
+    return redirect('users:login')
+
+
+@login_required
+def dashboard(request):
+    """Главная страница пользователя"""
+    user = request.user
+    
+    # Статистика пользователя
+    stats = {
+        'total_referrals': user.referrals.count(),
+        'active_partners': user.referrals.filter(status='partner').count(),
+        'total_earned': user.total_earned,
+        'current_balance': user.balance,
+        'rank': user.get_rank_display(),
+        'status': user.get_status_display(),
+    }
+    
+    # Последние бонусы
+    recent_bonuses = Bonus.objects.filter(user=user).order_by('-created_at')[:5]
+    
+    # Последние рефералы
+    recent_referrals = user.referrals.order_by('-date_joined')[:5]
+    
+    context = {
+        'user': user,
+        'stats': stats,
+        'recent_bonuses': recent_bonuses,
+        'recent_referrals': recent_referrals,
+    }
+    
+    return render(request, 'users/dashboard.html', context)
+
+
+@login_required
+def profile(request):
+    """Профиль пользователя"""
+    user = request.user
+    
+    if request.method == 'POST':
+        # Обновление профиля
+        user.first_name = request.POST.get('first_name', '')
+        user.last_name = request.POST.get('last_name', '')
+        user.phone = request.POST.get('phone', '')
+        user.telegram_username = request.POST.get('telegram_username', '')
+        user.save()
         
-        if not username:
-            return Response({'error': 'Username обязателен'}, status=status.HTTP_400_BAD_REQUEST)
+        # Обновление профиля
+        profile, created = UserProfile.objects.get_or_create(user=user)
+        profile.bio = request.POST.get('bio', '')
+        profile.country = request.POST.get('country', '')
+        profile.city = request.POST.get('city', '')
+        profile.save()
         
+        messages.success(request, 'Профиль обновлен')
+        return redirect('users:profile')
+    
+    return render(request, 'users/profile.html', {'user': user})
+
+
+@login_required
+def referrals(request):
+    """Страница рефералов"""
+    user = request.user
+    referrals_list = user.referrals.all().order_by('-date_joined')
+    
+    # Статистика по рефералам
+    referrals_stats = {
+        'total': referrals_list.count(),
+        'participants': referrals_list.filter(status='participant').count(),
+        'partners': referrals_list.filter(status='partner').count(),
+        'inactive': referrals_list.filter(status='inactive').count(),
+    }
+    
+    context = {
+        'referrals': referrals_list,
+        'stats': referrals_stats,
+        'referral_link': user.get_referral_link(),
+    }
+    
+    return render(request, 'users/referrals.html', context)
+
+
+@login_required
+def structure(request):
+    """Структура пользователя"""
+    user = request.user
+    
+    # Получение структуры
+    try:
+        mlm_structure = user.mlm_structure
+        children = MLMStructure.objects.filter(parent=user).order_by('position')
+        
+        # Построение дерева структуры
+        structure_tree = build_structure_tree(user, max_depth=3)
+        
+    except MLMStructure.DoesNotExist:
+        mlm_structure = None
+        children = []
+        structure_tree = []
+    
+    context = {
+        'user': user,
+        'mlm_structure': mlm_structure,
+        'children': children,
+        'structure_tree': structure_tree,
+    }
+    
+    return render(request, 'users/structure.html', context)
+
+
+def build_structure_tree(user, max_depth=3, current_depth=0):
+    """Построение дерева структуры"""
+    if current_depth >= max_depth:
+        return []
+    
+    children = MLMStructure.objects.filter(parent=user).order_by('position')
+    tree = []
+    
+    for child in children:
+        child_data = {
+            'user': child.user,
+            'position': child.position,
+            'level': child.level,
+            'children': build_structure_tree(child.user, max_depth, current_depth + 1)
+        }
+        tree.append(child_data)
+    
+    return tree
+
+
+@login_required
+def upgrade_to_partner(request):
+    """Обновление статуса до партнера (оплата $100)"""
+    user = request.user
+    
+    if user.status != 'participant':
+        messages.error(request, 'Вы уже являетесь партнером')
+        return redirect('users:dashboard')
+    
+    # Получение настроек MLM
+    try:
+        mlm_settings = MLMSettings.objects.filter(is_active=True).first()
+        if not mlm_settings:
+            messages.error(request, 'Настройки MLM не найдены')
+            return redirect('users:dashboard')
+        
+        registration_fee = mlm_settings.registration_fee
+        
+    except Exception:
+        registration_fee = 100.00  # Значение по умолчанию
+    
+    if request.method == 'POST':
+        # Создание платежа
         try:
-            user = MLMService.register_user(
-                username=username,
-                email=email,
-                first_name=first_name,
-                last_name=last_name,
-                referral_code=referral_code
-            )
-            
-            return Response({
-                'success': True,
-                'user_id': user.id,
-                'referral_code': user.referral_code
-            })
+            with transaction.atomic():
+                payment = Payment.objects.create(
+                    user=user,
+                    amount=registration_fee,
+                    payment_type='registration',
+                    status='pending',
+                    description=f'Оплата за статус партнера - {registration_fee}$'
+                )
+                
+                # Здесь должна быть интеграция с платежной системой
+                # Пока что автоматически подтверждаем платеж для тестирования
+                payment.status = 'completed'
+                payment.completed_at = timezone.now()
+                payment.save()
+                
+                # Обновление статуса пользователя
+                user.status = 'partner'
+                user.last_payment_date = timezone.now()
+                user.save()
+                
+                # Расчет и начисление бонусов
+                calculate_bonuses(user, payment)
+                
+                messages.success(request, f'Поздравляем! Вы стали партнером. Оплачено: {registration_fee}$')
+                return redirect('users:dashboard')
+                
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class ProfileView(APIView):
-    """Профиль текущего пользователя"""
-    permission_classes = [IsAuthenticated]
+            messages.error(request, f'Ошибка при обработке платежа: {str(e)}')
     
-    def get(self, request):
-        user = request.user
-        serializer = UserSerializer(user)
-        return Response(serializer.data)
+    context = {
+        'user': user,
+        'registration_fee': registration_fee,
+    }
     
-    def put(self, request):
-        user = request.user
-        serializer = UserSerializer(user, data=request.data, partial=True)
-        
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return render(request, 'users/upgrade_to_partner.html', context)

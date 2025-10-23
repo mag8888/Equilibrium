@@ -1,0 +1,228 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Дашборд - TRINARY{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+        <i class="fas fa-tachometer-alt text-primary"></i> Дашборд
+    </h1>
+    {% if user.status == 'participant' %}
+        <a href="{% url 'users:upgrade_to_partner' %}" class="btn btn-success">
+            <i class="fas fa-arrow-up me-2"></i> Стать партнером ($100)
+        </a>
+    {% endif %}
+</div>
+
+<!-- Статистика -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-users fa-2x mb-2"></i>
+                <h4>{{ stats.total_referrals }}</h4>
+                <p class="mb-0">Всего рефералов</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-handshake fa-2x mb-2"></i>
+                <h4>{{ stats.active_partners }}</h4>
+                <p class="mb-0">Активных партнеров</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-dollar-sign fa-2x mb-2"></i>
+                <h4>${{ stats.current_balance }}</h4>
+                <p class="mb-0">Текущий баланс</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-trophy fa-2x mb-2"></i>
+                <h4>{{ stats.rank }}</h4>
+                <p class="mb-0">Ваш ранг</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Информация о пользователе -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-user text-primary"></i> Информация о профиле
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-4">
+                        <strong>Имя пользователя:</strong>
+                    </div>
+                    <div class="col-sm-8">
+                        {{ user.username }}
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-4">
+                        <strong>Email:</strong>
+                    </div>
+                    <div class="col-sm-8">
+                        {{ user.email }}
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-4">
+                        <strong>Статус:</strong>
+                    </div>
+                    <div class="col-sm-8">
+                        <span class="badge bg-{% if user.status == 'partner' %}success{% else %}warning{% endif %}">
+                            {{ stats.status }}
+                        </span>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-4">
+                        <strong>Ранг:</strong>
+                    </div>
+                    <div class="col-sm-8">
+                        <span class="badge bg-primary">{{ stats.rank }}</span>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-4">
+                        <strong>Реферальный код:</strong>
+                    </div>
+                    <div class="col-sm-8">
+                        <code>{{ user.referral_code }}</code>
+                        <button class="btn btn-sm btn-outline-primary ms-2" onclick="copyReferralCode()">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Последние бонусы -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-gift text-primary"></i> Последние бонусы
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_bonuses %}
+                    {% for bonus in recent_bonuses %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong class="text-{% if bonus.bonus_type == 'green' %}success{% else %}danger{% endif %}">
+                                    {{ bonus.get_bonus_type_display }}
+                                </strong>
+                                <br>
+                                <small class="text-muted">{{ bonus.description }}</small>
+                            </div>
+                            <div class="text-end">
+                                <strong>${{ bonus.amount }}</strong>
+                                <br>
+                                <small class="text-muted">{{ bonus.created_at|date:"d.m.Y" }}</small>
+                            </div>
+                        </div>
+                        {% if not forloop.last %}<hr>{% endif %}
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center">Бонусов пока нет</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Последние рефералы -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-users text-primary"></i> Последние рефералы
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_referrals %}
+                    {% for referral in recent_referrals %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong>{{ referral.username }}</strong>
+                                <br>
+                                <small class="text-muted">{{ referral.email }}</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-{% if referral.status == 'partner' %}success{% else %}warning{% endif %}">
+                                    {{ referral.get_status_display }}
+                                </span>
+                                <br>
+                                <small class="text-muted">{{ referral.date_joined|date:"d.m.Y" }}</small>
+                            </div>
+                        </div>
+                        {% if not forloop.last %}<hr>{% endif %}
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center">Рефералов пока нет</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Быстрые действия -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt text-primary"></i> Быстрые действия
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'users:referrals' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-users me-2"></i> Мои рефералы
+                    </a>
+                    <a href="{% url 'users:structure' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-sitemap me-2"></i> Структура
+                    </a>
+                    <a href="{% url 'mlm:bonuses' %}" class="btn btn-outline-success">
+                        <i class="fas fa-gift me-2"></i> Бонусы
+                    </a>
+                    <a href="{% url 'mlm:withdraw' %}" class="btn btn-outline-warning">
+                        <i class="fas fa-money-bill-wave me-2"></i> Вывод средств
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyReferralCode() {
+    const referralCode = '{{ user.referral_code }}';
+    const referralLink = window.location.origin + '/register/?ref=' + referralCode;
+    
+    navigator.clipboard.writeText(referralLink).then(function() {
+        alert('Реферальная ссылка скопирована в буфер обмена!');
+    });
+}
+</script>
+{% endblock %}

@@ -1,10 +1,11 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
+from django.urls import path
 from . import views
 
-router = DefaultRouter()
-router.register(r'payments', views.PaymentViewSet)
+app_name = 'payments'
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('create/', views.create_payment, name='create_payment'),
+    path('callback/', views.payment_callback, name='payment_callback'),
+    path('status/<str:payment_id>/', views.payment_status, name='payment_status'),
+    path('methods/', views.payment_methods, name='payment_methods'),
 ]
