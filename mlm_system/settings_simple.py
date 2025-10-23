@@ -1,5 +1,5 @@
 """
-Django settings for mlm_system project - SIMPLIFIED FOR RAILWAY
+Django settings for mlm_system project - MINIMAL VERSION FOR RAILWAY
 """
 
 import os
