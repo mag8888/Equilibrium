@@ -1,76 +1,61 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, logout, authenticate
+from django.shortcuts import render, redirect
+from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
-from django.db import transaction
-from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.crypto import get_random_string
 from .models import User, UserProfile
-from mlm.models import MLMStructure, Payment, Bonus, MLMSettings
-from mlm.services import calculate_bonuses, place_user_in_structure
+from mlm.models import MLMStructure, MLMSettings
+from mlm.services import place_user_in_structure
 import json
 
 
+def home(request):
+    """Главная страница"""
+    return render(request, 'users/home.html')
+
+
 def register(request):
-    """Регистрация пользователя по реферальной ссылке"""
+    """Регистрация пользователя"""
     if request.method == 'POST':
         username = request.POST.get('username')
         email = request.POST.get('email')
         password = request.POST.get('password')
-        password_confirm = request.POST.get('password_confirm')
-        referral_code = request.POST.get('referral_code')
-        
-        # Валидация
-        if password != password_confirm:
-            messages.error(request, 'Пароли не совпадают')
-            return render(request, 'users/register.html')
+        referral_code = request.POST.get('referral_code', '')
         
         if User.objects.filter(username=username).exists():
             messages.error(request, 'Пользователь с таким именем уже существует')
-            return render(request, 'users/register.html')
-        
-        if User.objects.filter(email=email).exists():
+        elif User.objects.filter(email=email).exists():
             messages.error(request, 'Пользователь с таким email уже существует')
-            return render(request, 'users/register.html')
-        
-        # Поиск пригласившего
-        inviter = None
-        if referral_code:
-            try:
-                inviter = User.objects.get(referral_code=referral_code)
-            except User.DoesNotExist:
-                messages.error(request, 'Неверный реферальный код')
-                return render(request, 'users/register.html')
-        
-        # Создание пользователя
-        try:
-            with transaction.atomic():
-                user = User.objects.create_user(
-                    username=username,
-                    email=email,
-                    password=password,
-                    invited_by=inviter,
-                    status='participant',
-                    rank=0
-                )
-                
-                # Создание профиля
-                UserProfile.objects.create(user=user)
-                
-                # Размещение в структуре
-                if inviter:
-                    place_user_in_structure(user, inviter)
-                
-                messages.success(request, 'Регистрация успешна! Теперь вы можете войти в систему.')
-                return redirect('users:login')
-                
-        except Exception as e:
-            messages.error(request, f'Ошибка при регистрации: {str(e)}')
-            return render(request, 'users/register.html')
+        else:
+            # Поиск пригласившего по коду
+            inviter = None
+            if referral_code:
+                try:
+                    inviter = User.objects.get(referral_code=referral_code)
+                except User.DoesNotExist:
+                    pass
+            
+            # Создание пользователя
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                invited_by=inviter,
+                status='participant',
+                rank=0
+            )
+            
+            # Создание профиля
+            UserProfile.objects.create(user=user)
+            
+            # Автоматический вход
+            login(request, user)
+            messages.success(request, 'Регистрация успешна!')
+            return redirect('users:dashboard')
     
-    # GET запрос
-    referral_code = request.GET.get('ref', '')
-    return render(request, 'users/register.html', {'referral_code': referral_code})
+    return render(request, 'users/register.html')
 
 
 def login_view(request):
@@ -80,49 +65,50 @@ def login_view(request):
         password = request.POST.get('password')
         
         user = authenticate(request, username=username, password=password)
-        if user is not None:
+        if user:
             login(request, user)
-            messages.success(request, f'Добро пожаловать, {user.username}!')
+            messages.success(request, 'Добро пожаловать!')
             return redirect('users:dashboard')
         else:
-            messages.error(request, 'Неверное имя пользователя или пароль')
+            messages.error(request, 'Неверные данные для входа')
     
     return render(request, 'users/login.html')
 
 
 def logout_view(request):
     """Выход из системы"""
+    from django.contrib.auth import logout
     logout(request)
     messages.info(request, 'Вы вышли из системы')
-    return redirect('users:login')
+    return redirect('users:home')
 
 
 @login_required
 def dashboard(request):
-    """Главная страница пользователя"""
+    """Панель пользователя"""
     user = request.user
     
     # Статистика пользователя
-    stats = {
-        'total_referrals': user.referrals.count(),
-        'active_partners': user.referrals.filter(status='partner').count(),
+    user_stats = {
+        'referrals_count': user.referrals.count(),
+        'partners_count': user.referrals.filter(status='partner').count(),
         'total_earned': user.total_earned,
         'current_balance': user.balance,
-        'rank': user.get_rank_display(),
-        'status': user.get_status_display(),
     }
     
-    # Последние бонусы
-    recent_bonuses = Bonus.objects.filter(user=user).order_by('-created_at')[:5]
-    
-    # Последние рефералы
-    recent_referrals = user.referrals.order_by('-date_joined')[:5]
+    # Структура пользователя
+    try:
+        mlm_structure = user.mlm_structure
+        children = MLMStructure.objects.filter(parent=user).order_by('position')
+    except MLMStructure.DoesNotExist:
+        mlm_structure = None
+        children = []
     
     context = {
         'user': user,
-        'stats': stats,
-        'recent_bonuses': recent_bonuses,
-        'recent_referrals': recent_referrals,
+        'user_stats': user_stats,
+        'mlm_structure': mlm_structure,
+        'children': children,
     }
     
     return render(request, 'users/dashboard.html', context)
@@ -131,47 +117,18 @@ def dashboard(request):
 @login_required
 def profile(request):
     """Профиль пользователя"""
-    user = request.user
-    
-    if request.method == 'POST':
-        # Обновление профиля
-        user.first_name = request.POST.get('first_name', '')
-        user.last_name = request.POST.get('last_name', '')
-        user.phone = request.POST.get('phone', '')
-        user.telegram_username = request.POST.get('telegram_username', '')
-        user.save()
-        
-        # Обновление профиля
-        profile, created = UserProfile.objects.get_or_create(user=user)
-        profile.bio = request.POST.get('bio', '')
-        profile.country = request.POST.get('country', '')
-        profile.city = request.POST.get('city', '')
-        profile.save()
-        
-        messages.success(request, 'Профиль обновлен')
-        return redirect('users:profile')
-    
-    return render(request, 'users/profile.html', {'user': user})
+    return render(request, 'users/profile.html', {'user': request.user})
 
 
 @login_required
 def referrals(request):
-    """Страница рефералов"""
+    """Рефералы пользователя"""
     user = request.user
-    referrals_list = user.referrals.all().order_by('-date_joined')
-    
-    # Статистика по рефералам
-    referrals_stats = {
-        'total': referrals_list.count(),
-        'participants': referrals_list.filter(status='participant').count(),
-        'partners': referrals_list.filter(status='partner').count(),
-        'inactive': referrals_list.filter(status='inactive').count(),
-    }
+    referrals = user.referrals.all().order_by('-date_joined')
     
     context = {
-        'referrals': referrals_list,
-        'stats': referrals_stats,
-        'referral_link': user.get_referral_link(),
+        'user': user,
+        'referrals': referrals,
     }
     
     return render(request, 'users/referrals.html', context)
@@ -182,105 +139,62 @@ def structure(request):
     """Структура пользователя"""
     user = request.user
     
-    # Получение структуры
-    try:
-        mlm_structure = user.mlm_structure
-        children = MLMStructure.objects.filter(parent=user).order_by('position')
+    # Построение дерева структуры
+    def build_tree(current_user, max_depth=3, current_depth=0):
+        if current_depth >= max_depth:
+            return None
         
-        # Построение дерева структуры
-        structure_tree = build_structure_tree(user, max_depth=3)
+        try:
+            current_mlm = current_user.mlm_structure
+        except MLMStructure.DoesNotExist:
+            return None
         
-    except MLMStructure.DoesNotExist:
-        mlm_structure = None
-        children = []
-        structure_tree = []
+        children = MLMStructure.objects.filter(parent=current_user).order_by('position')
+        tree_children = []
+        
+        for child in children:
+            child_tree = build_tree(child.user, max_depth, current_depth + 1)
+            if child_tree:
+                tree_children.append(child_tree)
+        
+        return {
+            'user': current_user,
+            'mlm_structure': current_mlm,
+            'children': tree_children,
+            'level': current_depth
+        }
+    
+    structure_tree = build_tree(user)
     
     context = {
         'user': user,
-        'mlm_structure': mlm_structure,
-        'children': children,
         'structure_tree': structure_tree,
     }
     
     return render(request, 'users/structure.html', context)
 
 
-def build_structure_tree(user, max_depth=3, current_depth=0):
-    """Построение дерева структуры"""
-    if current_depth >= max_depth:
-        return []
-    
-    children = MLMStructure.objects.filter(parent=user).order_by('position')
-    tree = []
-    
-    for child in children:
-        child_data = {
-            'user': child.user,
-            'position': child.position,
-            'level': child.level,
-            'children': build_structure_tree(child.user, max_depth, current_depth + 1)
-        }
-        tree.append(child_data)
-    
-    return tree
-
-
 @login_required
 def upgrade_to_partner(request):
-    """Обновление статуса до партнера (оплата $100)"""
+    """Обновление до партнера"""
     user = request.user
     
-    if user.status != 'participant':
-        messages.error(request, 'Вы уже являетесь партнером')
+    if request.method == 'POST':
+        # Здесь будет логика оплаты
+        # Пока просто обновляем статус
+        user.status = 'partner'
+        user.save()
+        
+        messages.success(request, 'Поздравляем! Вы стали партнером!')
         return redirect('users:dashboard')
     
-    # Получение настроек MLM
-    try:
-        mlm_settings = MLMSettings.objects.filter(is_active=True).first()
-        if not mlm_settings:
-            messages.error(request, 'Настройки MLM не найдены')
-            return redirect('users:dashboard')
-        
-        registration_fee = mlm_settings.registration_fee
-        
-    except Exception:
-        registration_fee = 100.00  # Значение по умолчанию
-    
-    if request.method == 'POST':
-        # Создание платежа
-        try:
-            with transaction.atomic():
-                payment = Payment.objects.create(
-                    user=user,
-                    amount=registration_fee,
-                    payment_type='registration',
-                    status='pending',
-                    description=f'Оплата за статус партнера - {registration_fee}$'
-                )
-                
-                # Здесь должна быть интеграция с платежной системой
-                # Пока что автоматически подтверждаем платеж для тестирования
-                payment.status = 'completed'
-                payment.completed_at = timezone.now()
-                payment.save()
-                
-                # Обновление статуса пользователя
-                user.status = 'partner'
-                user.last_payment_date = timezone.now()
-                user.save()
-                
-                # Расчет и начисление бонусов
-                calculate_bonuses(user, payment)
-                
-                messages.success(request, f'Поздравляем! Вы стали партнером. Оплачено: {registration_fee}$')
-                return redirect('users:dashboard')
-                
-        except Exception as e:
-            messages.error(request, f'Ошибка при обработке платежа: {str(e)}')
-    
-    context = {
-        'user': user,
-        'registration_fee': registration_fee,
-    }
-    
-    return render(request, 'users/upgrade_to_partner.html', context)
+    return render(request, 'users/upgrade_to_partner.html', {'user': user})
+
+
+def get_referral_link(request):
+    """Получение реферальной ссылки"""
+    if request.user.is_authenticated:
+        referral_code = request.user.referral_code
+        referral_link = f"{request.build_absolute_uri('/')}register/?ref={referral_code}"
+        return JsonResponse({'referral_link': referral_link})
+    return JsonResponse({'error': 'Not authenticated'}, status=401)
