@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.crypto import get_random_string
 from .models import User, UserProfile
@@ -12,8 +12,91 @@ import json
 
 
 def home(request):
-    """Главная страница"""
-    return render(request, 'users/simple_home.html')
+    """Главная страница - простой HTML"""
+    html = """
+    <!DOCTYPE html>
+    <html lang="ru">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>TRINARY MLM</title>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                margin: 0;
+            }
+            .container {
+                text-align: center;
+                max-width: 800px;
+                padding: 2rem;
+            }
+            .logo {
+                font-size: 4rem;
+                font-weight: 700;
+                margin-bottom: 1rem;
+                text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            }
+            .subtitle {
+                font-size: 1.5rem;
+                margin-bottom: 2rem;
+                opacity: 0.9;
+            }
+            .btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 1rem 2rem;
+                background: rgba(255, 255, 255, 0.2);
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                border-radius: 12px;
+                color: white;
+                text-decoration: none;
+                font-weight: 600;
+                transition: all 0.3s ease;
+                margin: 0.5rem;
+            }
+            .btn:hover {
+                background: rgba(255, 255, 255, 0.3);
+                transform: translateY(-2px);
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+                color: white;
+                text-decoration: none;
+            }
+            .status {
+                margin-top: 2rem;
+                padding: 1rem;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
+                font-size: 0.9rem;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1 class="logo">🚀 TRINARY MLM</h1>
+            <p class="subtitle">Современная MLM система с передовыми технологиями</p>
+            
+            <div>
+                <a href="/admin-panel/" class="btn">🎛️ Админ-панель</a>
+                <a href="/admin/" class="btn">⚙️ Django Admin</a>
+                <a href="/health/" class="btn">❤️ Health Check</a>
+            </div>
+            
+            <div class="status">
+                <strong>✅ Система запущена и работает!</strong><br>
+                <small>Современный дизайн • Glass morphism • Адаптивная верстка</small>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    return HttpResponse(html)
 
 
 def register(request):
