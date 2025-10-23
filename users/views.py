@@ -162,44 +162,26 @@ def register(request):
 
 @csrf_exempt
 def login_view(request):
-    """Диагностическая версия входа"""
-    try:
-        error_msg = ""
-        if request.method == 'POST':
-            username = request.POST.get('username')
-            password = request.POST.get('password')
-            
-            # Простая диагностика
-            if username == 'admin' and password == 'admin123':
-                return HttpResponse("""
-                <!DOCTYPE html>
-                <html lang="ru">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>Успешный вход - TRINARY MLM</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; background: #28a745; color: white; text-align: center; padding: 50px; }
-                        .container { background: rgba(255,255,255,0.1); padding: 30px; border-radius: 10px; }
-                        h1 { font-size: 2rem; margin-bottom: 20px; }
-                        .btn { display: inline-block; padding: 10px 20px; background: rgba(255,255,255,0.2); color: white; text-decoration: none; margin: 10px; border-radius: 5px; }
-                    </style>
-                </head>
-                <body>
-                    <div class="container">
-                        <h1>✅ Успешный вход!</h1>
-                        <p>Добро пожаловать в TRINARY MLM</p>
-                        <a href="/admin/" class="btn">Django Admin</a>
-                        <a href="/" class="btn">Главная</a>
-                    </div>
-                </body>
-                </html>
-                """)
-            else:
-                error_msg = "Неверные данные для входа"
+    """Максимально простая версия входа"""
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        if username == 'admin' and password == 'admin123':
+            return HttpResponse("""
+            <html>
+            <body style="background: green; color: white; text-align: center; padding: 50px; font-family: Arial;">
+                <h1>✅ Успешный вход!</h1>
+                <p>Добро пожаловать в TRINARY MLM</p>
+                <a href="/admin/" style="color: white; background: rgba(255,255,255,0.2); padding: 10px 20px; text-decoration: none; margin: 10px; border-radius: 5px;">Django Admin</a>
+                <a href="/" style="color: white; background: rgba(255,255,255,0.2); padding: 10px 20px; text-decoration: none; margin: 10px; border-radius: 5px;">Главная</a>
+            </body>
+            </html>
+            """)
         else:
-            error_msg = ""
-    except Exception as e:
-        error_msg = f"Ошибка: {str(e)}"
+            error_msg = "Неверные данные для входа"
+    else:
+        error_msg = ""
     
     # Простой HTML без сложных f-строк
     error_html = f'<div class="error">{error_msg}</div>' if error_msg else ''
