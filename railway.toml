@@ -10,6 +10,6 @@ restartPolicyMaxRetries = 10
 
 [env]
 SECRET_KEY = "django-insecure-change-me-in-production-railway-12345"
-DEBUG = "False"
-ALLOWED_HOSTS = "*.railway.app,*.up.railway.app"
+DEBUG = "True"
+ALLOWED_HOSTS = "*,*.railway.app,*.up.railway.app,web-production-48c0.up.railway.app"
 # DATABASE_URL will be automatically provided by Railway PostgreSQL service
