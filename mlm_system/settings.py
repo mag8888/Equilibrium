@@ -1,21 +1,20 @@
 """
-Django settings for mlm_system project - SIMPLIFIED FOR RAILWAY
+Django settings for mlm_system project - ULTRA MINIMAL VERSION
 """
 
 import os
 from pathlib import Path
-from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-me-in-production')
+SECRET_KEY = 'django-insecure-change-me-in-production-railway-12345'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = True
 
-ALLOWED_HOSTS = ['*']  # Allow all hosts for testing
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 INSTALLED_APPS = [
