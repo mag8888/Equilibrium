@@ -188,7 +188,7 @@ def register(request):
 
 
 def login_view(request):
-    """Вход в систему"""
+    """Вход в систему - простой HTML"""
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
@@ -196,12 +196,128 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user:
             login(request, user)
-            messages.success(request, 'Добро пожаловать!')
-            return redirect('users:dashboard')
+            return redirect('admin_panel:dashboard')
         else:
-            messages.error(request, 'Неверные данные для входа')
+            error_msg = "Неверные данные для входа"
+    else:
+        error_msg = ""
     
-    return render(request, 'users/login.html')
+    html = f"""
+    <!DOCTYPE html>
+    <html lang="ru">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Вход - TRINARY MLM</title>
+        <style>
+            body {{
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0;
+            }}
+            .login-container {{
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(20px);
+                border-radius: 20px;
+                padding: 3rem;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+                width: 100%;
+                max-width: 400px;
+                text-align: center;
+            }}
+            .logo h1 {{
+                color: #667eea;
+                font-size: 2.5rem;
+                margin-bottom: 0.5rem;
+            }}
+            .form-group {{
+                margin-bottom: 1.5rem;
+                text-align: left;
+            }}
+            .form-group input {{
+                width: 100%;
+                padding: 0.75rem 1rem;
+                border: 2px solid #e9ecef;
+                border-radius: 12px;
+                font-size: 1rem;
+                transition: all 0.3s ease;
+            }}
+            .form-group input:focus {{
+                outline: none;
+                border-color: #667eea;
+                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            }}
+            .btn {{
+                width: 100%;
+                padding: 0.75rem 1rem;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border: none;
+                border-radius: 12px;
+                font-size: 1rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }}
+            .btn:hover {{
+                transform: translateY(-2px);
+                box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            }}
+            .error {{
+                background: rgba(220, 53, 69, 0.1);
+                border: 1px solid rgba(220, 53, 69, 0.3);
+                color: #dc3545;
+                padding: 0.75rem;
+                border-radius: 8px;
+                margin-bottom: 1rem;
+                font-size: 0.9rem;
+            }}
+            .links {{
+                margin-top: 1.5rem;
+            }}
+            .links a {{
+                color: #667eea;
+                text-decoration: none;
+                margin: 0 0.5rem;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="login-container">
+            <div class="logo">
+                <h1>🚀 TRINARY MLM</h1>
+                <p>Вход в систему</p>
+            </div>
+            
+            {'<div class="error">' + error_msg + '</div>' if error_msg else ''}
+            
+            <form method="post">
+                <div class="form-group">
+                    <label for="username">Имя пользователя:</label>
+                    <input type="text" name="username" id="username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Пароль:</label>
+                    <input type="password" name="password" id="password" required>
+                </div>
+                
+                <button type="submit" class="btn">Войти</button>
+            </form>
+            
+            <div class="links">
+                <a href="/">← На главную</a>
+                <a href="/admin/">Django Admin</a>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    return HttpResponse(html)
 
 
 def logout_view(request):

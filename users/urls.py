@@ -14,4 +14,6 @@ urlpatterns = [
     path('structure/', views.structure, name='structure'),
     path('upgrade/', views.upgrade_to_partner, name='upgrade_to_partner'),
     path('api/referral-link/', views.get_referral_link, name='referral_link'),
+    # Для accounts/login/ перенаправления
+    path('', views.login_view, name='accounts_login'),
 ]
