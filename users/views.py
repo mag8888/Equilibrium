@@ -13,13 +13,15 @@ import json
 
 def home(request):
     """Главная страница - простой HTML с принудительным обновлением"""
-    html = """
+    import time
+    timestamp = int(time.time())
+    html = f"""
     <!DOCTYPE html>
     <html lang="ru">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>TRINARY MLM - Система работает!</title>
+        <title>TRINARY MLM - Система работает! (v{timestamp})</title>
         <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
         <meta http-equiv="Pragma" content="no-cache">
         <meta http-equiv="Expires" content="0">
@@ -125,7 +127,8 @@ def home(request):
             
             <div class="status">
                 <strong>✅ Система запущена и работает!</strong><br>
-                <small>Современный дизайн • Glass morphism • Адаптивная верстка</small>
+                <small>Современный дизайн • Glass morphism • Адаптивная верстка</small><br>
+                <small>Версия: {timestamp} • Время: {time.strftime('%H:%M:%S')}</small>
                 <div class="timestamp"></div>
             </div>
         </div>
@@ -135,7 +138,10 @@ def home(request):
     return HttpResponse(html, headers={
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
-        'Expires': '0'
+        'Expires': '0',
+        'X-Timestamp': str(timestamp),
+        'X-Version': f'v{timestamp}',
+        'X-Content-Type': 'text/html; charset=utf-8'
     })
 
 
