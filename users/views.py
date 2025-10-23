@@ -171,7 +171,7 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user:
             login(request, user)
-            return redirect('admin_panel:dashboard')
+            return redirect('/admin/')
         else:
             error_msg = "Неверные данные для входа"
     
