@@ -8,5 +8,5 @@ django-filter==25.2
 django-import-export==4.3.12
 psycopg2-binary==2.9.9
 gunicorn==21.2.0
-whitenoise==6.6.0
+whitenoise==6.11.0
 dj-database-url==3.0.1
