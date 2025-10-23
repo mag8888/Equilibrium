@@ -91,8 +91,17 @@ WSGI_APPLICATION = 'mlm_system.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # Database configuration
-# Check for MongoDB Atlas URL first
-if config('MONGO_URL', default=None):
+# Check for PostgreSQL URL first (Railway PostgreSQL)
+if config('DATABASE_URL', default=None):
+    DATABASES = {
+        'default': dj_database_url.parse(
+            config('DATABASE_URL'),
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
+# Check for MongoDB Atlas URL (if needed)
+elif config('MONGO_URL', default=None):
     DATABASES = {
         'default': {
             'ENGINE': 'djongo',
@@ -105,15 +114,6 @@ if config('MONGO_URL', default=None):
                 'authMechanism': 'SCRAM-SHA-1',
             }
         }
-    }
-# Check for PostgreSQL URL (Railway PostgreSQL)
-elif config('DATABASE_URL', default=None):
-    DATABASES = {
-        'default': dj_database_url.parse(
-            config('DATABASE_URL'),
-            conn_max_age=600,
-            conn_health_checks=True,
-        )
     }
 else:
     # Local SQLite for development

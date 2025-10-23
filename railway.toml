@@ -12,8 +12,4 @@ restartPolicyMaxRetries = 10
 SECRET_KEY = "django-insecure-change-me-in-production-railway-12345"
 DEBUG = "False"
 ALLOWED_HOSTS = "*.railway.app,*.up.railway.app"
-MONGO_URL = "mongodb+srv://<db_username>:<db_password>@equilibrium.0ugezsh.mongodb.net/?retryWrites=true&w=majority&appName=Equilibrium"
-MONGO_DB_NAME = "mlm_system"
-MONGO_USERNAME = "<db_username>"
-MONGO_PASSWORD = "<db_password>"
-MONGO_AUTH_SOURCE = "admin"
+# DATABASE_URL will be automatically provided by Railway PostgreSQL service
