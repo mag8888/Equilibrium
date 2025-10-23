@@ -99,18 +99,6 @@ def home(request):
                 opacity: 0.7;
             }
         </style>
-        <script>
-            // Принудительное обновление каждые 30 секунд
-            setTimeout(() => {
-                location.reload(true);
-            }, 30000);
-            
-            // Показать время загрузки
-            document.addEventListener('DOMContentLoaded', function() {
-                const timestamp = new Date().toLocaleString('ru-RU');
-                document.querySelector('.timestamp').textContent = 'Загружено: ' + timestamp;
-            });
-        </script>
     </head>
     <body>
         <div class="container">
@@ -182,7 +170,7 @@ def register(request):
 
 
 def login_view(request):
-    """Вход в систему - простой HTML"""
+    """Вход в систему - простой HTML без JavaScript"""
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
@@ -203,6 +191,9 @@ def login_view(request):
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Вход - TRINARY MLM</title>
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+        <meta http-equiv="Pragma" content="no-cache">
+        <meta http-equiv="Expires" content="0">
         <style>
             body {{
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -311,7 +302,12 @@ def login_view(request):
     </body>
     </html>
     """
-    return HttpResponse(html)
+    return HttpResponse(html, headers={
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'Content-Type': 'text/html; charset=utf-8'
+    })
 
 
 def logout_view(request):
