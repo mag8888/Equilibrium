@@ -1,22 +1,16 @@
 """
-Django settings for mlm_system project - ULTRA MINIMAL VERSION
+Django settings - ABSOLUTE MINIMUM VERSION
 """
 
 import os
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-change-me-in-production-railway-12345'
-
-# SECURITY WARNING: don't run with debug turned on in production!
+SECRET_KEY = 'django-insecure-railway-test-12345'
 DEBUG = True
-
 ALLOWED_HOSTS = ['*']
 
-# Application definition - absolute minimum
 INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -52,18 +46,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'mlm_system.wsgi.application'
 
-# Database - disabled for testing
 DATABASES = {}
 
-# Internationalization
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

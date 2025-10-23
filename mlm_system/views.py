@@ -2,8 +2,8 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
 @csrf_exempt
-def simple_test(request):
-    """Ultra simple test page - no database required"""
+def home(request):
+    """Ultra simple home page"""
     return HttpResponse("""
     <html>
     <head>
@@ -17,7 +17,7 @@ def simple_test(request):
     </head>
     <body>
         <div class="container">
-            <h1>🚀 Railway Deployment Working!</h1>
+            <h1>🚀 Railway Deployment Success!</h1>
             <p class="success">✅ Django is running successfully on Railway!</p>
             <p>Status: All systems operational</p>
             <p>Time: """ + str(__import__('datetime').datetime.now()) + """</p>
@@ -27,6 +27,6 @@ def simple_test(request):
     """)
 
 @csrf_exempt
-def health_check(request):
-    """Simple health check - no database required"""
+def health(request):
+    """Simple health check"""
     return HttpResponse("OK")
