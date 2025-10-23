@@ -1,0 +1,150 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ user.username }} — профиль{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1"><i class="fas fa-user text-primary me-2"></i>{{ user.username }}</h1>
+        <p class="text-muted mb-0">Статус: {{ user.get_status_display }} · Ранг: {{ user.get_rank_display }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'admin_panel:user_edit' user.id %}" class="btn btn-outline-warning"><i class="fas fa-edit me-2"></i>Редактировать</a>
+        <a href="{% url 'admin_panel:user_move' user.id %}" class="btn btn-outline-dark"><i class="fas fa-arrows-alt me-2"></i>Переместить</a>
+        <a href="{% url 'admin_panel:users_list' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Назад</a>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <span class="text-muted text-uppercase small">Баланс</span>
+                <h3 class="mt-2 mb-0">${{ user.balance }}</h3>
+                <p class="text-muted mb-0">Всего заработано: ${{ user.total_earned }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <span class="text-muted text-uppercase small">Рефералы</span>
+                <h3 class="mt-2 mb-0">{{ user_stats.referrals_count }}</h3>
+                <p class="text-muted mb-0">Партнеров: {{ user_stats.partners_count }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <span class="text-muted text-uppercase small">Бонусы</span>
+                <h3 class="mt-2 mb-0">{{ user_stats.bonuses_count }}</h3>
+                <p class="text-muted mb-0">Выплаты в админке</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <span class="text-muted text-uppercase small">Платежи</span>
+                <h3 class="mt-2 mb-0">{{ user_stats.payments_count }}</h3>
+                <p class="text-muted mb-0">Последний: {% if recent_payments %}{{ recent_payments.0.created_at|date:"d.m.Y" }}{% else %}-{% endif %}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-credit-card me-2 text-primary"></i>Последние платежи</h5>
+                <span class="text-muted small">{{ recent_payments|length }} записей</span>
+            </div>
+            <div class="card-body">
+                {% if recent_payments %}
+                    <div class="list-group list-group-flush">
+                        {% for payment in recent_payments %}
+                            <div class="list-group-item px-0 d-flex justify-content-between">
+                                <div>
+                                    <strong>${{ payment.amount }}</strong>
+                                    <div class="text-muted small">{{ payment.get_payment_type_display }}</div>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-{% if payment.status == 'completed' %}success{% elif payment.status == 'pending' %}warning{% else %}danger{% endif %}">{{ payment.get_status_display }}</span>
+                                    <div class="text-muted small">{{ payment.created_at|date:"d.m.Y H:i" }}</div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">Нет платежей</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-gift me-2 text-primary"></i>Последние бонусы</h5>
+                <span class="text-muted small">{{ recent_bonuses|length }} записей</span>
+            </div>
+            <div class="card-body">
+                {% if recent_bonuses %}
+                    <div class="list-group list-group-flush">
+                        {% for bonus in recent_bonuses %}
+                            <div class="list-group-item px-0 d-flex justify-content-between">
+                                <div>
+                                    <strong>${{ bonus.amount }}</strong>
+                                    <div class="text-muted small">{{ bonus.get_bonus_type_display }}</div>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-info">Уровень {{ bonus.level }}</span>
+                                    <div class="text-muted small">{{ bonus.created_at|date:"d.m.Y H:i" }}</div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">Нет бонусов</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fas fa-users me-2 text-primary"></i>Последние рефералы</h5>
+        <a href="{% url 'admin_panel:user_structure' user.id %}" class="btn btn-sm btn-outline-primary">Структура</a>
+    </div>
+    <div class="card-body">
+        {% if recent_referrals %}
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Пользователь</th>
+                            <th>Статус</th>
+                            <th>Ранг</th>
+                            <th>Дата</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for referral in recent_referrals %}
+                            <tr>
+                                <td>{{ referral.username }}</td>
+                                <td><span class="badge bg-secondary">{{ referral.get_status_display }}</span></td>
+                                <td>{{ referral.get_rank_display }}</td>
+                                <td>{{ referral.date_joined|date:"d.m.Y H:i" }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted mb-0">Рефералов пока нет.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

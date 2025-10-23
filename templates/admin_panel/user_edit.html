@@ -1,0 +1,87 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Редактирование {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1"><i class="fas fa-user-cog text-primary me-2"></i>Редактирование</h1>
+        <p class="text-muted mb-0">Обновите данные пользователя {{ user.username }}</p>
+    </div>
+    <a href="{% url 'admin_panel:user_detail' user.id %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Назад
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body p-4">
+        <form method="post" class="row g-4">
+            {% csrf_token %}
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Имя пользователя</label>
+                <input type="text" class="form-control" name="username" value="{{ user.username }}" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Email</label>
+                <input type="email" class="form-control" name="email" value="{{ user.email }}" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Имя</label>
+                <input type="text" class="form-control" name="first_name" value="{{ user.first_name }}">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Фамилия</label>
+                <input type="text" class="form-control" name="last_name" value="{{ user.last_name }}">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Телефон</label>
+                <input type="text" class="form-control" name="phone" value="{{ user.phone }}">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Telegram</label>
+                <input type="text" class="form-control" name="telegram_username" value="{{ user.telegram_username }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Статус</label>
+                <select name="status" class="form-select">
+                    {% for value, label in user.STATUS_CHOICES %}
+                        <option value="{{ value }}" {% if user.status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Ранг</label>
+                <select name="rank" class="form-select">
+                    {% for value, label in user.RANK_CHOICES %}
+                        <option value="{{ value }}" {% if user.rank == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Баланс</label>
+                <input type="number" step="0.01" class="form-control" name="balance" value="{{ user.balance }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Суммарно заработано</label>
+                <input type="number" step="0.01" class="form-control" name="total_earned" value="{{ user.total_earned }}" disabled>
+                <div class="form-text">Поле только для просмотра</div>
+            </div>
+            <div class="col-md-12">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="is_verified" id="is_verified" {% if user.is_verified %}checked{% endif %}>
+                    <label class="form-check-label" for="is_verified">Верифицирован</label>
+                </div>
+                <div class="form-check form-switch mt-2">
+                    <input class="form-check-input" type="checkbox" name="is_active_mlm" id="is_active_mlm" {% if user.is_active_mlm %}checked{% endif %}>
+                    <label class="form-check-label" for="is_active_mlm">Активен в структуре</label>
+                </div>
+            </div>
+            <div class="col-12 d-flex justify-content-end">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i>Сохранить изменения
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

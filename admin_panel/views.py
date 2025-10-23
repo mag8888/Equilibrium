@@ -6,9 +6,15 @@ from django.db import transaction
 from django.utils import timezone
 from django.core.paginator import Paginator
 from django.db.models import Q, Count, Sum
+from django.utils.crypto import get_random_string
 from users.models import User, UserProfile
 from mlm.models import MLMStructure, Payment, Bonus, Withdrawal, MLMSettings, RankUpgrade
-from mlm.utils import get_structure_statistics, get_bonus_summary
+from mlm.services import (
+    get_bonus_summary,
+    get_structure_statistics,
+    get_next_position,
+    place_user_in_structure,
+)
 from .models import AdminAction, SystemNotification, SystemStats
 import json
 
@@ -16,6 +22,47 @@ import json
 def is_admin(user):
     """Проверка, является ли пользователь администратором"""
     return user.is_staff or user.is_superuser
+
+
+def _collect_descendant_ids(user):
+    """Возвращает список идентификаторов всех потомков пользователя."""
+    descendants = []
+    children = (
+        MLMStructure.objects.filter(parent=user)
+        .select_related("user")
+        .order_by("position", "created_at")
+    )
+    for child in children:
+        child_user = child.user
+        descendants.append(child_user.id)
+        descendants.extend(_collect_descendant_ids(child_user))
+    return descendants
+
+
+def _recalculate_child_levels(root_user, base_level):
+    """Пересчитывает уровни структуры для всех потомков."""
+    children = (
+        MLMStructure.objects.filter(parent=root_user)
+        .select_related("user")
+        .order_by("position", "created_at")
+    )
+    for child in children:
+        child.level = base_level + 1
+        child.save(update_fields=["level"])
+        _recalculate_child_levels(child.user, child.level)
+
+
+def _normalize_positions(parent_user):
+    """Приводит позиции партнеров к последовательному виду."""
+    siblings = (
+        MLMStructure.objects.filter(parent=parent_user)
+        .select_related("user")
+        .order_by("position", "created_at")
+    )
+    for idx, sibling in enumerate(siblings, start=1):
+        if sibling.position != idx:
+            sibling.position = idx
+            sibling.save(update_fields=["position"])
 
 
 @login_required
@@ -90,9 +137,95 @@ def users_list(request):
         'search': search,
         'status': status,
         'rank': rank,
+        'rank_choices': User.RANK_CHOICES,
+        'status_choices': User.STATUS_CHOICES,
     }
     
     return render(request, 'admin_panel/users_list.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def user_create(request):
+    """Создание нового участника вручную."""
+    
+    inviters = User.objects.order_by('username')
+    generated_password = None
+    form_data = request.POST.copy() if request.method == 'POST' else {'auto_place': 'on'}
+    
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
+        status = request.POST.get('status', 'participant')
+        rank = request.POST.get('rank', '0')
+        inviter_id = request.POST.get('invited_by') or None
+        password = request.POST.get('password', '').strip()
+        auto_place = request.POST.get('auto_place') == 'on'
+        
+        if not username or not email:
+            messages.error(request, 'Заполните имя пользователя и email')
+        elif User.objects.filter(username=username).exists():
+            messages.error(request, 'Пользователь с таким именем уже существует')
+        elif User.objects.filter(email=email).exists():
+            messages.error(request, 'Пользователь с таким email уже существует')
+        else:
+            inviter = None
+            if inviter_id:
+                inviter = get_object_or_404(User, id=inviter_id)
+            
+            if not password:
+                password = get_random_string(10)
+                generated_password = password
+            
+            try:
+                with transaction.atomic():
+                    new_user = User.objects.create_user(
+                        username=username,
+                        email=email,
+                        password=password,
+                        invited_by=inviter,
+                        status=status,
+                        rank=int(rank or 0),
+                    )
+                    
+                    UserProfile.objects.get_or_create(user=new_user)
+                    
+                    if inviter and auto_place:
+                        place_user_in_structure(new_user, inviter)
+                    
+                    AdminAction.objects.create(
+                        admin_user=request.user,
+                        action_type='user_create',
+                        target_user=new_user,
+                        description=f'Создан пользователь {new_user.username}',
+                        details={
+                            'status': status,
+                            'rank': rank,
+                            'invited_by': inviter.username if inviter else None,
+                            'auto_place': auto_place,
+                        }
+                    )
+                    
+                    if generated_password:
+                        messages.success(
+                            request,
+                            f'Пользователь создан. Временный пароль: {generated_password}',
+                        )
+                    else:
+                        messages.success(request, 'Пользователь создан')
+                    
+                    return redirect('admin_panel:user_detail', user_id=new_user.id)
+            except Exception as exc:
+                messages.error(request, f'Ошибка при создании пользователя: {exc}')
+    
+    context = {
+        'inviters': inviters,
+        'status_choices': User.STATUS_CHOICES,
+        'rank_choices': User.RANK_CHOICES,
+        'form_data': form_data,
+    }
+    
+    return render(request, 'admin_panel/user_create.html', context)
 
 
 @login_required
@@ -119,6 +252,9 @@ def user_detail(request, user_id):
     except MLMStructure.DoesNotExist:
         mlm_structure = None
         children = []
+    
+    direct_partners_count = children.filter(user__status='partner').count() if hasattr(children, 'filter') else 0
+    direct_participants_count = children.filter(user__status='participant').count() if hasattr(children, 'filter') else 0
     
     # Последние действия
     recent_payments = Payment.objects.filter(user=user).order_by('-created_at')[:5]
@@ -181,6 +317,89 @@ def user_edit(request, user_id):
             messages.error(request, f'Ошибка при обновлении пользователя: {str(e)}')
     
     return render(request, 'admin_panel/user_edit.html', {'user': user})
+
+
+@login_required
+@user_passes_test(is_admin)
+def user_move(request, user_id):
+    """Перестановка пользователя в структуре."""
+    
+    user = get_object_or_404(User, id=user_id)
+    
+    try:
+        mlm_structure = user.mlm_structure
+    except MLMStructure.DoesNotExist:
+        mlm_structure = None
+    
+    if not mlm_structure:
+        messages.error(request, 'У пользователя нет позиции в структуре')
+        return redirect('admin_panel:user_detail', user_id=user.id)
+    
+    descendants_ids = _collect_descendant_ids(user)
+    excluded_ids = [user.id] + descendants_ids
+    available_parents = (
+        User.objects.exclude(id__in=excluded_ids)
+        .order_by('username')
+    )
+    
+    if request.method == 'POST':
+        parent_id = request.POST.get('parent_id') or None
+        
+        new_parent = None
+        if parent_id:
+            new_parent = get_object_or_404(User, id=parent_id)
+        
+        if new_parent and new_parent.id == user.id:
+            messages.error(request, 'Нельзя разместить пользователя под самим собой')
+        else:
+            try:
+                with transaction.atomic():
+                    old_parent = mlm_structure.parent
+                    
+                    if new_parent:
+                        new_parent_structure = getattr(new_parent, 'mlm_structure', None)
+                        new_level = (new_parent_structure.level + 1) if new_parent_structure else 1
+                        mlm_structure.parent = new_parent
+                        mlm_structure.position = get_next_position(new_parent)
+                    else:
+                        new_level = 0
+                        mlm_structure.parent = None
+                        mlm_structure.position = 0
+                    
+                    mlm_structure.level = new_level
+                    mlm_structure.save(update_fields=['parent', 'position', 'level'])
+                    
+                    if old_parent:
+                        _normalize_positions(old_parent)
+                    
+                    if new_parent:
+                        _normalize_positions(new_parent)
+                    
+                    _recalculate_child_levels(user, mlm_structure.level)
+                    
+                    AdminAction.objects.create(
+                        admin_user=request.user,
+                        action_type='structure_edit',
+                        target_user=user,
+                        description=f'Изменено положение {user.username} в структуре',
+                        details={
+                            'new_parent': new_parent.username if new_parent else None,
+                            'old_parent': old_parent.username if old_parent else None,
+                        }
+                    )
+                    
+                    messages.success(request, 'Структура обновлена')
+                    return redirect('admin_panel:user_structure', user_id=user.id)
+            except Exception as exc:
+                messages.error(request, f'Ошибка при обновлении структуры: {exc}')
+    
+    context = {
+        'user': user,
+        'available_parents': available_parents,
+        'current_parent': mlm_structure.parent,
+    }
+    
+    return render(request, 'admin_panel/user_move.html', context)
 
 
 @login_required
@@ -520,6 +739,8 @@ def settings(request):
                     mlm_settings.green_bonus_first = float(request.POST.get('green_bonus_first', 100))
                     mlm_settings.green_bonus_second = float(request.POST.get('green_bonus_second', 50))
                     mlm_settings.red_bonus = float(request.POST.get('red_bonus', 50))
+                    mlm_settings.red_bonus_second_partner = float(request.POST.get('red_bonus_second_partner', 50))
+                    mlm_settings.red_bonus_third_partner = float(request.POST.get('red_bonus_third_partner', 100))
                     mlm_settings.max_partners_per_level = int(request.POST.get('max_partners_per_level', 3))
                     mlm_settings.save()
                 else:
@@ -528,6 +749,8 @@ def settings(request):
                         green_bonus_first=float(request.POST.get('green_bonus_first', 100)),
                         green_bonus_second=float(request.POST.get('green_bonus_second', 50)),
                         red_bonus=float(request.POST.get('red_bonus', 50)),
+                        red_bonus_second_partner=float(request.POST.get('red_bonus_second_partner', 50)),
+                        red_bonus_third_partner=float(request.POST.get('red_bonus_third_partner', 100)),
                         max_partners_per_level=int(request.POST.get('max_partners_per_level', 3)),
                     )
                 
@@ -591,6 +814,8 @@ def user_structure(request, user_id):
         'structure_tree': structure_tree,
         'mlm_structure': mlm_structure,
         'children': children,
+        'direct_partners_count': direct_partners_count,
+        'direct_participants_count': direct_participants_count,
     }
     
     return render(request, 'admin_panel/user_structure.html', context)

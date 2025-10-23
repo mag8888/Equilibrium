@@ -127,6 +127,8 @@ class MLMSettings(models.Model):
     green_bonus_first = models.DecimalField(max_digits=10, decimal_places=2, default=100.00)
     green_bonus_second = models.DecimalField(max_digits=10, decimal_places=2, default=50.00)
     red_bonus = models.DecimalField(max_digits=10, decimal_places=2, default=50.00)
+    red_bonus_second_partner = models.DecimalField(max_digits=10, decimal_places=2, default=50.00)
+    red_bonus_third_partner = models.DecimalField(max_digits=10, decimal_places=2, default=100.00)
     
     # Настройки системы
     max_partners_per_level = models.IntegerField(default=3)

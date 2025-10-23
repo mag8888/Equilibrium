@@ -7,9 +7,14 @@
     <h1 class="h3 mb-0">
         <i class="fas fa-users text-primary"></i> Управление пользователями
     </h1>
-    <a href="{% url 'admin_panel:dashboard' %}" class="btn btn-outline-secondary">
-        <i class="fas fa-arrow-left me-2"></i> Назад
-    </a>
+    <div class="d-flex gap-2">
+        <a href="{% url 'admin_panel:user_create' %}" class="btn btn-primary">
+            <i class="fas fa-user-plus me-2"></i> Добавить участника
+        </a>
+        <a href="{% url 'admin_panel:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i> Назад
+        </a>
+    </div>
 </div>
 
 <!-- Фильтры -->
@@ -22,15 +27,17 @@
             <div class="col-md-3">
                 <select class="form-select" name="status">
                     <option value="">Все статусы</option>
-                    <option value="participant" {% if status == 'participant' %}selected{% endif %}>Участник</option>
-                    <option value="partner" {% if status == 'partner' %}selected{% endif %}>Партнер</option>
-                    <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Неактивный</option>
+                    {% for status_value, status_label in status_choices %}
+                        <option value="{{ status_value }}" {% if status == status_value %}selected{% endif %}>
+                            {{ status_label }}
+                        </option>
+                    {% endfor %}
                 </select>
             </div>
             <div class="col-md-3">
                 <select class="form-select" name="rank">
                     <option value="">Все ранги</option>
-                    {% for rank_value, rank_name in user.rank_choices %}
+                    {% for rank_value, rank_name in rank_choices %}
                         <option value="{{ rank_value }}" {% if rank == rank_value|stringformat:"s" %}selected{% endif %}>
                             {{ rank_name }}
                         </option>
@@ -108,6 +115,9 @@
                                     </a>
                                     <a href="{% url 'admin_panel:user_structure' user.id %}" class="btn btn-sm btn-outline-success">
                                         <i class="fas fa-sitemap"></i>
+                                    </a>
+                                    <a href="{% url 'admin_panel:user_move' user.id %}" class="btn btn-sm btn-outline-dark" title="Переместить в структуре">
+                                        <i class="fas fa-arrows-alt"></i>
                                     </a>
                                 </div>
                             </td>

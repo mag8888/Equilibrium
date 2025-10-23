@@ -6,6 +6,7 @@ from django.db import transaction
 from django.utils import timezone
 from .models import PaymentMethod, PaymentGateway
 from mlm.models import Payment
+from mlm.services import calculate_bonuses
 from users.models import User
 import uuid
 
@@ -94,7 +95,6 @@ def payment_callback(request):
                         payment.user.save()
                     
                     # Расчет бонусов
-                    from mlm.utils import calculate_bonuses
                     calculate_bonuses(payment.user, payment)
                     
                 elif status == 'failed':

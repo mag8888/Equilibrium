@@ -7,7 +7,7 @@ from django.db import transaction
 from django.utils import timezone
 from .models import User, UserProfile
 from mlm.models import MLMStructure, Payment, Bonus, MLMSettings
-from mlm.utils import place_user_in_structure, calculate_bonuses
+from mlm.services import calculate_bonuses, place_user_in_structure
 import json
 
 

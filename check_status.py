@@ -54,6 +54,8 @@ if __name__ == '__main__':
         print(f"   Зеленый бонус 1: ${mlm_settings.green_bonus_first}")
         print(f"   Зеленый бонус 2: ${mlm_settings.green_bonus_second}")
         print(f"   Красный бонус: ${mlm_settings.red_bonus}")
+        print(f"   Красный бонус (2-й партнер): ${mlm_settings.red_bonus_second_partner}")
+        print(f"   Красный бонус (3-й партнер): ${mlm_settings.red_bonus_third_partner}")
     else:
         print("❌ Настройки MLM не найдены!")
     

@@ -1,0 +1,129 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Структура — {{ user.username }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .tree-wrapper {
+        overflow-x: auto;
+        padding: 1.5rem;
+    }
+    .tree-node {
+        display: inline-block;
+        margin: 0.5rem;
+        text-align: center;
+        vertical-align: top;
+    }
+    .user-card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 1rem;
+        min-width: 180px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .user-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 18px 30px -24px rgba(79, 70, 229, 0.45);
+    }
+    .user-card.partner {
+        border-color: #10b981;
+        background: linear-gradient(140deg, rgba(16,185,129,0.15) 0%, rgba(16,185,129,0.05) 100%);
+    }
+    .user-card.participant {
+        border-color: #f59e0b;
+        background: linear-gradient(140deg, rgba(245,158,11,0.15) 0%, rgba(245,158,11,0.05) 100%);
+    }
+    .user-card.inactive {
+        border-color: #ef4444;
+        background: linear-gradient(140deg, rgba(239,68,68,0.15) 0%, rgba(239,68,68,0.05) 100%);
+    }
+    .user-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        background: var(--accent);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 0.5rem;
+    }
+    .tree-lines {
+        position: relative;
+    }
+    .tree-lines::before {
+        content: '';
+        position: absolute;
+        top: -12px;
+        left: 50%;
+        width: 2px;
+        height: 12px;
+        background: #d1d5db;
+        transform: translateX(-50%);
+    }
+    .level-0 .tree-lines::before {
+        display: none;
+    }
+    .children-container {
+        display: flex;
+        justify-content: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1"><i class="fas fa-network-wired text-primary me-2"></i>Структура {{ user.username }}</h1>
+        <p class="text-muted mb-0">Распределение партнеров в первых уровнях</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'admin_panel:user_move' user.id %}" class="btn btn-outline-dark"><i class="fas fa-arrows-alt me-2"></i>Переместить</a>
+        <a href="{% url 'admin_panel:user_detail' user.id %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Назад</a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="badge bg-primary rounded-3">1 линия</span>
+                    <span class="fw-semibold">{{ children|length }}</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="badge bg-success rounded-3">Партнеров</span>
+                    <span class="fw-semibold">{{ direct_partners_count }}</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="badge bg-warning rounded-3 text-dark">Участников</span>
+                    <span class="fw-semibold">{{ direct_participants_count }}</span>
+                </div>
+            </div>
+            <div class="col-md-3 text-md-end">
+                <span class="text-muted">Реферальный код: <code>{{ user.referral_code }}</code></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="tree-wrapper">
+            {% if structure_tree %}
+                {% include 'admin_panel/tree_node.html' with node=structure_tree level=0 %}
+            {% else %}
+                <div class="text-center text-muted py-5">
+                    <i class="fas fa-sitemap fa-3x mb-3"></i>
+                    <p class="mb-0">У пользователя пока нет структуры.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

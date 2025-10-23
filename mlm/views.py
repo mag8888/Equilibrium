@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.db import transaction
 from django.utils import timezone
 from .models import Bonus, Withdrawal, MLMSettings, RankUpgrade
-from .utils import upgrade_user_rank, get_bonus_summary, get_structure_statistics
+from mlm.services import get_bonus_summary, get_structure_statistics, upgrade_user_rank
 from users.models import User
 
 

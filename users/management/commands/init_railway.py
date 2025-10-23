@@ -25,6 +25,8 @@ class Command(BaseCommand):
                 green_bonus_first=100.00,
                 green_bonus_second=50.00,
                 red_bonus=50.00,
+                red_bonus_second_partner=50.00,
+                red_bonus_third_partner=100.00,
                 max_partners_per_level=3,
                 is_active=True
             )
