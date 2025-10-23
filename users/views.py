@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.crypto import get_random_string
+from django.contrib.auth.forms import AuthenticationForm
 from .models import User, UserProfile
 from mlm.models import MLMStructure, MLMSettings
 from mlm.services import place_user_in_structure
@@ -53,11 +54,6 @@ def home(request):
                 font-weight: 700;
                 margin-bottom: 1rem;
                 text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-                animation: pulse 2s infinite;
-            }
-            @keyframes pulse {
-                0%, 100% { transform: scale(1); }
-                50% { transform: scale(1.05); }
             }
             .subtitle {
                 font-size: 1.5rem;
@@ -92,11 +88,6 @@ def home(request):
                 border: 2px solid rgba(40, 167, 69, 0.3);
                 border-radius: 12px;
                 font-size: 0.9rem;
-            }
-            .timestamp {
-                margin-top: 1rem;
-                font-size: 0.8rem;
-                opacity: 0.7;
             }
         </style>
     </head>
@@ -170,266 +161,80 @@ def register(request):
 
 
 def login_view(request):
-    """Вход в систему - простой HTML без JavaScript"""
+    """Красивый вход в систему с дизайном"""
     if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        
-        user = authenticate(request, username=username, password=password)
-        if user:
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
             login(request, user)
             return redirect('admin_panel:dashboard')
-        else:
-            error_msg = "Неверные данные для входа"
     else:
-        error_msg = ""
+        form = AuthenticationForm()
     
-    html = f"""
-    <!DOCTYPE html>
-    <html lang="ru">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Вход - TRINARY MLM</title>
-        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-        <meta http-equiv="Pragma" content="no-cache">
-        <meta http-equiv="Expires" content="0">
-        <style>
-            body {{
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                min-height: 100vh;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin: 0;
-            }}
-            .login-container {{
-                background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(20px);
-                border-radius: 20px;
-                padding: 3rem;
-                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-                width: 100%;
-                max-width: 400px;
-                text-align: center;
-            }}
-            .logo h1 {{
-                color: #667eea;
-                font-size: 2.5rem;
-                margin-bottom: 0.5rem;
-            }}
-            .form-group {{
-                margin-bottom: 1.5rem;
-                text-align: left;
-            }}
-            .form-group input {{
-                width: 100%;
-                padding: 0.75rem 1rem;
-                border: 2px solid #e9ecef;
-                border-radius: 12px;
-                font-size: 1rem;
-                transition: all 0.3s ease;
-            }}
-            .form-group input:focus {{
-                outline: none;
-                border-color: #667eea;
-                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            }}
-            .btn {{
-                width: 100%;
-                padding: 0.75rem 1rem;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                border: none;
-                border-radius: 12px;
-                font-size: 1rem;
-                font-weight: 600;
-                cursor: pointer;
-                transition: all 0.3s ease;
-            }}
-            .btn:hover {{
-                transform: translateY(-2px);
-                box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-            }}
-            .error {{
-                background: rgba(220, 53, 69, 0.1);
-                border: 1px solid rgba(220, 53, 69, 0.3);
-                color: #dc3545;
-                padding: 0.75rem;
-                border-radius: 8px;
-                margin-bottom: 1rem;
-                font-size: 0.9rem;
-            }}
-            .links {{
-                margin-top: 1.5rem;
-            }}
-            .links a {{
-                color: #667eea;
-                text-decoration: none;
-                margin: 0 0.5rem;
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="login-container">
-            <div class="logo">
-                <h1>🚀 TRINARY MLM</h1>
-                <p>Вход в систему</p>
-            </div>
-            
-            {'<div class="error">' + error_msg + '</div>' if error_msg else ''}
-            
-            <form method="post">
-                <div class="form-group">
-                    <label for="username">Имя пользователя:</label>
-                    <input type="text" name="username" id="username" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="password">Пароль:</label>
-                    <input type="password" name="password" id="password" required>
-                </div>
-                
-                <button type="submit" class="btn">Войти</button>
-            </form>
-            
-            <div class="links">
-                <a href="/">← На главную</a>
-                <a href="/admin/">Django Admin</a>
-            </div>
-        </div>
-    </body>
-    </html>
-    """
-    return HttpResponse(html, headers={
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0',
-        'Content-Type': 'text/html; charset=utf-8'
-    })
+    return render(request, 'registration/login.html', {'form': form})
 
 
 def logout_view(request):
     """Выход из системы"""
     from django.contrib.auth import logout
     logout(request)
-    messages.info(request, 'Вы вышли из системы')
     return redirect('users:home')
 
 
-@login_required
-def dashboard(request):
-    """Панель пользователя"""
-    user = request.user
-    
-    # Статистика пользователя
-    user_stats = {
-        'referrals_count': user.referrals.count(),
-        'partners_count': user.referrals.filter(status='partner').count(),
-        'total_earned': user.total_earned,
-        'current_balance': user.balance,
-    }
-    
-    # Структура пользователя
-    try:
-        mlm_structure = user.mlm_structure
-        children = MLMStructure.objects.filter(parent=user).order_by('position')
-    except MLMStructure.DoesNotExist:
-        mlm_structure = None
-        children = []
-    
-    context = {
-        'user': user,
-        'user_stats': user_stats,
-        'mlm_structure': mlm_structure,
-        'children': children,
-    }
-    
-    return render(request, 'users/dashboard.html', context)
-
-
-@login_required
 def profile(request):
     """Профиль пользователя"""
-    return render(request, 'users/profile.html', {'user': request.user})
+    if not request.user.is_authenticated:
+        return redirect('users:login')
+    
+    return render(request, 'users/profile.html')
 
 
-@login_required
+def dashboard(request):
+    """Панель управления пользователя"""
+    if not request.user.is_authenticated:
+        return redirect('users:login')
+    
+    return render(request, 'users/dashboard.html')
+
+
 def referrals(request):
     """Рефералы пользователя"""
-    user = request.user
-    referrals = user.referrals.all().order_by('-date_joined')
+    if not request.user.is_authenticated:
+        return redirect('users:login')
     
-    context = {
-        'user': user,
-        'referrals': referrals,
-    }
-    
-    return render(request, 'users/referrals.html', context)
+    return render(request, 'users/referrals.html')
 
 
-@login_required
 def structure(request):
     """Структура пользователя"""
-    user = request.user
+    if not request.user.is_authenticated:
+        return redirect('users:login')
     
-    # Построение дерева структуры
-    def build_tree(current_user, max_depth=3, current_depth=0):
-        if current_depth >= max_depth:
-            return None
-        
-        try:
-            current_mlm = current_user.mlm_structure
-        except MLMStructure.DoesNotExist:
-            return None
-        
-        children = MLMStructure.objects.filter(parent=current_user).order_by('position')
-        tree_children = []
-        
-        for child in children:
-            child_tree = build_tree(child.user, max_depth, current_depth + 1)
-            if child_tree:
-                tree_children.append(child_tree)
-        
-        return {
-            'user': current_user,
-            'mlm_structure': current_mlm,
-            'children': tree_children,
-            'level': current_depth
-        }
-    
-    structure_tree = build_tree(user)
-    
-    context = {
-        'user': user,
-        'structure_tree': structure_tree,
-    }
-    
-    return render(request, 'users/structure.html', context)
+    return render(request, 'users/structure.html')
 
 
-@login_required
 def upgrade_to_partner(request):
     """Обновление до партнера"""
-    user = request.user
+    if not request.user.is_authenticated:
+        return redirect('users:login')
     
-    if request.method == 'POST':
-        # Здесь будет логика оплаты
-        # Пока просто обновляем статус
-        user.status = 'partner'
-        user.save()
-        
-        messages.success(request, 'Поздравляем! Вы стали партнером!')
-        return redirect('users:dashboard')
-    
-    return render(request, 'users/upgrade_to_partner.html', {'user': user})
+    return render(request, 'users/upgrade.html')
 
 
 def get_referral_link(request):
     """Получение реферальной ссылки"""
-    if request.user.is_authenticated:
-        referral_code = request.user.referral_code
-        referral_link = f"{request.build_absolute_uri('/')}register/?ref={referral_code}"
-        return JsonResponse({'referral_link': referral_link})
-    return JsonResponse({'error': 'Not authenticated'}, status=401)
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Not authenticated'})
+    
+    referral_code = request.user.referral_code
+    if not referral_code:
+        referral_code = get_random_string(8)
+        request.user.referral_code = referral_code
+        request.user.save()
+    
+    referral_link = f"{request.build_absolute_uri('/')}register/?ref={referral_code}"
+    
+    return JsonResponse({
+        'referral_code': referral_code,
+        'referral_link': referral_link
+    })

@@ -20,6 +20,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from .health import health_check
+from users import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -29,7 +30,7 @@ urlpatterns = [
     path('admin-panel/', include('admin_panel.urls')),
     path('payments/', include('payments.urls')),
     # Добавляем стандартные URL для аутентификации
-    path('accounts/login/', include('users.urls')),
+    path('accounts/login/', views.login_view, name='login'), # Кастомный красивый вход
     path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
 ]
 
