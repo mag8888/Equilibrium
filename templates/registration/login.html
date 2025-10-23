@@ -254,26 +254,22 @@
             <p>Современная система управления</p>
         </div>
         
-        {% if form.errors %}
+        {% if error_msg %}
             <div class="error">
-                {% for field, errors in form.errors.items %}
-                    {% for error in errors %}
-                        {{ error }}
-                    {% endfor %}
-                {% endfor %}
+                {{ error_msg }}
             </div>
         {% endif %}
         
         <form method="post">
             {% csrf_token %}
             <div class="form-group">
-                <label for="id_username">Имя пользователя:</label>
-                <input type="text" name="username" id="id_username" required autocomplete="username">
+                <label for="username">Имя пользователя:</label>
+                <input type="text" name="username" id="username" required autocomplete="username">
             </div>
             
             <div class="form-group">
-                <label for="id_password">Пароль:</label>
-                <input type="password" name="password" id="id_password" required autocomplete="current-password">
+                <label for="password">Пароль:</label>
+                <input type="password" name="password" id="password" required autocomplete="current-password">
             </div>
             
             <button type="submit" class="btn">Войти в систему</button>

@@ -163,15 +163,19 @@ def register(request):
 def login_view(request):
     """Красивый вход в систему с дизайном"""
     if request.method == 'POST':
-        form = AuthenticationForm(request, data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        user = authenticate(request, username=username, password=password)
+        if user:
             login(request, user)
             return redirect('admin_panel:dashboard')
+        else:
+            error_msg = "Неверные данные для входа"
     else:
-        form = AuthenticationForm()
+        error_msg = ""
     
-    return render(request, 'registration/login.html', {'form': form})
+    return render(request, 'registration/login.html', {'error_msg': error_msg})
 
 
 def logout_view(request):

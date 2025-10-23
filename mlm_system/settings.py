@@ -150,3 +150,20 @@ AUTH_USER_MODEL = 'users.User'
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/admin-panel/'
 LOGOUT_REDIRECT_URL = '/'
+
+# CSRF settings
+CSRF_TRUSTED_ORIGINS = [
+    'https://web-production-48c0.up.railway.app',
+    'https://*.up.railway.app',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+]
+
+# Security settings for production
+SECURE_CROSS_ORIGIN_OPENER_POLICY = None
+
+# Debug settings for Railway
+if not DEBUG:
+    # В production отключаем некоторые проверки для Railway
+    CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_SECURE = False
