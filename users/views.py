@@ -160,8 +160,9 @@ def register(request):
     return render(request, 'users/register.html')
 
 
+@csrf_exempt
 def login_view(request):
-    """Красивый вход в систему с дизайном"""
+    """Полностью статический вход в систему"""
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
@@ -175,7 +176,303 @@ def login_view(request):
     else:
         error_msg = ""
     
-    return render(request, 'registration/login.html', {'error_msg': error_msg})
+    html = f"""
+    <!DOCTYPE html>
+    <html lang="ru">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Вход в TRINARY MLM</title>
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+        <meta http-equiv="Pragma" content="no-cache">
+        <meta http-equiv="Expires" content="0">
+        <style>
+            * {{
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }}
+            
+            body {{
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+                overflow: hidden;
+            }}
+            
+            /* Анимированный фон */
+            body::before {{
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: 
+                    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                    radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.3) 0%, transparent 50%);
+                animation: backgroundMove 20s ease-in-out infinite;
+            }}
+            
+            @keyframes backgroundMove {{
+                0%, 100% {{ transform: translateX(0) translateY(0); }}
+                25% {{ transform: translateX(-20px) translateY(-10px); }}
+                50% {{ transform: translateX(20px) translateY(10px); }}
+                75% {{ transform: translateX(-10px) translateY(20px); }}
+            }}
+            
+            .login-container {{
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(20px);
+                border-radius: 24px;
+                padding: 3rem;
+                box-shadow: 
+                    0 25px 50px rgba(0, 0, 0, 0.15),
+                    0 0 0 1px rgba(255, 255, 255, 0.2);
+                width: 100%;
+                max-width: 420px;
+                text-align: center;
+                position: relative;
+                z-index: 1;
+                animation: slideIn 0.8s ease-out;
+            }}
+            
+            @keyframes slideIn {{
+                from {{
+                    opacity: 0;
+                    transform: translateY(30px) scale(0.95);
+                }}
+                to {{
+                    opacity: 1;
+                    transform: translateY(0) scale(1);
+                }}
+            }}
+            
+            .logo {{
+                margin-bottom: 2rem;
+            }}
+            
+            .logo h1 {{
+                color: #667eea;
+                font-size: 3rem;
+                font-weight: 700;
+                margin-bottom: 0.5rem;
+                text-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
+            }}
+            
+            .logo p {{
+                color: #6c757d;
+                font-size: 1.1rem;
+                font-weight: 500;
+            }}
+            
+            .form-group {{
+                margin-bottom: 1.5rem;
+                text-align: left;
+            }}
+            
+            .form-group label {{
+                display: block;
+                margin-bottom: 0.5rem;
+                color: #495057;
+                font-weight: 600;
+                font-size: 0.95rem;
+            }}
+            
+            .form-group input {{
+                width: 100%;
+                padding: 1rem 1.25rem;
+                border: 2px solid #e9ecef;
+                border-radius: 12px;
+                font-size: 1rem;
+                transition: all 0.3s ease;
+                background: rgba(255, 255, 255, 0.8);
+            }}
+            
+            .form-group input:focus {{
+                outline: none;
+                border-color: #667eea;
+                box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+                background: rgba(255, 255, 255, 1);
+            }}
+            
+            .btn {{
+                width: 100%;
+                padding: 1rem 1.25rem;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border: none;
+                border-radius: 12px;
+                font-size: 1.1rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                position: relative;
+                overflow: hidden;
+            }}
+            
+            .btn::before {{
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+                transition: left 0.5s;
+            }}
+            
+            .btn:hover::before {{
+                left: 100%;
+            }}
+            
+            .btn:hover {{
+                transform: translateY(-2px);
+                box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+            }}
+            
+            .btn:active {{
+                transform: translateY(0);
+            }}
+            
+            .error {{
+                background: rgba(220, 53, 69, 0.1);
+                border: 1px solid rgba(220, 53, 69, 0.3);
+                color: #dc3545;
+                padding: 1rem;
+                border-radius: 12px;
+                margin-bottom: 1.5rem;
+                font-size: 0.95rem;
+                animation: shake 0.5s ease-in-out;
+            }}
+            
+            @keyframes shake {{
+                0%, 100% {{ transform: translateX(0); }}
+                25% {{ transform: translateX(-5px); }}
+                75% {{ transform: translateX(5px); }}
+            }}
+            
+            .links {{
+                margin-top: 2rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }}
+            
+            .links a {{
+                color: #667eea;
+                text-decoration: none;
+                font-weight: 500;
+                transition: all 0.3s ease;
+                padding: 0.5rem 1rem;
+                border-radius: 8px;
+            }}
+            
+            .links a:hover {{
+                background: rgba(102, 126, 234, 0.1);
+                transform: translateY(-1px);
+            }}
+            
+            .features {{
+                margin-top: 2rem;
+                padding: 1.5rem;
+                background: rgba(102, 126, 234, 0.05);
+                border-radius: 12px;
+                border: 1px solid rgba(102, 126, 234, 0.1);
+            }}
+            
+            .features h3 {{
+                color: #667eea;
+                font-size: 1.1rem;
+                margin-bottom: 1rem;
+                text-align: center;
+            }}
+            
+            .features ul {{
+                list-style: none;
+                color: #6c757d;
+                font-size: 0.9rem;
+                line-height: 1.6;
+            }}
+            
+            .features li {{
+                margin-bottom: 0.5rem;
+                position: relative;
+                padding-left: 1.5rem;
+            }}
+            
+            .features li::before {{
+                content: '✨';
+                position: absolute;
+                left: 0;
+                top: 0;
+            }}
+            
+            /* Адаптивность */
+            @media (max-width: 480px) {{
+                .login-container {{
+                    margin: 1rem;
+                    padding: 2rem;
+                }}
+                
+                .logo h1 {{
+                    font-size: 2.5rem;
+                }}
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="login-container">
+            <div class="logo">
+                <h1>🚀 TRINARY MLM</h1>
+                <p>Современная система управления</p>
+            </div>
+            
+            {'<div class="error">' + error_msg + '</div>' if error_msg else ''}
+            
+            <form method="post">
+                <div class="form-group">
+                    <label for="username">Имя пользователя:</label>
+                    <input type="text" name="username" id="username" required autocomplete="username">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Пароль:</label>
+                    <input type="password" name="password" id="password" required autocomplete="current-password">
+                </div>
+                
+                <button type="submit" class="btn">Войти в систему</button>
+            </form>
+            
+            <div class="features">
+                <h3>🎯 Возможности системы</h3>
+                <ul>
+                    <li>Управление пользователями</li>
+                    <li>MLM структура</li>
+                    <li>Система бонусов</li>
+                    <li>Аналитика и отчеты</li>
+                </ul>
+            </div>
+            
+            <div class="links">
+                <a href="/">← На главную</a>
+                <a href="/admin-panel/">Админ-панель</a>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    return HttpResponse(html, headers={
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'Content-Type': 'text/html; charset=utf-8'
+    })
 
 
 def logout_view(request):
