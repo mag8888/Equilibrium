@@ -24,6 +24,7 @@ urlpatterns = [
     path('admin-panel/', include('admin_panel.urls')),
     path('api/users/', include('users.urls')),
     path('api/payments/', include('payments.urls')),
+    path('', admin.site.urls),  # Redirect root to admin for testing
 ]
 
 if settings.DEBUG:
