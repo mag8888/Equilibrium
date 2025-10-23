@@ -13,7 +13,7 @@ import json
 
 def home(request):
     """Главная страница"""
-    return render(request, 'users/home.html')
+    return render(request, 'users/simple_home.html')
 
 
 def register(request):
