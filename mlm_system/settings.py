@@ -1,5 +1,5 @@
 """
-Django settings for mlm_system project - NO DATABASE VERSION
+Django settings for mlm_system project - ULTRA MINIMAL VERSION
 """
 
 import os
@@ -16,7 +16,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-# Application definition - minimal apps
+# Application definition - absolute minimum
 INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
