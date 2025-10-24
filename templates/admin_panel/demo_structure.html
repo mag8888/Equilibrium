@@ -75,34 +75,35 @@
         }
         
         .tree {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
         }
         
         .tree-node {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            border-left: 4px solid #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
             transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
         }
         
         .tree-node:hover {
-            background: #e9ecef;
-            transform: translateX(5px);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
         }
         
         .tree-node .username {
-            color: #667eea;
-            font-weight: 600;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
         }
         
         .tree-node .meta {
-            color: #6c757d;
-            font-size: 0.9rem;
-            margin-top: 5px;
+            font-size: 0.85rem;
+            opacity: 0.9;
+            line-height: 1.6;
         }
         
         .demo-badge {
@@ -114,6 +115,17 @@
             margin-top: 10px;
             font-weight: 600;
             font-size: 0.9rem;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        
+        .empty-state .emoji {
+            font-size: 3rem;
+            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -128,25 +140,31 @@
             <a href="/admin-panel/">📈 Дашборд</a>
             <a href="/admin-panel/users/">👥 Пользователи</a>
             <a href="/admin-panel/structure/">🌳 Структура</a>
-            <a href="/">🏠 На главную</a>
+            <a href="/">�� На главную</a>
         </div>
         
         <div class="section">
-            <h2>Корневые узлы (основатели структуры)</h2>
+            <h2>📊 Корневые узлы структуры</h2>
+            {% if root_users %}
             <div class="tree">
                 {% for user in root_users %}
                 <div class="tree-node">
                     <div class="username">{{ user.username }}</div>
                     <div class="meta">
-                        ID: #{{ user.id }} | Статус: {{ user.status }} | Ранг: {{ user.rank }} | Баланс: ${{ user.balance|floatformat:2 }}
+                        <div>ID: #{{ user.id }}</div>
+                        <div>Статус: {{ user.status }}</div>
+                        <div>Ранг: {{ user.rank }}</div>
+                        <div>Баланс: ${{ user.balance|floatformat:2 }}</div>
                     </div>
-                </div>
-                {% empty %}
-                <div style="text-align: center; padding: 20px; color: #6c757d;">
-                    ✨ Нет корневых пользователей
                 </div>
                 {% endfor %}
             </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="emoji">🌱</div>
+                <p style="font-size: 1.1rem;">Структура еще не сформирована</p>
+            </div>
+            {% endif %}
         </div>
     </div>
 </body>
