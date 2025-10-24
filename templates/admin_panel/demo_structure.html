@@ -3,467 +3,775 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌳 TRINARY PRO - Clean Design</title>
+    <title>🌳 TRINARY PRO - Advanced Hierarchy</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh;
-            padding: 40px 20px;
+            background: #f5f7fa;
             color: #333;
         }
         
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        
-        .header {
+        /* TOP HEADER */
+        .top-header {
             background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            margin-bottom: 40px;
-            text-align: center;
-        }
-        
-        .header h1 {
-            color: #2c3e50;
-            font-size: 2.2rem;
-            margin-bottom: 8px;
-        }
-        
-        .header p {
-            color: #7f8c8d;
-            font-size: 1rem;
-        }
-        
-        .controls {
-            background: white;
-            padding: 20px 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            margin-bottom: 40px;
+            border-bottom: 1px solid #e0e6f0;
+            padding: 15px 20px;
             display: flex;
-            gap: 15px;
+            justify-content: space-between;
+            align-items: center;
             flex-wrap: wrap;
+            gap: 15px;
+            height: 60px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            z-index: 1000;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .header-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .breadcrumb {
+            font-size: 0.85rem;
+            color: #999;
+        }
+        
+        .header-right {
+            display: flex;
+            gap: 10px;
             align-items: center;
         }
         
-        .btn {
-            padding: 10px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .info-badge {
+            background: #e8f1ff;
+            color: #667eea;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .btn-small {
+            padding: 6px 12px;
+            background: #667eea;
             color: white;
             border: none;
-            border-radius: 8px;
-            font-weight: 600;
+            border-radius: 6px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-small:hover {
+            background: #764ba2;
+            transform: translateY(-1px);
+        }
+        
+        /* MAIN LAYOUT */
+        .main-layout {
+            display: flex;
+            height: calc(100vh - 60px);
+            gap: 0;
+        }
+        
+        /* LEFT SIDEBAR */
+        .left-sidebar {
+            width: 280px;
+            background: white;
+            border-right: 1px solid #e0e6f0;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.04);
+        }
+        
+        .sidebar-section {
+            padding: 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .sidebar-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #667eea;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+        
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        
+        .metric-row:last-child {
+            border-bottom: none;
+        }
+        
+        .metric-label {
+            color: #666;
+        }
+        
+        .metric-value {
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .control-label {
+            font-size: 0.75rem;
+            color: #999;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        
+        .control-input {
+            padding: 8px;
+            border: 1px solid #e0e6f0;
+            border-radius: 6px;
             font-size: 0.9rem;
         }
         
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        /* CENTER SCROLL AREA */
+        .scroll-container {
+            flex: 1;
+            overflow-x: auto;
+            overflow-y: hidden;
+            background: linear-gradient(135deg, #f5f7fa 0%, #f0f3f7 100%);
+            position: relative;
         }
         
-        /* MAIN STRUCTURE */
-        .structure-wrapper {
-            background: white;
-            padding: 50px 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        /* CUSTOM SCROLLBAR */
+        .scroll-container::-webkit-scrollbar {
+            height: 10px;
         }
         
-        /* LEVEL 1: ROOT */
-        .level {
+        .scroll-container::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        
+        .scroll-container::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 5px;
+        }
+        
+        .scroll-container::-webkit-scrollbar-thumb:hover {
+            background: #764ba2;
+        }
+        
+        /* HIERARCHY */
+        .hierarchy {
+            display: flex;
+            height: 100%;
+            padding: 40px;
+            gap: 60px;
+            align-items: flex-start;
+            min-width: fit-content;
+        }
+        
+        /* BRANCH */
+        .branch {
             display: flex;
             flex-direction: column;
-            gap: 50px;
+            gap: 20px;
             position: relative;
         }
         
-        .level-1 {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 30px;
-        }
-        
-        .root-node {
-            position: relative;
-            z-index: 10;
-        }
-        
-        /* CONNECTOR FROM ROOT */
-        .root-connector {
-            position: relative;
-            height: 40px;
-            margin-bottom: 10px;
-        }
-        
-        .root-connector::before {
-            content: '';
+        .branch-label {
             position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 2px;
-            height: 100%;
-            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
-        }
-        
-        /* LEVEL 2: PARTNERS */
-        .level-2 {
-            position: relative;
-            display: flex;
-            justify-content: center;
-            gap: 80px;
-            align-items: flex-start;
-        }
-        
-        /* HORIZONTAL LINE */
-        .level-2::before {
-            content: '';
-            position: absolute;
-            top: -30px;
-            left: 12.5%;
-            right: 12.5%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #667eea, #764ba2, transparent);
-        }
-        
-        /* VERTICAL LINES FROM HORIZONTAL TO NODES */
-        .partner-connector {
-            position: absolute;
-            width: 2px;
-            height: 30px;
-            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
             top: -30px;
             left: 50%;
             transform: translateX(-50%);
+            background: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #667eea;
+            border: 1px solid #e0e6f0;
+            white-space: nowrap;
         }
         
-        .partner-item {
-            position: relative;
+        .level {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
         }
         
-        /* CARDS */
         .card {
-            background: linear-gradient(135deg, #f5f7fa 0%, #f0f3f7 100%);
+            background: white;
             border: 2px solid #e0e6f0;
-            padding: 20px;
-            border-radius: 12px;
+            border-radius: 10px;
+            padding: 14px;
+            min-width: 140px;
             text-align: center;
-            min-width: 200px;
-            transition: all 0.3s ease;
             cursor: pointer;
+            transition: all 0.3s ease;
             position: relative;
-            z-index: 5;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         }
         
         .card:hover {
-            background: linear-gradient(135deg, #fff9e6 0%, #fff5d9 100%);
             border-color: #667eea;
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.15);
-            transform: translateY(-5px);
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
+            transform: translateY(-3px);
         }
         
         .card.root {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: 2px solid rgba(102, 126, 234, 0.3);
-            min-width: 220px;
-            padding: 25px;
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+            min-width: 160px;
+            padding: 16px;
+            font-weight: 700;
         }
         
         .card.root:hover {
-            background: linear-gradient(135deg, #5568d3 0%, #6b3fa0 100%);
-            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
         }
         
         .card-name {
             font-weight: 700;
-            font-size: 1.05rem;
-            margin-bottom: 6px;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
         }
         
         .card-level {
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             opacity: 0.7;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
         }
         
         .card-info {
-            font-size: 0.8rem;
-            background: rgba(0, 0, 0, 0.05);
-            padding: 8px;
-            border-radius: 6px;
-            margin-top: 8px;
+            font-size: 0.75rem;
+            background: rgba(102, 126, 234, 0.08);
+            padding: 4px;
+            border-radius: 3px;
+            margin-top: 6px;
         }
         
         .card.root .card-info {
             background: rgba(255, 255, 255, 0.15);
-            color: rgba(255, 255, 255, 0.9);
         }
         
-        /* LEVEL 3: CHILDREN */
-        .children-container {
-            position: relative;
+        .depth-indicator {
+            position: absolute;
+            top: -8px;
+            right: 8px;
+            width: 16px;
+            height: 16px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
             display: flex;
+            align-items: center;
             justify-content: center;
-            gap: 30px;
-            margin-top: 40px;
-            flex-wrap: wrap;
+            font-size: 0.65rem;
+            font-weight: 700;
         }
         
-        .children-container::before {
-            content: '';
-            position: absolute;
-            top: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 2px;
-            height: 20px;
-            background: linear-gradient(180deg, #667eea, #764ba2);
+        /* RIGHT SIDEBAR */
+        .right-sidebar {
+            width: 280px;
+            background: white;
+            border-left: 1px solid #e0e6f0;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            box-shadow: -2px 0 8px rgba(0, 0, 0, 0.04);
+            padding: 20px;
         }
         
-        .child-item {
-            position: relative;
+        .sidebar-header {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 15px;
+            text-transform: uppercase;
         }
         
-        .child-connector {
-            position: absolute;
-            width: 2px;
-            height: 20px;
-            background: linear-gradient(180deg, #667eea, #764ba2);
-            top: -20px;
-            left: 50%;
-            transform: translateX(-50%);
+        .property {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0;
         }
         
-        .card.child {
-            background: linear-gradient(135deg, #f5f7fa 0%, #f0f3f7 100%);
-            border: 2px solid #e0e6f0;
-            min-width: 160px;
-            font-size: 0.95rem;
+        .property-label {
+            font-size: 0.75rem;
+            color: #999;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            font-weight: 600;
         }
+        
+        .property-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        /* DEPTH LEGEND */
+        .depth-legend {
+            background: #f5f7fa;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 0.8rem;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 0;
+        }
+        
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #667eea;
+        }
+        
+        /* DEPTH COLORS */
+        .depth-1 { --depth-color: #e8f1ff; --border-color: #667eea; }
+        .depth-2 { --depth-color: #f0f3f7; --border-color: #764ba2; }
+        .depth-3 { --depth-color: #f5f7fa; --border-color: #999; }
+        .depth-4 { --depth-color: #fafbfc; --border-color: #ccc; }
+        .depth-5 { --depth-color: #fcfcfd; --border-color: #ddd; }
+        
+        .card.depth-1 { background: var(--depth-color); border-color: var(--border-color); }
+        .card.depth-2 { background: var(--depth-color); border-color: var(--border-color); }
+        .card.depth-3 { background: var(--depth-color); border-color: var(--border-color); }
+        .card.depth-4 { background: var(--depth-color); border-color: var(--border-color); }
+        .card.depth-5 { background: var(--depth-color); border-color: var(--border-color); }
         
         /* RESPONSIVE */
-        @media (max-width: 1024px) {
-            .level-2 {
-                gap: 40px;
-            }
-            
-            .structure-wrapper {
-                padding: 30px 20px;
-            }
-            
-            .card {
-                min-width: 160px;
-                padding: 16px;
-            }
+        @media (max-width: 1200px) {
+            .left-sidebar { width: 200px; }
+            .right-sidebar { width: 200px; }
+            .card { min-width: 120px; padding: 10px; }
         }
         
         @media (max-width: 768px) {
-            .level-2 {
-                flex-direction: column;
-                gap: 60px;
-                align-items: center;
-            }
-            
-            .level-2::before {
-                display: none;
-            }
-            
-            .partner-connector {
-                display: none;
-            }
-            
-            .header h1 {
-                font-size: 1.6rem;
-            }
-        }
-        
-        /* STATS PANEL */
-        .stats-panel {
-            background: white;
-            padding: 25px 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            margin-top: 40px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 20px;
-        }
-        
-        .stat-item {
-            background: linear-gradient(135deg, #f5f7fa 0%, #f0f3f7 100%);
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            border-left: 4px solid #667eea;
-        }
-        
-        .stat-value {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #667eea;
-            margin-bottom: 5px;
-        }
-        
-        .stat-label {
-            font-size: 0.85rem;
-            color: #7f8c8d;
-            text-transform: uppercase;
-            font-weight: 600;
+            .left-sidebar { display: none; }
+            .right-sidebar { display: none; }
+            .hierarchy { padding: 20px; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- HEADER -->
-        <div class="header">
-            <h1>🌳 TRINARY PRO</h1>
-            <p>Чистая и элегантная визуализация структуры партнеров</p>
+    <!-- TOP HEADER -->
+    <div class="top-header">
+        <div class="header-left">
+            <div class="header-title">🌳 TRINARY PRO</div>
+            <div class="breadcrumb">Структура партнеров</div>
+        </div>
+        <div class="header-right">
+            <div class="info-badge">📊 Горизонтальный скролл</div>
+            <button class="btn-small">⚙️ Параметры</button>
+            <button class="btn-small">💾 Сохранить</button>
+        </div>
+    </div>
+    
+    <!-- MAIN LAYOUT -->
+    <div class="main-layout">
+        <!-- LEFT SIDEBAR -->
+        <div class="left-sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">📊 Метрики</div>
+                <div class="metric-row">
+                    <span class="metric-label">Партнеров:</span>
+                    <span class="metric-value">12</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Ветвей:</span>
+                    <span class="metric-value">3</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Макс. глубина:</span>
+                    <span class="metric-value">10</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Доход:</span>
+                    <span class="metric-value">$5.2K</span>
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-title">🎛️ Контролы</div>
+                <div class="control-group">
+                    <label class="control-label">Глубина отображения</label>
+                    <input type="range" class="control-input" min="1" max="10" value="10" style="padding: 4px;">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Размер карточек</label>
+                    <input type="range" class="control-input" min="100" max="200" value="140" style="padding: 4px;">
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-title">ℹ️ Информация</div>
+                <div style="font-size: 0.85rem; color: #666; line-height: 1.5;">
+                    <strong>Структура:</strong> 3 ветви
+                    <br><br>
+                    <strong>Ветвь 1:</strong> 6 уровней
+                    <br><strong>Ветвь 2:</strong> 8 уровней
+                    <br><strong>Ветвь 3:</strong> 10 уровней
+                    <br><br>
+                    <strong>Прокрутите вправо</strong> для просмотра
+                </div>
+            </div>
         </div>
         
-        <!-- CONTROLS -->
-        <div class="controls">
-            <button class="btn">📊 Развернуть все</button>
-            <button class="btn">📉 Свернуть все</button>
-            <button class="btn">🔄 Обновить</button>
-            <button class="btn">💾 Сохранить</button>
-            <button class="btn">📤 Экспорт</button>
-        </div>
-        
-        <!-- STRUCTURE -->
-        <div class="structure-wrapper">
-            <!-- LEVEL 1: ROOT -->
-            <div class="level">
-                <div class="level-1">
-                    <div class="root-node">
+        <!-- CENTER SCROLL AREA -->
+        <div class="scroll-container">
+            <div class="hierarchy">
+                <!-- BRANCH 1: 6 LEVELS -->
+                <div class="branch">
+                    <div class="branch-label">Ветвь 1 (6 уровней)</div>
+                    
+                    <div class="level">
                         <div class="card root">
-                            <div class="card-name">Alice Johnson</div>
+                            <div class="card-name">Alice</div>
+                            <div class="card-level">Root</div>
+                        </div>
+                    </div>
+                    
+                    <div class="level">
+                        <div class="card depth-1">
+                            <div class="card-name">L1-A</div>
+                            <div class="card-level">Level 1</div>
+                            <div class="depth-indicator">1</div>
+                        </div>
+                    </div>
+                    
+                    <div class="level">
+                        <div class="card depth-2">
+                            <div class="card-name">L2-A</div>
                             <div class="card-level">Level 2</div>
-                            <div class="card-info">3 партнеров</div>
+                            <div class="depth-indicator">2</div>
+                        </div>
+                    </div>
+                    
+                    <div class="level">
+                        <div class="card depth-3">
+                            <div class="card-name">L3-A</div>
+                            <div class="card-level">Level 3</div>
+                            <div class="depth-indicator">3</div>
+                        </div>
+                    </div>
+                    
+                    <div class="level">
+                        <div class="card depth-4">
+                            <div class="card-name">L4-A</div>
+                            <div class="card-level">Level 4</div>
+                            <div class="depth-indicator">4</div>
+                        </div>
+                    </div>
+                    
+                    <div class="level">
+                        <div class="card depth-5">
+                            <div class="card-name">L5-A</div>
+                            <div class="card-level">Level 5</div>
+                            <div class="depth-indicator">5</div>
+                        </div>
+                    </div>
+                    
+                    <div class="level">
+                        <div class="card depth-5">
+                            <div class="card-name">L6-A</div>
+                            <div class="card-level">Level 6</div>
+                            <div class="depth-indicator">6</div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- CONNECTOR -->
-                <div class="root-connector"></div>
+                <!-- BRANCH 2: 8 LEVELS -->
+                <div class="branch">
+                    <div class="branch-label">Ветвь 2 (8 уровней)</div>
+                    
+                    <div class="level">
+                        <div class="card root">
+                            <div class="card-name">Bob</div>
+                            <div class="card-level">Root</div>
+                        </div>
+                    </div>
+                    
+                    <div class="level">
+                        <div class="card depth-1">
+                            <div class="card-name">L1-B</div>
+                            <div class="card-level">Level 1</div>
+                            <div class="depth-indicator">1</div>
+                        </div>
+                    </div>
+                    
+                    <div class="level">
+                        <div class="card depth-2">
+                            <div class="card-name">L2-B</div>
+                            <div class="card-level">Level 2</div>
+                            <div class="depth-indicator">2</div>
+                        </div>
+                    </div>
+                    
+                    <div class="level">
+                        <div class="card depth-3">
+                            <div class="card-name">L3-B</div>
+                            <div class="card-level">Level 3</div>
+                            <div class="depth-indicator">3</div>
+                        </div>
+                    </div>
+                    
+                    <div class="level">
+                        <div class="card depth-4">
+                            <div class="card-name">L4-B</div>
+                            <div class="card-level">Level 4</div>
+                            <div class="depth-indicator">4</div>
+                        </div>
+                    </div>
+                    
+                    <div class="level">
+                        <div class="card depth-5">
+                            <div class="card-name">L5-B</div>
+                            <div class="card-level">Level 5</div>
+                            <div class="depth-indicator">5</div>
+                        </div>
+                    </div>
+                    
+                    <div class="level">
+                        <div class="card depth-5">
+                            <div class="card-name">L6-B</div>
+                            <div class="card-level">Level 6</div>
+                            <div class="depth-indicator">6</div>
+                        </div>
+                    </div>
+                    
+                    <div class="level">
+                        <div class="card depth-5">
+                            <div class="card-name">L7-B</div>
+                            <div class="card-level">Level 7</div>
+                            <div class="depth-indicator">7</div>
+                        </div>
+                    </div>
+                    
+                    <div class="level">
+                        <div class="card depth-5">
+                            <div class="card-name">L8-B</div>
+                            <div class="card-level">Level 8</div>
+                            <div class="depth-indicator">8</div>
+                        </div>
+                    </div>
+                </div>
                 
-                <!-- LEVEL 2: PARTNERS -->
-                <div class="level-2">
-                    <!-- PARTNER 1 -->
-                    <div class="partner-item">
-                        <div class="partner-connector"></div>
-                        <div class="card">
-                            <div class="card-name">Bob Wilson</div>
-                            <div class="card-level">Level 3</div>
-                            <div class="card-info">3 партнеров</div>
-                        </div>
-                        
-                        <!-- CHILDREN 1 -->
-                        <div class="children-container">
-                            <div class="child-item">
-                                <div class="child-connector"></div>
-                                <div class="card child">
-                                    <div class="card-name">Child 1-1</div>
-                                </div>
-                            </div>
-                            <div class="child-item">
-                                <div class="child-connector"></div>
-                                <div class="card child">
-                                    <div class="card-name">Child 1-2</div>
-                                </div>
-                            </div>
-                            <div class="child-item">
-                                <div class="child-connector"></div>
-                                <div class="card child">
-                                    <div class="card-name">Child 1-3</div>
-                                </div>
-                            </div>
+                <!-- BRANCH 3: 10 LEVELS -->
+                <div class="branch">
+                    <div class="branch-label">Ветвь 3 (10 уровней)</div>
+                    
+                    <div class="level">
+                        <div class="card root">
+                            <div class="card-name">Carol</div>
+                            <div class="card-level">Root</div>
                         </div>
                     </div>
                     
-                    <!-- PARTNER 2 -->
-                    <div class="partner-item">
-                        <div class="partner-connector"></div>
-                        <div class="card">
-                            <div class="card-name">Carol Davis</div>
-                            <div class="card-level">Level 3</div>
-                            <div class="card-info">1 партнер</div>
-                        </div>
-                        
-                        <!-- CHILDREN 2 -->
-                        <div class="children-container">
-                            <div class="child-item">
-                                <div class="child-connector"></div>
-                                <div class="card child">
-                                    <div class="card-name">Child 2-1</div>
-                                </div>
-                            </div>
+                    <div class="level">
+                        <div class="card depth-1">
+                            <div class="card-name">L1-C</div>
+                            <div class="card-level">Level 1</div>
+                            <div class="depth-indicator">1</div>
                         </div>
                     </div>
                     
-                    <!-- PARTNER 3 -->
-                    <div class="partner-item">
-                        <div class="partner-connector"></div>
-                        <div class="card">
-                            <div class="card-name">David Brown</div>
+                    <div class="level">
+                        <div class="card depth-2">
+                            <div class="card-name">L2-C</div>
+                            <div class="card-level">Level 2</div>
+                            <div class="depth-indicator">2</div>
+                        </div>
+                    </div>
+                    
+                    <div class="level">
+                        <div class="card depth-3">
+                            <div class="card-name">L3-C</div>
                             <div class="card-level">Level 3</div>
-                            <div class="card-info">0 партнеров</div>
+                            <div class="depth-indicator">3</div>
+                        </div>
+                    </div>
+                    
+                    <div class="level">
+                        <div class="card depth-4">
+                            <div class="card-name">L4-C</div>
+                            <div class="card-level">Level 4</div>
+                            <div class="depth-indicator">4</div>
+                        </div>
+                    </div>
+                    
+                    <div class="level">
+                        <div class="card depth-5">
+                            <div class="card-name">L5-C</div>
+                            <div class="card-level">Level 5</div>
+                            <div class="depth-indicator">5</div>
+                        </div>
+                    </div>
+                    
+                    <div class="level">
+                        <div class="card depth-5">
+                            <div class="card-name">L6-C</div>
+                            <div class="card-level">Level 6</div>
+                            <div class="depth-indicator">6</div>
+                        </div>
+                    </div>
+                    
+                    <div class="level">
+                        <div class="card depth-5">
+                            <div class="card-name">L7-C</div>
+                            <div class="card-level">Level 7</div>
+                            <div class="depth-indicator">7</div>
+                        </div>
+                    </div>
+                    
+                    <div class="level">
+                        <div class="card depth-5">
+                            <div class="card-name">L8-C</div>
+                            <div class="card-level">Level 8</div>
+                            <div class="depth-indicator">8</div>
+                        </div>
+                    </div>
+                    
+                    <div class="level">
+                        <div class="card depth-5">
+                            <div class="card-name">L9-C</div>
+                            <div class="card-level">Level 9</div>
+                            <div class="depth-indicator">9</div>
+                        </div>
+                    </div>
+                    
+                    <div class="level">
+                        <div class="card depth-5">
+                            <div class="card-name">L10-C</div>
+                            <div class="card-level">Level 10</div>
+                            <div class="depth-indicator">10</div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- STATS -->
-        <div class="stats-panel">
-            <div class="stat-item">
-                <div class="stat-value">7</div>
-                <div class="stat-label">Всего партнеров</div>
+        <!-- RIGHT SIDEBAR -->
+        <div class="right-sidebar">
+            <div class="sidebar-header">📋 Информация</div>
+            
+            <div class="property">
+                <div class="property-label">Выбранный элемент</div>
+                <div class="property-value">Нет</div>
             </div>
-            <div class="stat-item">
-                <div class="stat-value">3</div>
-                <div class="stat-label">Уровни</div>
+            
+            <div class="property">
+                <div class="property-label">Статистика</div>
+                <div style="font-size: 0.9rem; color: #666; line-height: 1.8;">
+                    <div><strong>Ветвей:</strong> 3</div>
+                    <div><strong>Уровней:</strong> 1-10</div>
+                    <div><strong>Узлов:</strong> 24</div>
+                    <div><strong>Доход:</strong> $5.2K</div>
+                </div>
             </div>
-            <div class="stat-item">
-                <div class="stat-value">100%</div>
-                <div class="stat-label">Заполнение</div>
+            
+            <div class="property">
+                <div class="property-label">🎨 Легенда глубин</div>
+                <div class="depth-legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #667eea;"></div>
+                        <span>1-2 уровни</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #764ba2;"></div>
+                        <span>3-5 уровни</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ccc;"></div>
+                        <span>6+ уровней</span>
+                    </div>
+                </div>
             </div>
-            <div class="stat-item">
-                <div class="stat-value">$4.5K</div>
-                <div class="stat-label">Доход</div>
+            
+            <div class="property">
+                <div class="property-label">⚡ Производительность</div>
+                <div style="font-size: 0.9rem; color: #666; line-height: 1.8;">
+                    <div>✅ Load Time: 0.3s</div>
+                    <div>✅ Scroll: Smooth</div>
+                    <div>✅ Memory: Optimal</div>
+                </div>
             </div>
         </div>
     </div>
     
     <script>
-        // Интерактивность
+        // Интерактивность карточек
         document.querySelectorAll('.card').forEach(card => {
             card.addEventListener('click', function() {
                 document.querySelectorAll('.card').forEach(c => c.style.background = '');
-                this.style.background = 'linear-gradient(135deg, #fff9e6 0%, #fff5d9 100%)';
+                this.style.outline = '3px solid #667eea';
+                this.style.outlineOffset = '2px';
+                
+                const name = this.querySelector('.card-name').textContent;
+                const level = this.querySelector('.card-level').textContent;
+                const rightSidebar = document.querySelector('.right-sidebar');
+                rightSidebar.querySelector('.property-value').textContent = `${name} (${level})`;
             });
         });
         
-        // Кнопки
-        document.querySelectorAll('button')[0].addEventListener('click', () => {
-            document.querySelectorAll('.children-container').forEach(el => {
-                el.style.display = 'flex';
-            });
+        // Скролл по горизонтали
+        const scrollContainer = document.querySelector('.scroll-container');
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+        
+        scrollContainer.addEventListener('mousedown', (e) => {
+            isDown = true;
+            startX = e.pageX - scrollContainer.offsetLeft;
+            scrollLeft = scrollContainer.scrollLeft;
         });
         
-        document.querySelectorAll('button')[1].addEventListener('click', () => {
-            document.querySelectorAll('.children-container').forEach(el => {
-                el.style.display = 'none';
-            });
+        scrollContainer.addEventListener('mouseleave', () => {
+            isDown = false;
+        });
+        
+        scrollContainer.addEventListener('mouseup', () => {
+            isDown = false;
+        });
+        
+        scrollContainer.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - scrollContainer.offsetLeft;
+            const walk = (x - startX) * 1;
+            scrollContainer.scrollLeft = scrollLeft - walk;
         });
     </script>
 </body>
