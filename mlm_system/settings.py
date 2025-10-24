@@ -173,11 +173,18 @@ CSRF_TRUSTED_ORIGINS = [
 # Security settings for production
 SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 
+# CSRF and Cookie settings for Railway
+CSRF_COOKIE_HTTPONLY = False  # Нужно для доступа из формы
+CSRF_COOKIE_AGE = 31449600  # 1 год
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SECURE = False
+
+SESSION_COOKIE_AGE = 1209600  # 2 недели
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = False
+
 # Debug settings for Railway
-if not DEBUG:
-    # В production отключаем некоторые проверки для Railway
-    CSRF_COOKIE_SECURE = False
-    SESSION_COOKIE_SECURE = False
 
 # REST Framework settings
 REST_FRAMEWORK = {
