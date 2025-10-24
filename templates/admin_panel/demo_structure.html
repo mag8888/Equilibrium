@@ -3,110 +3,236 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🧠 Mind Map TRINARY PRO</title>
+    <title>🧠 Mind Map TRINARY PRO - Advanced</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
-        }
-        
-        .header {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 25px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-        }
-        
-        .header h1 { color: #667eea; font-size: 2rem; margin-bottom: 5px; }
-        .header p { color: #999; font-size: 0.95rem; }
-        
-        .controls {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 15px 25px;
-            border-radius: 15px;
-            margin-bottom: 20px;
             display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            color: #333;
         }
         
-        .btn {
-            padding: 8px 16px;
+        /* ЛЕВАЯ ПАНЕЛЬ */
+        .left-sidebar {
+            width: 280px;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 4px 0 16px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            overflow-y: auto;
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 2px solid #f0f0f0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .sidebar-header h3 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+        
+        .search-box {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            margin-top: 10px;
+        }
+        
+        .filter-group {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .filter-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #667eea;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .filter-option {
+            display: flex;
+            align-items: center;
+            padding: 6px;
+            margin: 4px 0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .filter-option:hover {
+            background: #f5f5f5;
+        }
+        
+        .filter-option input {
+            margin-right: 8px;
+        }
+        
+        .quick-actions {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .action-btn {
+            padding: 8px 12px;
             background: #667eea;
             color: white;
             border: none;
-            border-radius: 8px;
-            font-weight: 600;
+            border-radius: 6px;
+            font-size: 0.85rem;
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
+            transition: all 0.2s ease;
         }
         
-        .btn:hover {
+        .action-btn:hover {
             background: #764ba2;
-            transform: translateY(-2px);
+            transform: translateX(2px);
         }
         
-        .mindmap-container {
+        /* ОСНОВНОЙ КОНТЕНТ */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .top-bar {
             background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            overflow: auto;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-            padding: 40px;
-            position: relative;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            flex-wrap: wrap;
+            gap: 15px;
         }
         
-        .mindmap-container::-webkit-scrollbar {
+        .title-section h1 {
+            color: #667eea;
+            font-size: 1.5rem;
+            margin-bottom: 3px;
+        }
+        
+        .title-section p {
+            color: #999;
+            font-size: 0.85rem;
+        }
+        
+        .controls-section {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .zoom-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f5f5f5;
+            padding: 8px 12px;
+            border-radius: 6px;
+        }
+        
+        .zoom-slider {
+            width: 120px;
+            height: 4px;
+            cursor: pointer;
+        }
+        
+        .theme-toggle {
+            width: 40px;
+            height: 24px;
+            background: #ddd;
+            border-radius: 12px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        
+        .theme-toggle.dark {
+            background: #667eea;
+        }
+        
+        .legend {
+            display: flex;
+            gap: 15px;
+            font-size: 0.8rem;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+        
+        /* MINDMAP КОНТЕЙНЕР */
+        .mindmap-wrapper {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        
+        .mindmap-canvas {
+            flex: 1;
+            overflow: auto;
+            position: relative;
+            background: rgba(255, 255, 255, 0.98);
+        }
+        
+        .mindmap-canvas::-webkit-scrollbar {
             width: 8px;
             height: 8px;
         }
         
-        .mindmap-container::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        
-        .mindmap-container::-webkit-scrollbar-thumb {
+        .mindmap-canvas::-webkit-scrollbar-thumb {
             background: #667eea;
-            border-radius: 10px;
+            border-radius: 4px;
         }
         
         .mindmap {
             display: flex;
             align-items: center;
             gap: 80px;
+            padding: 40px 60px;
             min-width: fit-content;
-            position: relative;
         }
         
-        /* Центральный узел */
-        .center {
-            display: flex;
-            align-items: center;
-            flex-shrink: 0;
-            z-index: 20;
-        }
+        /* УЗЛЫ */
+        .center { flex-shrink: 0; z-index: 20; }
         
         .admin-node {
             background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
             color: white;
-            padding: 20px 24px;
+            padding: 22px 26px;
             border-radius: 16px;
             min-width: 180px;
             text-align: center;
             box-shadow: 0 8px 24px rgba(255, 107, 107, 0.35);
             font-weight: 700;
             transition: all 0.3s ease;
+            cursor: pointer;
         }
         
         .admin-node:hover {
@@ -119,7 +245,6 @@
         .node-info { font-size: 0.75rem; opacity: 0.85; }
         .node-level { font-size: 0.7rem; background: rgba(255,255,255,0.2); padding: 3px 8px; border-radius: 4px; display: inline-block; margin-top: 4px; }
         
-        /* Ветки */
         .branch {
             display: flex;
             flex-direction: column;
@@ -160,15 +285,20 @@
             transition: all 0.3s ease;
             cursor: pointer;
             font-weight: 600;
+            position: relative;
         }
         
         .node:hover {
-            transform: scale(1.06) translateY(-2px);
-            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+            transform: scale(1.08) translateY(-3px);
+            box-shadow: 0 8px 18px rgba(102, 126, 234, 0.5);
+        }
+        
+        .node.active {
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.8);
+            transform: scale(1.1);
         }
         
         .node-name { font-size: 0.95rem; margin-bottom: 4px; }
-        .node-user { font-size: 0.75rem; opacity: 0.85; margin-bottom: 3px; }
         .node-detail { font-size: 0.7rem; opacity: 0.75; }
         
         .node.level-2 {
@@ -178,183 +308,351 @@
             padding: 10px 14px;
         }
         
-        /* Соединительные линии */
-        .connector {
+        .node-tooltip {
             position: absolute;
-            background: #667eea;
-            z-index: 1;
+            bottom: -45px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            z-index: 1000;
         }
         
-        .horizontal-line {
-            height: 2px;
-            top: 50%;
-            left: -40px;
-            width: 40px;
+        .node:hover .node-tooltip {
+            opacity: 1;
         }
         
-        .vertical-line {
-            width: 2px;
-            left: -40px;
+        /* ПРАВАЯ ПАНЕЛЬ */
+        .right-sidebar {
+            width: 300px;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: -4px 0 16px rgba(0, 0, 0, 0.15);
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            border-left: 2px solid #f0f0f0;
         }
         
-        .info-box {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.9);
-            border-left: 4px solid #667eea;
-            padding: 12px 16px;
+        .info-panel-header {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #667eea;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .info-block {
+            padding: 12px;
+            background: #f8f9fa;
             border-radius: 8px;
-            color: #1565c0;
+            border-left: 3px solid #667eea;
+        }
+        
+        .info-label {
+            font-size: 0.75rem;
+            color: #999;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+        
+        .info-value {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .action-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .action-panel button {
+            padding: 8px 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
             font-size: 0.85rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            max-width: 250px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .action-panel button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+        
+        .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 30px 20px;
+        }
+        
+        @media (max-width: 1400px) {
+            .right-sidebar { width: 250px; }
+            .left-sidebar { width: 250px; }
         }
         
         @media (max-width: 1024px) {
-            .mindmap { gap: 50px; }
-            .admin-node { min-width: 150px; padding: 16px 20px; }
-            .node { min-width: 120px; }
-            .branch { gap: 15px; }
+            .left-sidebar { display: none; }
+            .right-sidebar { display: none; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🧠 Mind Map TRINARY PRO</h1>
-            <p>Интерактивная структура с классическим ветвлением</p>
+    <!-- ЛЕВАЯ ПАНЕЛЬ -->
+    <div class="left-sidebar">
+        <div class="sidebar-header">
+            <h3>🔍 Фильтры</h3>
+            <input type="text" class="search-box" placeholder="Поиск партнера...">
         </div>
         
-        <div class="controls">
-            <button class="btn">🔍 Zoom +</button>
-            <button class="btn">🔍 Zoom -</button>
-            <button class="btn">📍 Центр</button>
-            <button class="btn">🔄 Сбросить</button>
-            <button class="btn">💾 Сохранить</button>
+        <div class="filter-group">
+            <label class="filter-label">По уровню</label>
+            <label class="filter-option">
+                <input type="checkbox" checked> Администратор
+            </label>
+            <label class="filter-option">
+                <input type="checkbox" checked> ПУ1
+            </label>
+            <label class="filter-option">
+                <input type="checkbox" checked> ПУ0
+            </label>
         </div>
         
-        <div class="mindmap-container" id="mindmapContainer">
-            <div class="mindmap">
-                <!-- ЦЕНТР: АДМИНИСТРАТОР -->
-                <div class="center">
-                    <div class="admin-node">
-                        <div class="node-title">�� АДМИНИСТРАТОР</div>
-                        <div class="node-user">@admin</div>
-                        <div class="node-info">3 партнеров</div>
-                        <div class="node-level">Уровень 2</div>
+        <div class="filter-group">
+            <label class="filter-label">По партнерам</label>
+            <label class="filter-option">
+                <input type="checkbox" checked> С партнерами (3)
+            </label>
+            <label class="filter-option">
+                <input type="checkbox" checked> 1-2 партнера (1)
+            </label>
+            <label class="filter-option">
+                <input type="checkbox" checked> Без партнеров (3)
+            </label>
+        </div>
+        
+        <div class="quick-actions">
+            <button class="action-btn">📊 Статистика</button>
+            <button class="action-btn">📥 Импорт</button>
+            <button class="action-btn">📤 Экспорт</button>
+            <button class="action-btn">🔄 Обновить</button>
+        </div>
+    </div>
+    
+    <!-- ОСНОВНОЙ КОНТЕНТ -->
+    <div class="main-content">
+        <!-- ВЕРХНЯЯ ПАНЕЛЬ -->
+        <div class="top-bar">
+            <div class="title-section">
+                <h1>🧠 Mind Map TRINARY PRO</h1>
+                <p>Интерактивная структура с расширенными возможностями</p>
+            </div>
+            
+            <div class="controls-section">
+                <div class="zoom-control">
+                    <span>🔍</span>
+                    <input type="range" class="zoom-slider" min="50" max="200" value="100">
+                    <span id="zoomLevel">100%</span>
+                </div>
+                
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);"></div>
+                        <span>Админ (Уровень 2)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+                        <span>Партнер ПУ1</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(135deg, #5568d3 0%, #6b3fa0 100%);"></div>
+                        <span>Партнер ПУ0</span>
                     </div>
                 </div>
                 
-                <!-- ВЕТКА 1: ПАРТНЕР 1 -->
-                <div class="branch">
-                    <div class="node">
-                        <div class="node-name">Партнер 1</div>
-                        <div class="node-user">@user1</div>
-                        <div class="node-detail">3 партнеров | ПУ1</div>
-                    </div>
-                    
-                    <!-- ПОДВЕТКА 1 -->
-                    <div class="sub-branch">
-                        <div class="node level-2">
-                            <div class="node-name">Партнер 1-1</div>
-                            <div class="node-user">@user2</div>
-                            <div class="node-detail">ПУ0</div>
-                        </div>
-                        <div class="node level-2">
-                            <div class="node-name">Партнер 1-2</div>
-                            <div class="node-user">@user3</div>
-                            <div class="node-detail">ПУ0</div>
-                        </div>
-                        <div class="node level-2">
-                            <div class="node-name">Партнер 1-3</div>
-                            <div class="node-user">@user4</div>
-                            <div class="node-detail">ПУ0</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- ВЕТКА 2: ПАРТНЕР 2 -->
-                <div class="branch">
-                    <div class="node">
-                        <div class="node-name">Партнер 2</div>
-                        <div class="node-user">@user5</div>
-                        <div class="node-detail">1 партнер | ПУ1</div>
-                    </div>
-                    
-                    <!-- ПОДВЕТКА 2 -->
-                    <div class="sub-branch">
-                        <div class="node level-2">
-                            <div class="node-name">Партнер 2-1</div>
-                            <div class="node-user">@user6</div>
-                            <div class="node-detail">ПУ0</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- ВЕТКА 3: ПАРТНЕР 3 -->
-                <div class="branch">
-                    <div class="node">
-                        <div class="node-name">Партнер 3</div>
-                        <div class="node-user">@user7</div>
-                        <div class="node-detail">0 партнеров | ПУ0</div>
-                    </div>
-                </div>
+                <button class="theme-toggle" id="themeToggle" title="Переключить тему"></button>
             </div>
         </div>
         
-        <div class="info-box">
-            <strong>💡 Подсказка:</strong><br>
-            Прокрутите для навигации • Нажимайте карточки для взаимодействия
+        <!-- MINDMAP И ПРАВАЯ ПАНЕЛЬ -->
+        <div class="mindmap-wrapper">
+            <div class="mindmap-canvas" id="mindmapCanvas">
+                <div class="mindmap">
+                    <!-- АДМИНИСТРАТОР -->
+                    <div class="center">
+                        <div class="admin-node" onclick="selectNode(this)">
+                            <div class="node-title">🔴 АДМИНИСТРАТОР</div>
+                            <div class="node-user">@admin</div>
+                            <div class="node-info">3 партнеров</div>
+                            <div class="node-level">Уровень 2</div>
+                            <div class="node-tooltip">Click to select</div>
+                        </div>
+                    </div>
+                    
+                    <!-- ПАРТНЕР 1 -->
+                    <div class="branch">
+                        <div class="node" data-id="user1" data-name="Партнер 1" data-count="3" onclick="selectNode(this)">
+                            <div class="node-name">Партнер 1</div>
+                            <div class="node-user">@user1</div>
+                            <div class="node-detail">3 партнеров | ПУ1</div>
+                            <div class="node-tooltip">Партнер 1 (3 партнеров)</div>
+                        </div>
+                        <div class="sub-branch">
+                            <div class="node level-2" data-id="user2" data-name="Партнер 1-1" data-count="0" onclick="selectNode(this)">
+                                <div class="node-name">1-1</div>
+                                <div class="node-user">@user2</div>
+                                <div class="node-detail">ПУ0</div>
+                                <div class="node-tooltip">Партнер 1-1</div>
+                            </div>
+                            <div class="node level-2" data-id="user3" data-name="Партнер 1-2" data-count="0" onclick="selectNode(this)">
+                                <div class="node-name">1-2</div>
+                                <div class="node-user">@user3</div>
+                                <div class="node-detail">ПУ0</div>
+                                <div class="node-tooltip">Партнер 1-2</div>
+                            </div>
+                            <div class="node level-2" data-id="user4" data-name="Партнер 1-3" data-count="0" onclick="selectNode(this)">
+                                <div class="node-name">1-3</div>
+                                <div class="node-user">@user4</div>
+                                <div class="node-detail">ПУ0</div>
+                                <div class="node-tooltip">Партнер 1-3</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- ПАРТНЕР 2 -->
+                    <div class="branch">
+                        <div class="node" data-id="user5" data-name="Партнер 2" data-count="1" onclick="selectNode(this)">
+                            <div class="node-name">Партнер 2</div>
+                            <div class="node-user">@user5</div>
+                            <div class="node-detail">1 партнер | ПУ1</div>
+                            <div class="node-tooltip">Партнер 2 (1 партнер)</div>
+                        </div>
+                        <div class="sub-branch">
+                            <div class="node level-2" data-id="user6" data-name="Партнер 2-1" data-count="0" onclick="selectNode(this)">
+                                <div class="node-name">2-1</div>
+                                <div class="node-user">@user6</div>
+                                <div class="node-detail">ПУ0</div>
+                                <div class="node-tooltip">Партнер 2-1</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- ПАРТНЕР 3 -->
+                    <div class="branch">
+                        <div class="node" data-id="user7" data-name="Партнер 3" data-count="0" onclick="selectNode(this)">
+                            <div class="node-name">Партнер 3</div>
+                            <div class="node-user">@user7</div>
+                            <div class="node-detail">0 партнеров | ПУ0</div>
+                            <div class="node-tooltip">Партнер 3 (0 партнеров)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ПРАВАЯ ИНФОРМАЦИОННАЯ ПАНЕЛЬ -->
+            <div class="right-sidebar">
+                <div class="info-panel-header">ℹ️ Информация</div>
+                
+                <div id="infoContent" class="empty-state">
+                    Выберите партнера для просмотра информации
+                </div>
+            </div>
         </div>
     </div>
     
     <script>
-        const container = document.getElementById('mindmapContainer');
+        // Zoom control
+        const zoomSlider = document.querySelector('.zoom-slider');
+        const zoomLevel = document.getElementById('zoomLevel');
+        const mindmap = document.querySelector('.mindmap');
+        
+        zoomSlider.addEventListener('input', (e) => {
+            const scale = e.target.value / 100;
+            mindmap.style.transform = `scale(${scale})`;
+            mindmap.style.transformOrigin = 'top left';
+            zoomLevel.textContent = e.target.value + '%';
+        });
+        
+        // Theme toggle
+        const themeToggle = document.getElementById('themeToggle');
+        themeToggle.addEventListener('click', () => {
+            document.body.style.filter = themeToggle.classList.toggle('dark') 
+                ? 'invert(1) hue-rotate(180deg)' 
+                : 'none';
+            localStorage.setItem('theme', themeToggle.classList.contains('dark') ? 'dark' : 'light');
+        });
+        
+        // Load saved theme
+        if (localStorage.getItem('theme') === 'dark') {
+            themeToggle.classList.add('dark');
+            document.body.style.filter = 'invert(1) hue-rotate(180deg)';
+        }
+        
+        // Select node handler
+        function selectNode(element) {
+            document.querySelectorAll('.node, .admin-node').forEach(n => n.classList.remove('active'));
+            element.classList.add('active');
+            
+            const name = element.dataset.name || 'АДМИНИСТРАТОР';
+            const id = element.dataset.id || 'admin';
+            const count = element.dataset.count || '3';
+            
+            const infoContent = document.getElementById('infoContent');
+            infoContent.innerHTML = `
+                <div style="text-align: left;">
+                    <div class="info-block">
+                        <div class="info-label">Имя</div>
+                        <div class="info-value">${name}</div>
+                    </div>
+                    <div class="info-block">
+                        <div class="info-label">Username</div>
+                        <div class="info-value">@${id}</div>
+                    </div>
+                    <div class="info-block">
+                        <div class="info-label">Партнеров</div>
+                        <div class="info-value">${count}</div>
+                    </div>
+                    <div class="action-panel">
+                        <button>✏️ Редактировать</button>
+                        <button>👥 Добавить партнера</button>
+                        <button>📊 Статистика</button>
+                        <button>🗑️ Удалить</button>
+                    </div>
+                </div>
+            `;
+        }
         
         // Scroll to center on load
         setTimeout(() => {
+            const container = document.getElementById('mindmapCanvas');
             container.scrollLeft = (container.scrollWidth - container.clientWidth) / 2;
+            container.scrollTop = (container.scrollHeight - container.clientHeight) / 2;
         }, 100);
         
-        // Keyboard navigation
+        // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
+            const container = document.getElementById('mindmapCanvas');
             if (e.key === 'ArrowLeft') container.scrollLeft -= 50;
             if (e.key === 'ArrowRight') container.scrollLeft += 50;
             if (e.key === 'ArrowUp') container.scrollTop -= 50;
             if (e.key === 'ArrowDown') container.scrollTop += 50;
-        });
-        
-        // Button handlers
-        document.querySelectorAll('button')[2].addEventListener('click', () => {
-            container.scrollLeft = (container.scrollWidth - container.clientWidth) / 2;
-            container.scrollTop = (container.scrollHeight - container.clientHeight) / 2;
-        });
-        
-        document.querySelectorAll('button')[3].addEventListener('click', () => {
-            location.reload();
-        });
-        
-        // Node click feedback
-        document.querySelectorAll('.node, .admin-node').forEach(node => {
-            node.addEventListener('click', function() {
-                this.style.animation = 'pulse 0.5s ease-out';
-                setTimeout(() => {
-                    this.style.animation = '';
-                }, 500);
-            });
-        });
-        
-        // Add pulse animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes pulse {
-                0% { transform: scale(1); }
-                50% { transform: scale(1.1); }
-                100% { transform: scale(1); }
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.node, .admin-node').forEach(n => n.classList.remove('active'));
+                document.getElementById('infoContent').innerHTML = 'Выберите партнера для просмотра информации';
             }
-        `;
-        document.head.appendChild(style);
+        });
     </script>
 </body>
 </html>
