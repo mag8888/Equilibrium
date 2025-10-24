@@ -3,505 +3,466 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌟 ULTIMATE TRINARY PRO - Vision 2.0</title>
+    <title>🌳 TRINARY PRO - Clean Design</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
-            color: white;
-            overflow: hidden;
+            padding: 40px 20px;
+            color: #333;
         }
         
-        .vision-container {
-            width: 100%;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
         }
         
-        /* TOP HEADER */
         .header {
-            background: rgba(15, 12, 41, 0.8);
-            backdrop-filter: blur(10px);
-            padding: 15px 25px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        
-        .header-left h1 {
-            font-size: 1.8rem;
-            background: linear-gradient(45deg, #ff6b6b, #ffd93d);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 3px;
-        }
-        
-        .header-left p {
-            font-size: 0.85rem;
-            opacity: 0.7;
-        }
-        
-        .header-right {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        
-        .stat-badge {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            display: flex;
-            gap: 6px;
-        }
-        
-        .live-indicator {
-            width: 8px;
-            height: 8px;
-            background: #ff4757;
-            border-radius: 50%;
-            animation: pulse 1s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        /* MAIN CONTENT */
-        .main {
-            flex: 1;
-            display: flex;
-            overflow: hidden;
-        }
-        
-        /* SIDEBAR */
-        .sidebar {
-            width: 300px;
-            background: rgba(15, 12, 41, 0.6);
-            backdrop-filter: blur(10px);
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
-            overflow-y: auto;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        
-        .sidebar-section {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .sidebar-title {
-            font-size: 0.9rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            color: #ffd93d;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .metric {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            font-size: 0.9rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        
-        .metric:last-child { border-bottom: none; }
-        
-        .metric-value {
-            font-weight: 700;
-            color: #ff6b6b;
-        }
-        
-        /* CANVAS */
-        .canvas-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .canvas-header {
-            background: rgba(15, 12, 41, 0.5);
-            backdrop-filter: blur(10px);
-            padding: 12px 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-        
-        .view-mode {
-            display: flex;
-            gap: 8px;
-        }
-        
-        .mode-btn {
-            padding: 6px 12px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: all 0.3s ease;
-        }
-        
-        .mode-btn:hover, .mode-btn.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-color: transparent;
-        }
-        
-        .canvas {
-            flex: 1;
-            position: relative;
-            background: radial-gradient(ellipse at center, rgba(102, 126, 234, 0.1) 0%, rgba(15, 12, 41, 0.8) 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            perspective: 1000px;
-        }
-        
-        /* 3D STRUCTURE */
-        .structure-3d {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 50px;
-            transform-style: preserve-3d;
-            animation: float 3s ease-in-out infinite;
-        }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
-        }
-        
-        .node-3d {
-            position: relative;
-            cursor: pointer;
-            transform-style: preserve-3d;
-            transition: all 0.3s ease;
-        }
-        
-        .node-3d:hover {
-            transform: scale(1.1) rotateZ(5deg);
-        }
-        
-        .node-card {
-            padding: 20px;
+            background: white;
+            padding: 30px;
             border-radius: 15px;
-            min-width: 160px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 40px;
             text-align: center;
-            font-weight: 700;
-            backdrop-filter: blur(10px);
-            border: 2px solid;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
         }
         
-        .node-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s ease;
-        }
-        
-        .node-card:hover::before {
-            left: 100%;
-        }
-        
-        .admin-node .node-card {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
-            border-color: rgba(255, 107, 107, 0.5);
-            font-size: 1.05rem;
-            min-width: 180px;
-            padding: 24px;
-        }
-        
-        .partner-node .node-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-color: rgba(102, 126, 234, 0.5);
-        }
-        
-        .node-name {
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.2rem;
             margin-bottom: 8px;
+        }
+        
+        .header p {
+            color: #7f8c8d;
             font-size: 1rem;
         }
         
-        .node-user {
-            font-size: 0.8rem;
-            opacity: 0.85;
+        .controls {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 40px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+        
+        /* MAIN STRUCTURE */
+        .structure-wrapper {
+            background: white;
+            padding: 50px 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        /* LEVEL 1: ROOT */
+        .level {
+            display: flex;
+            flex-direction: column;
+            gap: 50px;
+            position: relative;
+        }
+        
+        .level-1 {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        
+        .root-node {
+            position: relative;
+            z-index: 10;
+        }
+        
+        /* CONNECTOR FROM ROOT */
+        .root-connector {
+            position: relative;
+            height: 40px;
+            margin-bottom: 10px;
+        }
+        
+        .root-connector::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 100%;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        /* LEVEL 2: PARTNERS */
+        .level-2 {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            gap: 80px;
+            align-items: flex-start;
+        }
+        
+        /* HORIZONTAL LINE */
+        .level-2::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            left: 12.5%;
+            right: 12.5%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #667eea, #764ba2, transparent);
+        }
+        
+        /* VERTICAL LINES FROM HORIZONTAL TO NODES */
+        .partner-connector {
+            position: absolute;
+            width: 2px;
+            height: 30px;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .partner-item {
+            position: relative;
+        }
+        
+        /* CARDS */
+        .card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #f0f3f7 100%);
+            border: 2px solid #e0e6f0;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            min-width: 200px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            z-index: 5;
+        }
+        
+        .card:hover {
+            background: linear-gradient(135deg, #fff9e6 0%, #fff5d9 100%);
+            border-color: #667eea;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.15);
+            transform: translateY(-5px);
+        }
+        
+        .card.root {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            min-width: 220px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+        }
+        
+        .card.root:hover {
+            background: linear-gradient(135deg, #5568d3 0%, #6b3fa0 100%);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.3);
+        }
+        
+        .card-name {
+            font-weight: 700;
+            font-size: 1.05rem;
             margin-bottom: 6px;
         }
         
-        .node-stat {
-            font-size: 0.75rem;
-            opacity: 0.75;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 6px;
-            border-radius: 4px;
+        .card-level {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            margin-bottom: 8px;
+        }
+        
+        .card-info {
+            font-size: 0.8rem;
+            background: rgba(0, 0, 0, 0.05);
+            padding: 8px;
+            border-radius: 6px;
             margin-top: 8px;
         }
         
-        /* CONNECTION LINES */
-        .connection {
+        .card.root .card-info {
+            background: rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        /* LEVEL 3: CHILDREN */
+        .children-container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+        
+        .children-container::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 20px;
+            background: linear-gradient(180deg, #667eea, #764ba2);
+        }
+        
+        .child-item {
+            position: relative;
+        }
+        
+        .child-connector {
             position: absolute;
             width: 2px;
-            background: linear-gradient(90deg, rgba(255, 107, 107, 0.5), rgba(102, 126, 234, 0.5));
-            animation: flowLine 2s infinite;
+            height: 20px;
+            background: linear-gradient(180deg, #667eea, #764ba2);
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
         }
         
-        @keyframes flowLine {
-            0% { background-position: 0; }
-            100% { background-position: 20px; }
+        .card.child {
+            background: linear-gradient(135deg, #f5f7fa 0%, #f0f3f7 100%);
+            border: 2px solid #e0e6f0;
+            min-width: 160px;
+            font-size: 0.95rem;
         }
         
-        /* BOTTOM STATS */
-        .bottom-stats {
-            background: rgba(15, 12, 41, 0.8);
-            backdrop-filter: blur(10px);
-            padding: 15px 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            .level-2 {
+                gap: 40px;
+            }
+            
+            .structure-wrapper {
+                padding: 30px 20px;
+            }
+            
+            .card {
+                min-width: 160px;
+                padding: 16px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .level-2 {
+                flex-direction: column;
+                gap: 60px;
+                align-items: center;
+            }
+            
+            .level-2::before {
+                display: none;
+            }
+            
+            .partner-connector {
+                display: none;
+            }
+            
+            .header h1 {
+                font-size: 1.6rem;
+            }
+        }
+        
+        /* STATS PANEL */
+        .stats-panel {
+            background: white;
+            padding: 25px 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-top: 40px;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 15px;
-            font-size: 0.85rem;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
         }
         
         .stat-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 6px;
-            border-left: 3px solid #ff6b6b;
+            background: linear-gradient(135deg, #f5f7fa 0%, #f0f3f7 100%);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid #667eea;
         }
         
-        .stat-item.up { border-left-color: #2ecc71; }
-        .stat-item.down { border-left-color: #e74c3c; }
-        
-        /* SCROLLBAR */
-        ::-webkit-scrollbar {
-            width: 8px;
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
         }
         
-        ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(180deg, #ff6b6b, #667eea);
-            border-radius: 4px;
-        }
-        
-        @media (max-width: 1024px) {
-            .sidebar { width: 200px; }
-            .structure-3d { gap: 30px; }
-            .node-card { min-width: 140px; padding: 16px; }
+        .stat-label {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            font-weight: 600;
         }
     </style>
 </head>
 <body>
-    <div class="vision-container">
+    <div class="container">
         <!-- HEADER -->
         <div class="header">
-            <div class="header-left">
-                <h1>🌟 ULTIMATE TRINARY PRO</h1>
-                <p>Next Generation MLM Platform - Vision 2.0</p>
-            </div>
-            <div class="header-right">
-                <div class="stat-badge">
-                    <div class="live-indicator"></div>
-                    <span>LIVE SYNC</span>
+            <h1>🌳 TRINARY PRO</h1>
+            <p>Чистая и элегантная визуализация структуры партнеров</p>
+        </div>
+        
+        <!-- CONTROLS -->
+        <div class="controls">
+            <button class="btn">📊 Развернуть все</button>
+            <button class="btn">📉 Свернуть все</button>
+            <button class="btn">🔄 Обновить</button>
+            <button class="btn">💾 Сохранить</button>
+            <button class="btn">📤 Экспорт</button>
+        </div>
+        
+        <!-- STRUCTURE -->
+        <div class="structure-wrapper">
+            <!-- LEVEL 1: ROOT -->
+            <div class="level">
+                <div class="level-1">
+                    <div class="root-node">
+                        <div class="card root">
+                            <div class="card-name">Alice Johnson</div>
+                            <div class="card-level">Level 2</div>
+                            <div class="card-info">3 партнеров</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="stat-badge">
-                    <span>🎯 100/100</span>
+                
+                <!-- CONNECTOR -->
+                <div class="root-connector"></div>
+                
+                <!-- LEVEL 2: PARTNERS -->
+                <div class="level-2">
+                    <!-- PARTNER 1 -->
+                    <div class="partner-item">
+                        <div class="partner-connector"></div>
+                        <div class="card">
+                            <div class="card-name">Bob Wilson</div>
+                            <div class="card-level">Level 3</div>
+                            <div class="card-info">3 партнеров</div>
+                        </div>
+                        
+                        <!-- CHILDREN 1 -->
+                        <div class="children-container">
+                            <div class="child-item">
+                                <div class="child-connector"></div>
+                                <div class="card child">
+                                    <div class="card-name">Child 1-1</div>
+                                </div>
+                            </div>
+                            <div class="child-item">
+                                <div class="child-connector"></div>
+                                <div class="card child">
+                                    <div class="card-name">Child 1-2</div>
+                                </div>
+                            </div>
+                            <div class="child-item">
+                                <div class="child-connector"></div>
+                                <div class="card child">
+                                    <div class="card-name">Child 1-3</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- PARTNER 2 -->
+                    <div class="partner-item">
+                        <div class="partner-connector"></div>
+                        <div class="card">
+                            <div class="card-name">Carol Davis</div>
+                            <div class="card-level">Level 3</div>
+                            <div class="card-info">1 партнер</div>
+                        </div>
+                        
+                        <!-- CHILDREN 2 -->
+                        <div class="children-container">
+                            <div class="child-item">
+                                <div class="child-connector"></div>
+                                <div class="card child">
+                                    <div class="card-name">Child 2-1</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- PARTNER 3 -->
+                    <div class="partner-item">
+                        <div class="partner-connector"></div>
+                        <div class="card">
+                            <div class="card-name">David Brown</div>
+                            <div class="card-level">Level 3</div>
+                            <div class="card-info">0 партнеров</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         
-        <!-- MAIN CONTENT -->
-        <div class="main">
-            <!-- SIDEBAR -->
-            <div class="sidebar">
-                <div class="sidebar-section">
-                    <div class="sidebar-title">📊 МЕТРИКИ</div>
-                    <div class="metric">
-                        <span>Партнеров:</span>
-                        <span class="metric-value">7</span>
-                    </div>
-                    <div class="metric">
-                        <span>Уровни:</span>
-                        <span class="metric-value">3</span>
-                    </div>
-                    <div class="metric">
-                        <span>Доход (мес):</span>
-                        <span class="metric-value">$4.5K</span>
-                    </div>
-                    <div class="metric">
-                        <span>Рост:</span>
-                        <span class="metric-value up">↑ 42%</span>
-                    </div>
-                </div>
-                
-                <div class="sidebar-section">
-                    <div class="sidebar-title">🔥 TOP PERFORMANCE</div>
-                    <div class="metric">
-                        <span>Лучший партнер:</span>
-                        <span class="metric-value">Партнер 1</span>
-                    </div>
-                    <div class="metric">
-                        <span>Его доход:</span>
-                        <span class="metric-value">$2.1K</span>
-                    </div>
-                    <div class="metric">
-                        <span>Конверсия:</span>
-                        <span class="metric-value">85%</span>
-                    </div>
-                </div>
-                
-                <div class="sidebar-section">
-                    <div class="sidebar-title">🎯 AI INSIGHTS</div>
-                    <div class="metric" style="color: #ffd93d;">
-                        <span>Следующий должен к Партнеру 1</span>
-                    </div>
-                    <div class="metric" style="color: #ff6b6b;">
-                        <span>⚠️ Риск в ветке B</span>
-                    </div>
-                </div>
+        <!-- STATS -->
+        <div class="stats-panel">
+            <div class="stat-item">
+                <div class="stat-value">7</div>
+                <div class="stat-label">Всего партнеров</div>
             </div>
-            
-            <!-- CANVAS AREA -->
-            <div class="canvas-area">
-                <div class="canvas-header">
-                    <div>🎨 Интерактивная 3D структура</div>
-                    <div class="view-mode">
-                        <button class="mode-btn active">2D View</button>
-                        <button class="mode-btn">3D View</button>
-                        <button class="mode-btn">AR View</button>
-                    </div>
-                </div>
-                
-                <div class="canvas">
-                    <div class="structure-3d">
-                        <!-- ADMIN -->
-                        <div class="node-3d admin-node">
-                            <div class="node-card">
-                                <div class="node-name">🔴 ADMIN</div>
-                                <div class="node-user">@admin</div>
-                                <div class="node-stat">📈 +250% рост</div>
-                            </div>
-                        </div>
-                        
-                        <!-- BRANCH 1 -->
-                        <div class="node-3d partner-node">
-                            <div class="node-card">
-                                <div class="node-name">Partner 1</div>
-                                <div class="node-user">@user1</div>
-                                <div class="node-stat">🏆 VIP Status</div>
-                            </div>
-                        </div>
-                        
-                        <!-- BRANCH 2 -->
-                        <div class="node-3d partner-node">
-                            <div class="node-card">
-                                <div class="node-name">Partner 2</div>
-                                <div class="node-user">@user5</div>
-                                <div class="node-stat">⭐ Rising Star</div>
-                            </div>
-                        </div>
-                        
-                        <!-- BRANCH 3 -->
-                        <div class="node-3d partner-node">
-                            <div class="node-card">
-                                <div class="node-name">Partner 3</div>
-                                <div class="node-user">@user7</div>
-                                <div class="node-stat">📊 Stable</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- BOTTOM STATS -->
-                <div class="bottom-stats">
-                    <div class="stat-item up">
-                        <span>⬆️ Daily Active Users</span>
-                        <strong>+350</strong>
-                    </div>
-                    <div class="stat-item up">
-                        <span>💰 Revenue Today</span>
-                        <strong>$1,250</strong>
-                    </div>
-                    <div class="stat-item">
-                        <span>🔄 Last Sync</span>
-                        <strong>2 secs ago</strong>
-                    </div>
-                    <div class="stat-item">
-                        <span>⏱️ System Performance</span>
-                        <strong>100%</strong>
-                    </div>
-                </div>
+            <div class="stat-item">
+                <div class="stat-value">3</div>
+                <div class="stat-label">Уровни</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">100%</div>
+                <div class="stat-label">Заполнение</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">$4.5K</div>
+                <div class="stat-label">Доход</div>
             </div>
         </div>
     </div>
     
     <script>
         // Интерактивность
-        document.querySelectorAll('.node-card').forEach(card => {
+        document.querySelectorAll('.card').forEach(card => {
             card.addEventListener('click', function() {
-                const name = this.querySelector('.node-name').textContent;
-                console.log('Selected:', name);
-                this.parentElement.style.animation = 'none';
-                setTimeout(() => {
-                    this.parentElement.style.animation = '';
-                }, 10);
-            });
-            
-            card.addEventListener('mouseenter', function() {
-                this.style.transform = 'scale(1.1) translateY(-10px)';
-            });
-            
-            card.addEventListener('mouseleave', function() {
-                this.style.transform = '';
+                document.querySelectorAll('.card').forEach(c => c.style.background = '');
+                this.style.background = 'linear-gradient(135deg, #fff9e6 0%, #fff5d9 100%)';
             });
         });
         
-        // Режимы просмотра
-        document.querySelectorAll('.mode-btn').forEach((btn, idx) => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                const modes = ['2D (Current)', '3D (Soon)', 'AR (Beta)'];
-                console.log('Switched to:', modes[idx]);
+        // Кнопки
+        document.querySelectorAll('button')[0].addEventListener('click', () => {
+            document.querySelectorAll('.children-container').forEach(el => {
+                el.style.display = 'flex';
+            });
+        });
+        
+        document.querySelectorAll('button')[1].addEventListener('click', () => {
+            document.querySelectorAll('.children-container').forEach(el => {
+                el.style.display = 'none';
             });
         });
     </script>
