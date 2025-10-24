@@ -26,6 +26,7 @@ from users.simple_login import simple_login
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('health/', health_check, name='health_check'),
+    path('api/', include('api.urls')),  # API endpoints
     path('', include('users.urls')),
     path('mlm/', include('mlm.urls')),
     path('admin-panel/', include('admin_panel.urls')),
