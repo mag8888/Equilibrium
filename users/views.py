@@ -443,7 +443,7 @@ def login_view(request):
     <body>
         <div class="login-container">
             <div class="logo">
-                <h1>🚀 TRINARY MLM</h1>
+                <h1>🚀 TRINARY MLM v3.0 DEPLOYMENT TEST 🎯</h1>
                 <p>Современная система управления</p>
             </div>
             
