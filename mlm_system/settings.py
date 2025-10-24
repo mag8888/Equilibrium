@@ -27,7 +27,13 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-18&v@(xldmv1i*duu3ao@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = ['web-production-48c0.up.railway.app', '127.0.0.1', 'localhost', '*']
+ALLOWED_HOSTS = [
+    'web-production-48c0.up.railway.app', 
+    'equilibrium.up.railway.app',
+    '127.0.0.1', 
+    'localhost', 
+    '*'
+]
 
 
 # Application definition
@@ -158,6 +164,7 @@ LOGOUT_REDIRECT_URL = '/'
 # CSRF settings
 CSRF_TRUSTED_ORIGINS = [
     'https://web-production-48c0.up.railway.app',
+    'https://equilibrium.up.railway.app',
     'https://*.up.railway.app',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
@@ -188,6 +195,7 @@ REST_FRAMEWORK = {
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
     "https://trinary-frontend.up.railway.app",
+    "https://equilibrium.up.railway.app",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
