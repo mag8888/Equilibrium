@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌳 Структура пользователей - TRINARY MLM</title>
+    <title>🌳 Структура TRINARY PRO - УРОВНИ</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -15,64 +15,113 @@
         .container { max-width: 1600px; margin: 0 auto; }
         .header {
             background: rgba(255, 255, 255, 0.95);
-            padding: 30px;
+            padding: 25px;
             border-radius: 15px;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
         }
-        .header h1 { color: #667eea; font-size: 2.5rem; margin-bottom: 10px; }
+        .header h1 { color: #667eea; font-size: 2.2rem; margin-bottom: 5px; }
+        .header p { color: #999; font-size: 0.95rem; }
         .structure-view {
             background: rgba(255, 255, 255, 0.95);
-            padding: 40px;
+            padding: 30px;
             border-radius: 15px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        }
+        svg {
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin-bottom: 20px;
         }
         .tree {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 40px;
+            gap: 35px;
         }
-        .tree-level {
+        .level {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .level-title {
+            color: #667eea;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 15px;
+            background: #f0f4ff;
+            padding: 8px 16px;
+            border-radius: 20px;
+        }
+        .nodes-row {
             display: flex;
             justify-content: center;
-            gap: 30px;
+            gap: 20px;
             flex-wrap: wrap;
-            margin-top: 30px;
+            width: 100%;
         }
         .user-node {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 20px;
-            border-radius: 15px;
-            min-width: 160px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            min-width: 130px;
             text-align: center;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
             transition: all 0.3s ease;
         }
         .user-node:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
         }
-        .node-name { font-weight: 700; font-size: 1.1rem; margin-bottom: 8px; }
-        .node-info { font-size: 0.85rem; opacity: 0.9; }
-        .root-user { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); }
-        .level-title {
-            color: #667eea;
+        .user-node.root {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            min-width: 150px;
+            padding: 14px 16px;
+        }
+        .node-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+        }
+        .node-username {
+            font-size: 0.75rem;
+            opacity: 0.85;
+            margin-bottom: 3px;
+        }
+        .node-count {
+            font-size: 0.7rem;
+            opacity: 0.8;
+            margin-bottom: 3px;
+        }
+        .node-level {
+            font-size: 0.65rem;
+            opacity: 0.75;
+            background: rgba(255,255,255,0.15);
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #667eea;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            color: #1565c0;
             font-size: 0.9rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            margin: 20px 0;
-            width: 100%;
         }
         .controls {
             display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
+            gap: 8px;
+            margin-bottom: 20px;
             flex-wrap: wrap;
         }
         .btn {
-            padding: 10px 20px;
+            padding: 8px 16px;
             background: #667eea;
             color: white;
             border: none;
@@ -80,80 +129,114 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
+            font-size: 0.9rem;
         }
         .btn:hover { background: #764ba2; transform: translateY(-2px); }
-        .info-box {
-            background: #e3f2fd;
-            border-left: 4px solid #667eea;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            color: #1565c0;
+        
+        .connections-svg {
+            width: 100%;
+            height: 300px;
+            margin: 30px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .user-node { min-width: 110px; padding: 10px 12px; font-size: 0.85rem; }
+            .node-name { font-size: 0.85rem; }
+            .header h1 { font-size: 1.6rem; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🌳 Структура пользователей TRINARY MLM</h1>
-            <p>Визуализация иерархии и управление партнерами</p>
+            <h1>🌳 СТРУКТУРА TRINARY PRO</h1>
+            <p>Визуализация трехуровневой иерархии с 3 партнерами максимум</p>
         </div>
         
         <div class="structure-view">
             <div class="info-box">
-                ℹ️ Максимум 3 партнера в одном уровне. Перетащите узел для изменения структуры.
+                ✨ Администратор повышает свой уровень по мере добавления партнеров • Максимум 3 партнера в одном уровне
             </div>
             
             <div class="controls">
-                <button class="btn">📈 Развернуть все</button>
+                <button class="btn">�� Развернуть все</button>
                 <button class="btn">📉 Свернуть все</button>
-                <button class="btn">🔄 Сбросить позиции</button>
-                <button class="btn">💾 Сохранить структуру</button>
+                <button class="btn">🔄 Сбросить</button>
+                <button class="btn">💾 Сохранить</button>
             </div>
             
+            <svg class="connections-svg" viewBox="0 0 1200 300" preserveAspectRatio="xMidYMid meet">
+                <!-- Линии от админа к партнерам уровня 1 -->
+                <line x1="150" y1="80" x2="100" y2="180" stroke="#ff6b6b" stroke-width="3" opacity="0.6"/>
+                <line x1="150" y1="80" x2="300" y2="180" stroke="#ff6b6b" stroke-width="3" opacity="0.6"/>
+                <line x1="150" y1="80" x2="500" y2="180" stroke="#ff6b6b" stroke-width="3" opacity="0.6"/>
+                
+                <!-- Стрелки от партнеров к партнерам уровня 2 -->
+                <line x1="100" y1="230" x2="50" y2="280" stroke="#667eea" stroke-width="2" opacity="0.4" stroke-dasharray="5,5"/>
+                <line x1="100" y1="230" x2="150" y2="280" stroke="#667eea" stroke-width="2" opacity="0.4" stroke-dasharray="5,5"/>
+            </svg>
+            
             <div class="tree">
-                <div class="level-title">УРОВЕНЬ 0</div>
-                <div class="user-node root-user">
-                    <div class="node-name">Администратор</div>
-                    <div class="node-info">@admin</div>
-                    <div style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 5px; margin-top: 8px; font-size: 0.8rem;">Уровень 0</div>
-                </div>
-                
-                <div class="level-title">ПАРТНЕРЫ УРОВНЯ 1 (3/3)</div>
-                <div class="tree-level">
-                    <div class="user-node">
-                        <div class="node-name">Партнер 1</div>
-                        <div class="node-info"><div>@user1</div><div>3 партнеров</div></div>
-                        <div style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 5px; margin-top: 8px; font-size: 0.8rem;">Уровень 1</div>
-                    </div>
-                    <div class="user-node">
-                        <div class="node-name">Партнер 2</div>
-                        <div class="node-info"><div>@user5</div><div>1 партнер</div></div>
-                        <div style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 5px; margin-top: 8px; font-size: 0.8rem;">Уровень 1</div>
-                    </div>
-                    <div class="user-node">
-                        <div class="node-name">Партнер 3</div>
-                        <div class="node-info"><div>@user7</div><div>0 партнеров</div></div>
-                        <div style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 5px; margin-top: 8px; font-size: 0.8rem;">Уровень 1</div>
+                <!-- УРОВЕНЬ 0 -->
+                <div class="level">
+                    <div class="level-title">УРОВЕНЬ 0 - АДМИНИСТРАТОР</div>
+                    <div class="nodes-row">
+                        <div class="user-node root">
+                            <div class="node-name">🔴 Администратор</div>
+                            <div class="node-username">@admin</div>
+                            <div class="node-count">3 партнеров</div>
+                            <div class="node-level">Уровень 2</div>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="level-title">ПАРТНЕРЫ УРОВНЯ 2 ПЕРВОГО ПАРТНЕРА (3/3)</div>
-                <div class="tree-level">
-                    <div class="user-node">
-                        <div class="node-name">Партнер 1-1</div>
-                        <div class="node-info"><div>@user2</div><div>0 партнеров</div></div>
-                        <div style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 5px; margin-top: 8px; font-size: 0.8rem;">Уровень 2</div>
+                <!-- УРОВЕНЬ 1 -->
+                <div class="level">
+                    <div class="level-title">УРОВЕНЬ 1 - ПУ1 ПАРТНЕРЫ (3/3)</div>
+                    <div class="nodes-row">
+                        <div class="user-node">
+                            <div class="node-name">Партнер 1</div>
+                            <div class="node-username">@user1</div>
+                            <div class="node-count">3 партнеров</div>
+                            <div class="node-level">Уровень 1</div>
+                        </div>
+                        <div class="user-node">
+                            <div class="node-name">Партнер 2</div>
+                            <div class="node-username">@user5</div>
+                            <div class="node-count">1 партнер</div>
+                            <div class="node-level">Уровень 1</div>
+                        </div>
+                        <div class="user-node">
+                            <div class="node-name">Партнер 3</div>
+                            <div class="node-username">@user7</div>
+                            <div class="node-count">0 партнеров</div>
+                            <div class="node-level">Уровень 0</div>
+                        </div>
                     </div>
-                    <div class="user-node">
-                        <div class="node-name">Партнер 1-2</div>
-                        <div class="node-info"><div>@user3</div><div>0 партнеров</div></div>
-                        <div style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 5px; margin-top: 8px; font-size: 0.8rem;">Уровень 2</div>
-                    </div>
-                    <div class="user-node">
-                        <div class="node-name">Партнер 1-3</div>
-                        <div class="node-info"><div>@user4</div><div>0 партнеров</div></div>
-                        <div style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 5px; margin-top: 8px; font-size: 0.8rem;">Уровень 2</div>
+                </div>
+                
+                <!-- УРОВЕНЬ 2 -->
+                <div class="level">
+                    <div class="level-title">УРОВЕНЬ 2 - ПУ1 ПАРТНЕРОВ (ПОД ПЕРВОГО ПАРТНЕРА 3/3)</div>
+                    <div class="nodes-row">
+                        <div class="user-node">
+                            <div class="node-name">Партнер 1-1</div>
+                            <div class="node-username">@user2</div>
+                            <div class="node-count">0 партнеров</div>
+                            <div class="node-level">Уровень 0</div>
+                        </div>
+                        <div class="user-node">
+                            <div class="node-name">Партнер 1-2</div>
+                            <div class="node-username">@user3</div>
+                            <div class="node-count">0 партнеров</div>
+                            <div class="node-level">Уровень 0</div>
+                        </div>
+                        <div class="user-node">
+                            <div class="node-name">Партнер 1-3</div>
+                            <div class="node-username">@user4</div>
+                            <div class="node-count">0 партнеров</div>
+                            <div class="node-level">Уровень 0</div>
+                        </div>
                     </div>
                 </div>
             </div>
