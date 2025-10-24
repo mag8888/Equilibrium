@@ -21,7 +21,6 @@ from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from .health import health_check
 from users import views
-from users.simple_login import simple_login
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -32,7 +31,7 @@ urlpatterns = [
     path('admin-panel/', include('admin_panel.urls')),
     path('payments/', include('payments.urls')),
     # Добавляем стандартные URL для аутентификации
-    path('accounts/login/', simple_login, name='login'), # Простая версия входа
+    path('accounts/login/', views.login_view, name='login'), # Форма входа с CSRF токеном
     path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
 ]
 
