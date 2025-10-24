@@ -97,3 +97,62 @@ def admin_demo_structure(request):
     }
     
     return render(request, 'admin_panel/demo_structure.html', context)
+
+
+def structure_viewer(request):
+    """Интерактивная визуализация структуры пользователей"""
+    
+    try:
+        from users.models import User
+        from mlm.models import MLMStructure
+        
+        # Получаем корневого пользователя (без инвайтера)
+        root_user = User.objects.filter(invited_by__isnull=True).first()
+        
+        if root_user:
+            structure_data = build_structure_tree(root_user)
+        else:
+            structure_data = None
+            
+    except Exception as e:
+        # Демо-данные если БД недоступна
+        structure_data = {
+            'id': 1,
+            'username': 'demo_admin',
+            'name': 'Admin Demo',
+            'level': 0,
+            'status': 'root',
+            'partners': [
+                {
+                    'id': 2,
+                    'username': 'partner1',
+                    'name': 'Partner 1',
+                    'level': 1,
+                    'status': 'partner',
+                    'partners': []
+                }
+            ]
+        }
+    
+    context = {
+        'structure_data': structure_data,
+        'is_demo': True,
+    }
+    
+    return render(request, 'admin_panel/structure_viewer.html', context)
+
+
+def build_structure_tree(user, level=0):
+    """Рекурсивно строит дерево структуры"""
+    
+    # Получаем партнеров текущего пользователя
+    partners = user.invited_by.filter(status='partner').order_by('date_joined')[:3]
+    
+    return {
+        'id': user.id,
+        'username': user.username,
+        'name': f"{user.first_name} {user.last_name}".strip() or user.username,
+        'level': level,
+        'status': 'root' if level == 0 else 'partner',
+        'partners': [build_structure_tree(partner, level + 1) for partner in partners]
+    }

@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌳 Структура пользователей - TRINARY MLM</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .header h1 {
+            color: #667eea;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .structure-view {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            overflow-x: auto;
+        }
+        
+        .tree {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+        }
+        
+        .tree-level {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            min-height: 150px;
+            position: relative;
+        }
+        
+        .tree-level::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 30px;
+            background: #ddd;
+        }
+        
+        .user-node {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            min-width: 160px;
+            text-align: center;
+            cursor: grab;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            position: relative;
+        }
+        
+        .user-node:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .user-node.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+        
+        .user-node.drag-over {
+            border: 3px solid #ffc107;
+            transform: scale(1.05);
+        }
+        
+        .node-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+        
+        .node-info {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+        
+        .node-level {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 8px;
+            border-radius: 5px;
+            margin-top: 8px;
+            font-size: 0.8rem;
+        }
+        
+        .root-user {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            min-width: 180px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+        }
+        
+        .level-title {
+            color: #667eea;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            text-align: center;
+            width: 100%;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            color: #1565c0;
+        }
+        
+        .legend {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .legend-color {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+        }
+        
+        .legend-color.root {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+        }
+        
+        .legend-color.partner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        @media (max-width: 768px) {
+            .tree-level {
+                gap: 15px;
+            }
+            
+            .user-node {
+                min-width: 140px;
+                padding: 15px;
+                font-size: 0.9rem;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌳 Структура пользователей TRINARY MLM</h1>
+            <p>Визуализация иерархии и управление партнерами</p>
+        </div>
+        
+        <div class="structure-view">
+            <div class="info-box">
+                ℹ️ Максимум 3 партнера в одном уровне. Перетащите узел для изменения структуры.
+            </div>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color root"></div>
+                    <span>Корневой пользователь (инициатор)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color partner"></div>
+                    <span>Партнер</span>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button class="btn" onclick="expandAll()">📈 Развернуть все</button>
+                <button class="btn" onclick="collapseAll()">📉 Свернуть все</button>
+                <button class="btn" onclick="resetPositions()">🔄 Сбросить позиции</button>
+                <button class="btn" onclick="saveStructure()">💾 Сохранить структуру</button>
+            </div>
+            
+            <div class="tree" id="treeContainer">
+                <!-- Структура будет заполнена JavaScript -->
+                <div style="text-align: center; padding: 40px; color: #999;">
+                    <p>🌱 Загрузка структуры...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Демо-данные структуры
+        const demoStructure = {
+            id: 1,
+            username: "admin",
+            name: "Администратор",
+            level: 0,
+            status: "root",
+            partners: [
+                {
+                    id: 2,
+                    username: "user1",
+                    name: "Партнер 1",
+                    level: 1,
+                    status: "partner",
+                    partners: [
+                        {
+                            id: 3,
+                            username: "user2",
+                            name: "Партнер 1-1",
+                            level: 2,
+                            status: "partner",
+                            partners: []
+                        },
+                        {
+                            id: 4,
+                            username: "user3",
+                            name: "Партнер 1-2",
+                            level: 2,
+                            status: "partner",
+                            partners: []
+                        },
+                        {
+                            id: 5,
+                            username: "user4",
+                            name: "Партнер 1-3",
+                            level: 2,
+                            status: "partner",
+                            partners: []
+                        }
+                    ]
+                },
+                {
+                    id: 6,
+                    username: "user5",
+                    name: "Партнер 2",
+                    level: 1,
+                    status: "partner",
+                    partners: [
+                        {
+                            id: 7,
+                            username: "user6",
+                            name: "Партнер 2-1",
+                            level: 2,
+                            status: "partner",
+                            partners: []
+                        }
+                    ]
+                },
+                {
+                    id: 8,
+                    username: "user7",
+                    name: "Партнер 3",
+                    level: 1,
+                    status: "partner",
+                    partners: []
+                }
+            ]
+        };
+        
+        function renderTree(data, container) {
+            const html = `
+                <div class="tree-level">
+                    <div class="level-title">УРОВЕНЬ ${data.level}</div>
+                </div>
+                <div class="user-node ${data.status}" draggable="true" data-user-id="${data.id}">
+                    <div class="node-name">${data.name}</div>
+                    <div class="node-info">
+                        <div>@${data.username}</div>
+                    </div>
+                    <div class="node-level">Уровень ${data.level}</div>
+                </div>
+                ${data.partners && data.partners.length > 0 ? `
+                    <div class="tree-level">
+                        <div class="level-title">ПАРТНЕРЫ (${data.partners.length}/3)</div>
+                    </div>
+                    <div class="tree-level">
+                        ${data.partners.map(partner => renderNodeCard(partner)).join('')}
+                    </div>
+                    <div class="tree">
+                        ${data.partners.map(partner => renderTree(partner, null)).join('')}
+                    </div>
+                ` : ''}
+            `;
+            
+            container.innerHTML = html;
+            addDragDropListeners();
+        }
+        
+        function renderNodeCard(node) {
+            return `
+                <div class="user-node" draggable="true" data-user-id="${node.id}">
+                    <div class="node-name">${node.name}</div>
+                    <div class="node-info">
+                        <div>@${node.username}</div>
+                        <div>${node.partners ? node.partners.length : 0} партнеров</div>
+                    </div>
+                    <div class="node-level">Уровень ${node.level}</div>
+                </div>
+            `;
+        }
+        
+        function addDragDropListeners() {
+            const nodes = document.querySelectorAll('.user-node');
+            
+            nodes.forEach(node => {
+                node.addEventListener('dragstart', handleDragStart);
+                node.addEventListener('dragover', handleDragOver);
+                node.addEventListener('drop', handleDrop);
+                node.addEventListener('dragleave', handleDragLeave);
+                node.addEventListener('dragend', handleDragEnd);
+            });
+        }
+        
+        let draggedElement = null;
+        
+        function handleDragStart(e) {
+            draggedElement = this;
+            this.classList.add('dragging');
+        }
+        
+        function handleDragOver(e) {
+            e.preventDefault();
+            this.classList.add('drag-over');
+        }
+        
+        function handleDragLeave(e) {
+            this.classList.remove('drag-over');
+        }
+        
+        function handleDrop(e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+            
+            if (draggedElement !== this) {
+                console.log(`Переместили ${draggedElement.dataset.userId} на позицию ${this.dataset.userId}`);
+                // API call для сохранения позиции
+                savePosition(draggedElement.dataset.userId, this.dataset.userId);
+            }
+        }
+        
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+        }
+        
+        function savePosition(fromUserId, toUserId) {
+            console.log(`Сохраняем: ${fromUserId} -> ${toUserId}`);
+            // TODO: API call для сохранения
+        }
+        
+        function expandAll() {
+            alert('Развернуть все');
+        }
+        
+        function collapseAll() {
+            alert('Свернуть все');
+        }
+        
+        function resetPositions() {
+            alert('Сбросить позиции');
+        }
+        
+        function saveStructure() {
+            alert('Структура сохранена');
+        }
+        
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.getElementById('treeContainer');
+            renderTree(demoStructure, container);
+        });
+    </script>
+</body>
+</html>
