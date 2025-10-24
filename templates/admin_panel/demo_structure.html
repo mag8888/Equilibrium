@@ -11,213 +11,211 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
-            overflow: hidden;
         }
-        .container { max-width: 100%; margin: 0 auto; height: 100vh; display: flex; flex-direction: column; }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
         
         .header {
             background: rgba(255, 255, 255, 0.95);
-            padding: 20px;
+            padding: 25px;
             border-radius: 15px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
         }
-        .header h1 { color: #667eea; font-size: 1.8rem; margin-bottom: 3px; }
-        .header p { color: #999; font-size: 0.85rem; }
+        
+        .header h1 { color: #667eea; font-size: 2rem; margin-bottom: 5px; }
+        .header p { color: #999; font-size: 0.95rem; }
         
         .controls {
             background: rgba(255, 255, 255, 0.95);
-            padding: 12px 20px;
+            padding: 15px 25px;
             border-radius: 15px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             display: flex;
-            gap: 8px;
+            gap: 10px;
             flex-wrap: wrap;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
         
         .btn {
-            padding: 6px 14px;
+            padding: 8px 16px;
             background: #667eea;
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
         }
-        .btn:hover { background: #764ba2; transform: scale(1.05); }
         
-        .mindmap-wrapper {
-            flex: 1;
+        .btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+        
+        .mindmap-container {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 15px;
-            overflow-x: auto;
-            overflow-y: hidden;
+            overflow: auto;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-            scroll-behavior: smooth;
+            padding: 40px;
             position: relative;
         }
         
-        .mindmap-wrapper::-webkit-scrollbar {
+        .mindmap-container::-webkit-scrollbar {
+            width: 8px;
             height: 8px;
         }
-        .mindmap-wrapper::-webkit-scrollbar-track {
+        
+        .mindmap-container::-webkit-scrollbar-track {
             background: #f1f1f1;
             border-radius: 10px;
         }
-        .mindmap-wrapper::-webkit-scrollbar-thumb {
+        
+        .mindmap-container::-webkit-scrollbar-thumb {
             background: #667eea;
             border-radius: 10px;
-        }
-        .mindmap-wrapper::-webkit-scrollbar-thumb:hover {
-            background: #764ba2;
         }
         
         .mindmap {
             display: flex;
             align-items: center;
-            gap: 60px;
-            padding: 40px 60px;
-            min-width: min-content;
-            height: 100%;
+            gap: 80px;
+            min-width: fit-content;
+            position: relative;
         }
         
-        /* Центральный узел администратора */
-        .center-node {
+        /* Центральный узел */
+        .center {
             display: flex;
-            flex-direction: column;
             align-items: center;
-            gap: 20px;
             flex-shrink: 0;
+            z-index: 20;
         }
         
-        .admin-card {
+        .admin-node {
             background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
             color: white;
-            padding: 20px;
+            padding: 20px 24px;
             border-radius: 16px;
             min-width: 180px;
             text-align: center;
-            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
+            box-shadow: 0 8px 24px rgba(255, 107, 107, 0.35);
+            font-weight: 700;
             transition: all 0.3s ease;
-            position: relative;
-            z-index: 10;
         }
         
-        .admin-card:hover {
-            transform: scale(1.08) translateY(-5px);
-            box-shadow: 0 12px 30px rgba(255, 107, 107, 0.6);
+        .admin-node:hover {
+            transform: scale(1.08);
+            box-shadow: 0 12px 32px rgba(255, 107, 107, 0.45);
         }
         
-        .card-name { font-weight: 700; font-size: 1.1rem; margin-bottom: 6px; }
-        .card-username { font-size: 0.85rem; opacity: 0.9; margin-bottom: 4px; }
-        .card-count { font-size: 0.8rem; opacity: 0.85; margin-bottom: 4px; }
-        .card-level { 
-            font-size: 0.75rem; 
-            background: rgba(255,255,255,0.25);
-            padding: 4px 10px;
-            border-radius: 6px;
-            display: inline-block;
-        }
+        .node-title { font-size: 1.05rem; margin-bottom: 6px; }
+        .node-user { font-size: 0.8rem; opacity: 0.9; margin-bottom: 4px; }
+        .node-info { font-size: 0.75rem; opacity: 0.85; }
+        .node-level { font-size: 0.7rem; background: rgba(255,255,255,0.2); padding: 3px 8px; border-radius: 4px; display: inline-block; margin-top: 4px; }
         
-        /* Ветки партнеров */
-        .partners-branch {
+        /* Ветки */
+        .branch {
             display: flex;
             flex-direction: column;
-            gap: 30px;
+            gap: 20px;
             flex-shrink: 0;
             position: relative;
         }
         
-        .partner-level {
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
-        }
-        
-        .partner-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 14px 16px;
-            border-radius: 12px;
-            min-width: 150px;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        
-        .partner-card:hover {
-            transform: scale(1.06) translateY(-3px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.5);
-        }
-        
-        .partner-card.level-1 {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            font-weight: 600;
-        }
-        
-        .partner-card.level-2 {
-            background: linear-gradient(135deg, #5568d3 0%, #6b3fa0 100%);
-            font-size: 0.95rem;
-        }
-        
-        .sub-partners {
+        .sub-branch {
             display: flex;
             flex-direction: column;
             gap: 15px;
             margin-left: 20px;
             padding-left: 20px;
-            border-left: 2px solid #667eea;
+            border-left: 3px solid #667eea;
             position: relative;
         }
         
+        .sub-branch::before {
+            content: '';
+            position: absolute;
+            left: -3px;
+            top: 50%;
+            width: 20px;
+            height: 3px;
+            background: #667eea;
+            transform: translateY(-50%);
+        }
+        
+        .node {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            min-width: 140px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .node:hover {
+            transform: scale(1.06) translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+        
+        .node-name { font-size: 0.95rem; margin-bottom: 4px; }
+        .node-user { font-size: 0.75rem; opacity: 0.85; margin-bottom: 3px; }
+        .node-detail { font-size: 0.7rem; opacity: 0.75; }
+        
+        .node.level-2 {
+            background: linear-gradient(135deg, #5568d3 0%, #6b3fa0 100%);
+            font-size: 0.9rem;
+            min-width: 130px;
+            padding: 10px 14px;
+        }
+        
+        /* Соединительные линии */
         .connector {
             position: absolute;
-            left: -12px;
-            width: 12px;
-            height: 2px;
             background: #667eea;
+            z-index: 1;
+        }
+        
+        .horizontal-line {
+            height: 2px;
             top: 50%;
+            left: -40px;
+            width: 40px;
         }
         
-        .branch-connector {
-            position: absolute;
-            top: 0;
-            left: -60px;
-            width: 60px;
-            height: 100%;
-            pointer-events: none;
+        .vertical-line {
+            width: 2px;
+            left: -40px;
         }
         
-        .branch-line {
-            stroke: #ff6b6b;
-            stroke-width: 2;
-            opacity: 0.6;
-        }
-        
-        /* SVG для линий */
-        svg { position: absolute; }
-        
-        .info-banner {
-            position: absolute;
-            top: 10px;
+        .info-box {
+            position: fixed;
+            bottom: 20px;
             right: 20px;
-            background: #e3f2fd;
+            background: rgba(255, 255, 255, 0.9);
             border-left: 4px solid #667eea;
-            padding: 10px 15px;
+            padding: 12px 16px;
             border-radius: 8px;
             color: #1565c0;
-            font-size: 0.8rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            font-size: 0.85rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            max-width: 250px;
         }
         
         @media (max-width: 1024px) {
-            .mindmap { gap: 40px; padding: 30px 40px; }
-            .admin-card { min-width: 150px; padding: 16px; }
-            .partner-card { min-width: 130px; }
+            .mindmap { gap: 50px; }
+            .admin-node { min-width: 150px; padding: 16px 20px; }
+            .node { min-width: 120px; }
+            .branch { gap: 15px; }
         }
     </style>
 </head>
@@ -225,125 +223,138 @@
     <div class="container">
         <div class="header">
             <h1>🧠 Mind Map TRINARY PRO</h1>
-            <p>Интерактивная структура с горизонтальным скроллом</p>
+            <p>Интерактивная структура с классическим ветвлением</p>
         </div>
         
         <div class="controls">
-            <button class="btn">📍 К центру</button>
-            <button class="btn">📊 Развернуть все</button>
-            <button class="btn">📉 Свернуть все</button>
-            <button class="btn">🔄 Сбросить позицию</button>
+            <button class="btn">🔍 Zoom +</button>
+            <button class="btn">🔍 Zoom -</button>
+            <button class="btn">📍 Центр</button>
+            <button class="btn">🔄 Сбросить</button>
             <button class="btn">💾 Сохранить</button>
-            <button class="btn">ℹ️ Справка</button>
         </div>
         
-        <div class="mindmap-wrapper">
+        <div class="mindmap-container" id="mindmapContainer">
             <div class="mindmap">
-                <!-- АДМИНИСТРАТОР (центр) -->
-                <div class="center-node">
-                    <div class="admin-card">
-                        <div class="card-name">🔴 АДМИНИСТРАТОР</div>
-                        <div class="card-username">@admin</div>
-                        <div class="card-count">3 партнеров</div>
-                        <div class="card-level">Уровень 2</div>
+                <!-- ЦЕНТР: АДМИНИСТРАТОР -->
+                <div class="center">
+                    <div class="admin-node">
+                        <div class="node-title">�� АДМИНИСТРАТОР</div>
+                        <div class="node-user">@admin</div>
+                        <div class="node-info">3 партнеров</div>
+                        <div class="node-level">Уровень 2</div>
                     </div>
                 </div>
                 
-                <!-- ВЕТКА 1: ПАРТНЕР 1 С ПОДЧИНЕННЫМИ -->
-                <div class="partners-branch">
-                    <div class="partner-card level-1">
-                        <div class="card-name">Партнер 1</div>
-                        <div class="card-username">@user1</div>
-                        <div class="card-count">3 партнеров</div>
-                        <div class="card-level">ПУ1</div>
+                <!-- ВЕТКА 1: ПАРТНЕР 1 -->
+                <div class="branch">
+                    <div class="node">
+                        <div class="node-name">Партнер 1</div>
+                        <div class="node-user">@user1</div>
+                        <div class="node-detail">3 партнеров | ПУ1</div>
                     </div>
                     
-                    <div class="sub-partners">
-                        <div class="partner-card level-2">
-                            <div class="card-name">Партнер 1-1</div>
-                            <div class="card-username">@user2</div>
-                            <div class="card-count">0</div>
-                            <div class="card-level">ПУ0</div>
+                    <!-- ПОДВЕТКА 1 -->
+                    <div class="sub-branch">
+                        <div class="node level-2">
+                            <div class="node-name">Партнер 1-1</div>
+                            <div class="node-user">@user2</div>
+                            <div class="node-detail">ПУ0</div>
                         </div>
-                        <div class="partner-card level-2">
-                            <div class="card-name">Партнер 1-2</div>
-                            <div class="card-username">@user3</div>
-                            <div class="card-count">0</div>
-                            <div class="card-level">ПУ0</div>
+                        <div class="node level-2">
+                            <div class="node-name">Партнер 1-2</div>
+                            <div class="node-user">@user3</div>
+                            <div class="node-detail">ПУ0</div>
                         </div>
-                        <div class="partner-card level-2">
-                            <div class="card-name">Партнер 1-3</div>
-                            <div class="card-username">@user4</div>
-                            <div class="card-count">0</div>
-                            <div class="card-level">ПУ0</div>
+                        <div class="node level-2">
+                            <div class="node-name">Партнер 1-3</div>
+                            <div class="node-user">@user4</div>
+                            <div class="node-detail">ПУ0</div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- ВЕТКА 2: ПАРТНЕР 2 С ПОДЧИНЕННЫМ -->
-                <div class="partners-branch">
-                    <div class="partner-card level-1">
-                        <div class="card-name">Партнер 2</div>
-                        <div class="card-username">@user5</div>
-                        <div class="card-count">1 партнер</div>
-                        <div class="card-level">ПУ1</div>
+                <!-- ВЕТКА 2: ПАРТНЕР 2 -->
+                <div class="branch">
+                    <div class="node">
+                        <div class="node-name">Партнер 2</div>
+                        <div class="node-user">@user5</div>
+                        <div class="node-detail">1 партнер | ПУ1</div>
                     </div>
                     
-                    <div class="sub-partners">
-                        <div class="partner-card level-2">
-                            <div class="card-name">Партнер 2-1</div>
-                            <div class="card-username">@user6</div>
-                            <div class="card-count">0</div>
-                            <div class="card-level">ПУ0</div>
+                    <!-- ПОДВЕТКА 2 -->
+                    <div class="sub-branch">
+                        <div class="node level-2">
+                            <div class="node-name">Партнер 2-1</div>
+                            <div class="node-user">@user6</div>
+                            <div class="node-detail">ПУ0</div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- ВЕТКА 3: ПАРТНЕР 3 БЕЗ ПОДЧИНЕННЫХ -->
-                <div class="partners-branch">
-                    <div class="partner-card level-1">
-                        <div class="card-name">Партнер 3</div>
-                        <div class="card-username">@user7</div>
-                        <div class="card-count">0 партнеров</div>
-                        <div class="card-level">ПУ0</div>
+                <!-- ВЕТКА 3: ПАРТНЕР 3 -->
+                <div class="branch">
+                    <div class="node">
+                        <div class="node-name">Партнер 3</div>
+                        <div class="node-user">@user7</div>
+                        <div class="node-detail">0 партнеров | ПУ0</div>
                     </div>
                 </div>
             </div>
-            
-            <div class="info-banner">
-                💡 Прокрутите мышью или используйте клавиши ← → для навигации
-            </div>
+        </div>
+        
+        <div class="info-box">
+            <strong>💡 Подсказка:</strong><br>
+            Прокрутите для навигации • Нажимайте карточки для взаимодействия
         </div>
     </div>
     
     <script>
-        const wrapper = document.querySelector('.mindmap-wrapper');
+        const container = document.getElementById('mindmapContainer');
         
-        // Кнопка "К центру"
-        document.querySelectorAll('button')[0].addEventListener('click', () => {
-            wrapper.scrollLeft = (wrapper.scrollWidth - wrapper.clientWidth) / 2;
-        });
+        // Scroll to center on load
+        setTimeout(() => {
+            container.scrollLeft = (container.scrollWidth - container.clientWidth) / 2;
+        }, 100);
         
         // Keyboard navigation
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft') wrapper.scrollLeft -= 50;
-            if (e.key === 'ArrowRight') wrapper.scrollLeft += 50;
+            if (e.key === 'ArrowLeft') container.scrollLeft -= 50;
+            if (e.key === 'ArrowRight') container.scrollLeft += 50;
+            if (e.key === 'ArrowUp') container.scrollTop -= 50;
+            if (e.key === 'ArrowDown') container.scrollTop += 50;
         });
         
-        // Smooth scroll to center on load
-        setTimeout(() => {
-            wrapper.scrollLeft = (wrapper.scrollWidth - wrapper.clientWidth) / 2;
-        }, 100);
+        // Button handlers
+        document.querySelectorAll('button')[2].addEventListener('click', () => {
+            container.scrollLeft = (container.scrollWidth - container.clientWidth) / 2;
+            container.scrollTop = (container.scrollHeight - container.clientHeight) / 2;
+        });
         
-        // Hover effects на карточках
-        document.querySelectorAll('.partner-card').forEach(card => {
-            card.addEventListener('click', () => {
-                card.style.transform = 'scale(1.1) translateY(-5px)';
+        document.querySelectorAll('button')[3].addEventListener('click', () => {
+            location.reload();
+        });
+        
+        // Node click feedback
+        document.querySelectorAll('.node, .admin-node').forEach(node => {
+            node.addEventListener('click', function() {
+                this.style.animation = 'pulse 0.5s ease-out';
                 setTimeout(() => {
-                    card.style.transform = '';
-                }, 300);
+                    this.style.animation = '';
+                }, 500);
             });
         });
+        
+        // Add pulse animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.1); }
+                100% { transform: scale(1); }
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html>
