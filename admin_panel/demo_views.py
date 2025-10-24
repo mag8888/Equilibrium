@@ -139,7 +139,7 @@ def structure_viewer(request):
         'is_demo': True,
     }
     
-    return render(request, 'admin_panel/structure_viewer.html', context)
+    return render(request, 'admin_panel/demo_structure.html', context)
 
 
 def build_structure_tree(user, level=0):
