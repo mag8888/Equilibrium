@@ -8,6 +8,5 @@ def health_check(request):
     """Простая health check для Railway"""
     return JsonResponse({
         'status': 'ok',
-        'message': 'TRINARY MLM System is running',
-        'version': 'v3.0-878a428-DEPLOYMENT-TEST'
+        'message': 'TRINARY MLM System is running'
     })
