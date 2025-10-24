@@ -47,7 +47,7 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class MLMViewSet(viewsets.ModelViewSet):
+class MLMViewSet(viewsets.ViewSet):
     """API для MLM операций"""
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication, SessionAuthentication]
@@ -80,7 +80,7 @@ class MLMViewSet(viewsets.ModelViewSet):
         return Response({'status': 'error', 'message': 'Нельзя обновить статус'})
 
 
-class AdminViewSet(viewsets.ModelViewSet):
+class AdminViewSet(viewsets.ViewSet):
     """API для админ-панели"""
     permission_classes = [IsAdminUser]
     authentication_classes = [TokenAuthentication, SessionAuthentication]

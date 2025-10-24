@@ -5,8 +5,8 @@ from . import views
 
 router = DefaultRouter()
 router.register(r'users', views.UserViewSet)
-router.register(r'mlm', views.MLMViewSet)
-router.register(r'admin', views.AdminViewSet)
+router.register(r'mlm', views.MLMViewSet, basename='mlm')
+router.register(r'admin', views.AdminViewSet, basename='admin')
 
 urlpatterns = [
     path('', include(router.urls)),
