@@ -160,7 +160,6 @@ def register(request):
     return render(request, 'users/register.html')
 
 
-@csrf_exempt
 def login_view(request):
     """Максимально простая версия входа"""
     if request.method == 'POST':
@@ -185,6 +184,10 @@ def login_view(request):
     
     # Простой HTML без сложных f-строк
     error_html = f'<div class="error">{error_msg}</div>' if error_msg else ''
+    
+    # Получаем CSRF токен
+    from django.middleware.csrf import get_token
+    csrf_token = get_token(request)
     
     html = f"""
     <!DOCTYPE html>
@@ -446,18 +449,19 @@ def login_view(request):
             {error_html}
             
             <form method="post">
-                <div class="form-group">
-                    <label for="username">Имя пользователя:</label>
-                    <input type="text" name="username" id="username" required autocomplete="username">
-                </div>
-                
-                <div class="form-group">
-                    <label for="password">Пароль:</label>
-                    <input type="password" name="password" id="password" required autocomplete="current-password">
-                </div>
-                
-                <button type="submit" class="btn">Войти в систему</button>
-            </form>
+                 <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
+                  <div class="form-group">
+                      <label for="username">Имя пользователя:</label>
+                      <input type="text" name="username" id="username" required autocomplete="username">
+                  </div>
+                  
+                  <div class="form-group">
+                      <label for="password">Пароль:</label>
+                      <input type="password" name="password" id="password" required autocomplete="current-password">
+                  </div>
+                  
+                  <button type="submit" class="btn">Войти в систему</button>
+              </form>
             
             <div class="features">
                 <h3>🎯 Возможности системы</h3>
