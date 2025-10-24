@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🧠 Mind Map TRINARY PRO - Advanced</title>
+    <title>🧠 Mind Map TRINARY PRO - Dashboard Style</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -11,30 +11,145 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            display: flex;
+            padding: 20px;
             color: #333;
         }
         
-        /* ЛЕВАЯ ПАНЕЛЬ */
-        .left-sidebar {
-            width: 280px;
-            background: rgba(255, 255, 255, 0.95);
-            box-shadow: 4px 0 16px rgba(0, 0, 0, 0.15);
+        .dashboard-container {
+            max-width: 1600px;
+            margin: 0 auto;
             display: flex;
             flex-direction: column;
-            z-index: 100;
-            overflow-y: auto;
+            gap: 20px;
         }
         
-        .sidebar-header {
-            padding: 20px;
-            border-bottom: 2px solid #f0f0f0;
+        /* HEADER */
+        .dashboard-header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .header-title h1 {
+            color: #667eea;
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+        
+        .header-title p {
+            color: #999;
+            font-size: 0.95rem;
+        }
+        
+        .header-stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 120px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            opacity: 0.85;
+            text-transform: uppercase;
+        }
+        
+        /* TOOLBAR ACTIONS */
+        .toolbar {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 25px;
+            border-radius: 15px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .toolbar-btn {
+            padding: 10px 16px;
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .toolbar-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
+        }
+        
+        .toolbar-btn.active {
+            background: #667eea;
             color: white;
         }
         
-        .sidebar-header h3 {
+        /* MAIN CONTENT */
+        .main-content {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .left-panel {
+            flex: 1;
+            min-width: 250px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .panel-title {
             font-size: 1rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .filter-section {
+            margin-bottom: 20px;
+        }
+        
+        .filter-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #999;
             margin-bottom: 8px;
         }
         
@@ -43,25 +158,11 @@
             padding: 8px 12px;
             border: 1px solid #ddd;
             border-radius: 6px;
-            font-size: 0.85rem;
-            margin-top: 10px;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
         }
         
-        .filter-group {
-            padding: 15px;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        
-        .filter-label {
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            color: #667eea;
-            margin-bottom: 8px;
-            display: block;
-        }
-        
-        .filter-option {
+        .checkbox-item {
             display: flex;
             align-items: center;
             padding: 6px;
@@ -71,163 +172,104 @@
             transition: all 0.2s ease;
         }
         
-        .filter-option:hover {
+        .checkbox-item:hover {
             background: #f5f5f5;
         }
         
-        .filter-option input {
+        .checkbox-item input {
             margin-right: 8px;
         }
         
-        .quick-actions {
+        .quick-stats {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
             padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .quick-stat-item {
             display: flex;
-            flex-direction: column;
-            gap: 8px;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 0.9rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         }
         
-        .action-btn {
-            padding: 8px 12px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
+        .quick-stat-item:last-child {
+            border-bottom: none;
         }
         
-        .action-btn:hover {
-            background: #764ba2;
-            transform: translateX(2px);
-        }
-        
-        /* ОСНОВНОЙ КОНТЕНТ */
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .top-bar {
+        /* MINDMAP SECTION */
+        .mindmap-section {
+            flex: 3;
             background: rgba(255, 255, 255, 0.95);
-            padding: 15px 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            padding: 20px;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .mindmap-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
             flex-wrap: wrap;
-            gap: 15px;
-        }
-        
-        .title-section h1 {
-            color: #667eea;
-            font-size: 1.5rem;
-            margin-bottom: 3px;
-        }
-        
-        .title-section p {
-            color: #999;
-            font-size: 0.85rem;
-        }
-        
-        .controls-section {
-            display: flex;
             gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
         }
         
-        .zoom-control {
+        .mindmap-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .zoom-controls {
             display: flex;
             align-items: center;
             gap: 10px;
             background: #f5f5f5;
-            padding: 8px 12px;
+            padding: 6px 12px;
             border-radius: 6px;
         }
         
         .zoom-slider {
-            width: 120px;
+            width: 100px;
             height: 4px;
             cursor: pointer;
-        }
-        
-        .theme-toggle {
-            width: 40px;
-            height: 24px;
-            background: #ddd;
-            border-radius: 12px;
-            cursor: pointer;
-            position: relative;
-            transition: all 0.3s ease;
-            border: none;
-        }
-        
-        .theme-toggle.dark {
-            background: #667eea;
-        }
-        
-        .legend {
-            display: flex;
-            gap: 15px;
-            font-size: 0.8rem;
-            flex-wrap: wrap;
-        }
-        
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .legend-color {
-            width: 16px;
-            height: 16px;
-            border-radius: 4px;
-        }
-        
-        /* MINDMAP КОНТЕЙНЕР */
-        .mindmap-wrapper {
-            flex: 1;
-            display: flex;
-            overflow: hidden;
         }
         
         .mindmap-canvas {
             flex: 1;
             overflow: auto;
-            position: relative;
-            background: rgba(255, 255, 255, 0.98);
-        }
-        
-        .mindmap-canvas::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        
-        .mindmap-canvas::-webkit-scrollbar-thumb {
-            background: #667eea;
-            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(250, 251, 252, 0.8);
+            border-radius: 8px;
+            border: 1px solid #f0f0f0;
         }
         
         .mindmap {
             display: flex;
             align-items: center;
-            gap: 80px;
-            padding: 40px 60px;
+            gap: 60px;
+            padding: 30px;
             min-width: fit-content;
         }
         
-        /* УЗЛЫ */
         .center { flex-shrink: 0; z-index: 20; }
         
         .admin-node {
             background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
             color: white;
-            padding: 22px 26px;
-            border-radius: 16px;
-            min-width: 180px;
+            padding: 20px 24px;
+            border-radius: 14px;
+            min-width: 160px;
             text-align: center;
             box-shadow: 0 8px 24px rgba(255, 107, 107, 0.35);
             font-weight: 700;
@@ -240,10 +282,10 @@
             box-shadow: 0 12px 32px rgba(255, 107, 107, 0.45);
         }
         
-        .node-title { font-size: 1.05rem; margin-bottom: 6px; }
-        .node-user { font-size: 0.8rem; opacity: 0.9; margin-bottom: 4px; }
-        .node-info { font-size: 0.75rem; opacity: 0.85; }
-        .node-level { font-size: 0.7rem; background: rgba(255,255,255,0.2); padding: 3px 8px; border-radius: 4px; display: inline-block; margin-top: 4px; }
+        .node-title { font-size: 1rem; margin-bottom: 5px; }
+        .node-user { font-size: 0.75rem; opacity: 0.9; margin-bottom: 4px; }
+        .node-info { font-size: 0.7rem; opacity: 0.85; }
+        .node-level { font-size: 0.65rem; background: rgba(255,255,255,0.2); padding: 2px 6px; border-radius: 3px; display: inline-block; margin-top: 3px; }
         
         .branch {
             display: flex;
@@ -277,19 +319,19 @@
         .node {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 12px 16px;
-            border-radius: 12px;
-            min-width: 140px;
+            padding: 11px 14px;
+            border-radius: 10px;
+            min-width: 130px;
             text-align: center;
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
             transition: all 0.3s ease;
             cursor: pointer;
             font-weight: 600;
-            position: relative;
+            font-size: 0.9rem;
         }
         
         .node:hover {
-            transform: scale(1.08) translateY(-3px);
+            transform: scale(1.08) translateY(-2px);
             box-shadow: 0 8px 18px rgba(102, 126, 234, 0.5);
         }
         
@@ -298,286 +340,264 @@
             transform: scale(1.1);
         }
         
-        .node-name { font-size: 0.95rem; margin-bottom: 4px; }
-        .node-detail { font-size: 0.7rem; opacity: 0.75; }
-        
         .node.level-2 {
             background: linear-gradient(135deg, #5568d3 0%, #6b3fa0 100%);
-            font-size: 0.9rem;
-            min-width: 130px;
-            padding: 10px 14px;
+            min-width: 120px;
+            padding: 9px 12px;
+            font-size: 0.85rem;
         }
         
-        .node-tooltip {
-            position: absolute;
-            bottom: -45px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 6px 10px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s ease;
-            z-index: 1000;
-        }
-        
-        .node:hover .node-tooltip {
-            opacity: 1;
-        }
-        
-        /* ПРАВАЯ ПАНЕЛЬ */
-        .right-sidebar {
-            width: 300px;
+        /* BOTTOM INFO PANEL */
+        .info-panel {
             background: rgba(255, 255, 255, 0.95);
-            box-shadow: -4px 0 16px rgba(0, 0, 0, 0.15);
+            border-radius: 15px;
             padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            border-left: 2px solid #f0f0f0;
-        }
-        
-        .info-panel-header {
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: #667eea;
-            padding-bottom: 12px;
-            border-bottom: 2px solid #667eea;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
         }
         
         .info-block {
-            padding: 12px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            border-left: 3px solid #667eea;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
         }
         
         .info-label {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: #999;
             text-transform: uppercase;
-            margin-bottom: 4px;
+            font-weight: 700;
+            margin-bottom: 6px;
         }
         
         .info-value {
-            font-size: 0.95rem;
-            font-weight: 600;
+            font-size: 1.1rem;
+            font-weight: 700;
             color: #333;
+            margin-bottom: 8px;
         }
         
-        .action-panel {
+        .info-actions {
             display: flex;
-            flex-direction: column;
-            gap: 8px;
+            gap: 6px;
+            flex-wrap: wrap;
         }
         
-        .action-panel button {
-            padding: 8px 12px;
+        .info-btn {
+            padding: 6px 10px;
             background: #667eea;
             color: white;
             border: none;
-            border-radius: 6px;
-            font-size: 0.85rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
             cursor: pointer;
             transition: all 0.2s ease;
         }
         
-        .action-panel button:hover {
+        .info-btn:hover {
             background: #764ba2;
-            transform: translateY(-2px);
+            transform: scale(1.05);
         }
         
         .empty-state {
-            text-align: center;
-            color: #999;
-            padding: 30px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            color: #ccc;
+            font-size: 1rem;
         }
         
-        @media (max-width: 1400px) {
-            .right-sidebar { width: 250px; }
-            .left-sidebar { width: 250px; }
-        }
-        
+        /* RESPONSIVE */
         @media (max-width: 1024px) {
-            .left-sidebar { display: none; }
-            .right-sidebar { display: none; }
+            .main-content { flex-direction: column; }
+            .left-panel { max-height: none; }
+            .mindmap { gap: 40px; }
+            .toolbar { grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); }
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-header { padding: 15px; }
+            .header-title h1 { font-size: 1.5rem; }
+            .stat-card { min-width: 100px; padding: 12px 20px; }
+            .mindmap { gap: 30px; padding: 20px; }
         }
     </style>
 </head>
 <body>
-    <!-- ЛЕВАЯ ПАНЕЛЬ -->
-    <div class="left-sidebar">
-        <div class="sidebar-header">
-            <h3>🔍 Фильтры</h3>
-            <input type="text" class="search-box" placeholder="Поиск партнера...">
-        </div>
-        
-        <div class="filter-group">
-            <label class="filter-label">По уровню</label>
-            <label class="filter-option">
-                <input type="checkbox" checked> Администратор
-            </label>
-            <label class="filter-option">
-                <input type="checkbox" checked> ПУ1
-            </label>
-            <label class="filter-option">
-                <input type="checkbox" checked> ПУ0
-            </label>
-        </div>
-        
-        <div class="filter-group">
-            <label class="filter-label">По партнерам</label>
-            <label class="filter-option">
-                <input type="checkbox" checked> С партнерами (3)
-            </label>
-            <label class="filter-option">
-                <input type="checkbox" checked> 1-2 партнера (1)
-            </label>
-            <label class="filter-option">
-                <input type="checkbox" checked> Без партнеров (3)
-            </label>
-        </div>
-        
-        <div class="quick-actions">
-            <button class="action-btn">📊 Статистика</button>
-            <button class="action-btn">📥 Импорт</button>
-            <button class="action-btn">📤 Экспорт</button>
-            <button class="action-btn">🔄 Обновить</button>
-        </div>
-    </div>
-    
-    <!-- ОСНОВНОЙ КОНТЕНТ -->
-    <div class="main-content">
-        <!-- ВЕРХНЯЯ ПАНЕЛЬ -->
-        <div class="top-bar">
-            <div class="title-section">
-                <h1>🧠 Mind Map TRINARY PRO</h1>
-                <p>Интерактивная структура с расширенными возможностями</p>
-            </div>
-            
-            <div class="controls-section">
-                <div class="zoom-control">
-                    <span>🔍</span>
-                    <input type="range" class="zoom-slider" min="50" max="200" value="100">
-                    <span id="zoomLevel">100%</span>
+    <div class="dashboard-container">
+        <!-- HEADER -->
+        <div class="dashboard-header">
+            <div class="header-top">
+                <div class="header-title">
+                    <h1>🧠 Mind Map TRINARY PRO</h1>
+                    <p>Профессиональный дашборд управления структурой</p>
                 </div>
-                
-                <div class="legend">
-                    <div class="legend-item">
-                        <div class="legend-color" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);"></div>
-                        <span>Админ (Уровень 2)</span>
+                <div class="header-stats">
+                    <div class="stat-card">
+                        <div class="stat-number">7</div>
+                        <div class="stat-label">Партнеров</div>
                     </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
-                        <span>Партнер ПУ1</span>
+                    <div class="stat-card">
+                        <div class="stat-number">3</div>
+                        <div class="stat-label">Уровни</div>
                     </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="background: linear-gradient(135deg, #5568d3 0%, #6b3fa0 100%);"></div>
-                        <span>Партнер ПУ0</span>
+                    <div class="stat-card">
+                        <div class="stat-number">100%</div>
+                        <div class="stat-label">Заполнение</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">$4.5K</div>
+                        <div class="stat-label">Доход</div>
                     </div>
                 </div>
-                
-                <button class="theme-toggle" id="themeToggle" title="Переключить тему"></button>
             </div>
         </div>
         
-        <!-- MINDMAP И ПРАВАЯ ПАНЕЛЬ -->
-        <div class="mindmap-wrapper">
-            <div class="mindmap-canvas" id="mindmapCanvas">
-                <div class="mindmap">
-                    <!-- АДМИНИСТРАТОР -->
-                    <div class="center">
-                        <div class="admin-node" onclick="selectNode(this)">
-                            <div class="node-title">🔴 АДМИНИСТРАТОР</div>
-                            <div class="node-user">@admin</div>
-                            <div class="node-info">3 партнеров</div>
-                            <div class="node-level">Уровень 2</div>
-                            <div class="node-tooltip">Click to select</div>
-                        </div>
+        <!-- TOOLBAR -->
+        <div class="toolbar">
+            <button class="toolbar-btn active">📊 Структура</button>
+            <button class="toolbar-btn">🔍 Поиск</button>
+            <button class="toolbar-btn">📈 Статистика</button>
+            <button class="toolbar-btn">📥 Импорт</button>
+            <button class="toolbar-btn">📤 Экспорт</button>
+            <button class="toolbar-btn">🔧 Настройки</button>
+        </div>
+        
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <!-- LEFT PANEL -->
+            <div class="left-panel">
+                <div class="panel-title">🔍 Фильтры и поиск</div>
+                
+                <div class="filter-section">
+                    <label class="filter-label">Поиск</label>
+                    <input type="text" class="search-box" placeholder="Поиск партнера...">
+                </div>
+                
+                <div class="filter-section">
+                    <label class="filter-label">По уровню</label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" checked> Администратор
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" checked> ПУ1 (1 партнер)
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" checked> ПУ0 (без партнеров)
+                    </label>
+                </div>
+                
+                <div class="filter-section">
+                    <label class="filter-label">По активности</label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" checked> Активные
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" checked> Неактивные
+                    </label>
+                </div>
+                
+                <div class="quick-stats">
+                    <div class="quick-stat-item">
+                        <span>Всего партнеров:</span>
+                        <strong>7</strong>
                     </div>
-                    
-                    <!-- ПАРТНЕР 1 -->
-                    <div class="branch">
-                        <div class="node" data-id="user1" data-name="Партнер 1" data-count="3" onclick="selectNode(this)">
-                            <div class="node-name">Партнер 1</div>
-                            <div class="node-user">@user1</div>
-                            <div class="node-detail">3 партнеров | ПУ1</div>
-                            <div class="node-tooltip">Партнер 1 (3 партнеров)</div>
-                        </div>
-                        <div class="sub-branch">
-                            <div class="node level-2" data-id="user2" data-name="Партнер 1-1" data-count="0" onclick="selectNode(this)">
-                                <div class="node-name">1-1</div>
-                                <div class="node-user">@user2</div>
-                                <div class="node-detail">ПУ0</div>
-                                <div class="node-tooltip">Партнер 1-1</div>
-                            </div>
-                            <div class="node level-2" data-id="user3" data-name="Партнер 1-2" data-count="0" onclick="selectNode(this)">
-                                <div class="node-name">1-2</div>
-                                <div class="node-user">@user3</div>
-                                <div class="node-detail">ПУ0</div>
-                                <div class="node-tooltip">Партнер 1-2</div>
-                            </div>
-                            <div class="node level-2" data-id="user4" data-name="Партнер 1-3" data-count="0" onclick="selectNode(this)">
-                                <div class="node-name">1-3</div>
-                                <div class="node-user">@user4</div>
-                                <div class="node-detail">ПУ0</div>
-                                <div class="node-tooltip">Партнер 1-3</div>
-                            </div>
-                        </div>
+                    <div class="quick-stat-item">
+                        <span>Активные:</span>
+                        <strong>7</strong>
                     </div>
-                    
-                    <!-- ПАРТНЕР 2 -->
-                    <div class="branch">
-                        <div class="node" data-id="user5" data-name="Партнер 2" data-count="1" onclick="selectNode(this)">
-                            <div class="node-name">Партнер 2</div>
-                            <div class="node-user">@user5</div>
-                            <div class="node-detail">1 партнер | ПУ1</div>
-                            <div class="node-tooltip">Партнер 2 (1 партнер)</div>
-                        </div>
-                        <div class="sub-branch">
-                            <div class="node level-2" data-id="user6" data-name="Партнер 2-1" data-count="0" onclick="selectNode(this)">
-                                <div class="node-name">2-1</div>
-                                <div class="node-user">@user6</div>
-                                <div class="node-detail">ПУ0</div>
-                                <div class="node-tooltip">Партнер 2-1</div>
-                            </div>
-                        </div>
+                    <div class="quick-stat-item">
+                        <span>ПУ1:</span>
+                        <strong>2</strong>
                     </div>
-                    
-                    <!-- ПАРТНЕР 3 -->
-                    <div class="branch">
-                        <div class="node" data-id="user7" data-name="Партнер 3" data-count="0" onclick="selectNode(this)">
-                            <div class="node-name">Партнер 3</div>
-                            <div class="node-user">@user7</div>
-                            <div class="node-detail">0 партнеров | ПУ0</div>
-                            <div class="node-tooltip">Партнер 3 (0 партнеров)</div>
-                        </div>
+                    <div class="quick-stat-item">
+                        <span>ПУ0:</span>
+                        <strong>5</strong>
+                    </div>
+                    <div class="quick-stat-item">
+                        <span>Доход (месяц):</span>
+                        <strong style="color: #667eea;">$4,500</strong>
                     </div>
                 </div>
             </div>
             
-            <!-- ПРАВАЯ ИНФОРМАЦИОННАЯ ПАНЕЛЬ -->
-            <div class="right-sidebar">
-                <div class="info-panel-header">ℹ️ Информация</div>
-                
-                <div id="infoContent" class="empty-state">
-                    Выберите партнера для просмотра информации
+            <!-- MINDMAP SECTION -->
+            <div class="mindmap-section">
+                <div class="mindmap-header">
+                    <div class="mindmap-title">📊 Структура партнеров</div>
+                    <div class="zoom-controls">
+                        <span>🔍</span>
+                        <input type="range" class="zoom-slider" min="50" max="200" value="100">
+                        <span style="min-width: 40px;">100%</span>
+                    </div>
                 </div>
+                
+                <div class="mindmap-canvas">
+                    <div class="mindmap">
+                        <!-- АДМИНИСТРАТОР -->
+                        <div class="center">
+                            <div class="admin-node" onclick="selectNode(this)">
+                                <div class="node-title">🔴 АДМИНИСТРАТОР</div>
+                                <div class="node-user">@admin</div>
+                                <div class="node-info">3 партнеров</div>
+                                <div class="node-level">Уровень 2</div>
+                            </div>
+                        </div>
+                        
+                        <!-- ПАРТНЕР 1 -->
+                        <div class="branch">
+                            <div class="node" data-id="user1" data-name="Партнер 1" data-count="3" onclick="selectNode(this)">
+                                <div>Партнер 1</div>
+                                <div style="font-size: 0.8rem; margin-top: 3px;">@user1</div>
+                            </div>
+                            <div class="sub-branch">
+                                <div class="node level-2" data-id="user2" data-name="Партнер 1-1" onclick="selectNode(this)">1-1</div>
+                                <div class="node level-2" data-id="user3" data-name="Партнер 1-2" onclick="selectNode(this)">1-2</div>
+                                <div class="node level-2" data-id="user4" data-name="Партнер 1-3" onclick="selectNode(this)">1-3</div>
+                            </div>
+                        </div>
+                        
+                        <!-- ПАРТНЕР 2 -->
+                        <div class="branch">
+                            <div class="node" data-id="user5" data-name="Партнер 2" data-count="1" onclick="selectNode(this)">
+                                <div>Партнер 2</div>
+                                <div style="font-size: 0.8rem; margin-top: 3px;">@user5</div>
+                            </div>
+                            <div class="sub-branch">
+                                <div class="node level-2" data-id="user6" data-name="Партнер 2-1" onclick="selectNode(this)">2-1</div>
+                            </div>
+                        </div>
+                        
+                        <!-- ПАРТНЕР 3 -->
+                        <div class="branch">
+                            <div class="node" data-id="user7" data-name="Партнер 3" data-count="0" onclick="selectNode(this)">
+                                <div>Партнер 3</div>
+                                <div style="font-size: 0.8rem; margin-top: 3px;">@user7</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- INFO PANEL -->
+        <div class="info-panel" id="infoPanel">
+            <div class="empty-state">
+                Выберите партнера в структуре для просмотра информации
             </div>
         </div>
     </div>
     
     <script>
-        // Zoom control
         const zoomSlider = document.querySelector('.zoom-slider');
-        const zoomLevel = document.getElementById('zoomLevel');
+        const zoomLevel = document.querySelector('.zoom-controls span:last-child');
         const mindmap = document.querySelector('.mindmap');
         
+        // Zoom control
         zoomSlider.addEventListener('input', (e) => {
             const scale = e.target.value / 100;
             mindmap.style.transform = `scale(${scale})`;
@@ -585,22 +605,7 @@
             zoomLevel.textContent = e.target.value + '%';
         });
         
-        // Theme toggle
-        const themeToggle = document.getElementById('themeToggle');
-        themeToggle.addEventListener('click', () => {
-            document.body.style.filter = themeToggle.classList.toggle('dark') 
-                ? 'invert(1) hue-rotate(180deg)' 
-                : 'none';
-            localStorage.setItem('theme', themeToggle.classList.contains('dark') ? 'dark' : 'light');
-        });
-        
-        // Load saved theme
-        if (localStorage.getItem('theme') === 'dark') {
-            themeToggle.classList.add('dark');
-            document.body.style.filter = 'invert(1) hue-rotate(180deg)';
-        }
-        
-        // Select node handler
+        // Select node
         function selectNode(element) {
             document.querySelectorAll('.node, .admin-node').forEach(n => n.classList.remove('active'));
             element.classList.add('active');
@@ -609,26 +614,38 @@
             const id = element.dataset.id || 'admin';
             const count = element.dataset.count || '3';
             
-            const infoContent = document.getElementById('infoContent');
-            infoContent.innerHTML = `
-                <div style="text-align: left;">
-                    <div class="info-block">
-                        <div class="info-label">Имя</div>
-                        <div class="info-value">${name}</div>
+            const infoPanel = document.getElementById('infoPanel');
+            infoPanel.innerHTML = `
+                <div class="info-block">
+                    <div class="info-label">Имя партнера</div>
+                    <div class="info-value">${name}</div>
+                    <div class="info-actions">
+                        <button class="info-btn">✏️ Редактировать</button>
+                        <button class="info-btn">📊 Статистика</button>
                     </div>
-                    <div class="info-block">
-                        <div class="info-label">Username</div>
-                        <div class="info-value">@${id}</div>
+                </div>
+                <div class="info-block">
+                    <div class="info-label">Username</div>
+                    <div class="info-value">@${id}</div>
+                    <div class="info-actions">
+                        <button class="info-btn">📧 Контакт</button>
+                        <button class="info-btn">�� Профиль</button>
                     </div>
-                    <div class="info-block">
-                        <div class="info-label">Партнеров</div>
-                        <div class="info-value">${count}</div>
+                </div>
+                <div class="info-block">
+                    <div class="info-label">Партнеров в структуре</div>
+                    <div class="info-value">${count}</div>
+                    <div class="info-actions">
+                        <button class="info-btn">👥 Добавить</button>
+                        <button class="info-btn">📋 Список</button>
                     </div>
-                    <div class="action-panel">
-                        <button>✏️ Редактировать</button>
-                        <button>👥 Добавить партнера</button>
-                        <button>📊 Статистика</button>
-                        <button>🗑️ Удалить</button>
+                </div>
+                <div class="info-block">
+                    <div class="info-label">Доход этого месяца</div>
+                    <div class="info-value">$${count * 500}</div>
+                    <div class="info-actions">
+                        <button class="info-btn">📈 Тренд</button>
+                        <button class="info-btn">💰 Выплата</button>
                     </div>
                 </div>
             `;
@@ -636,23 +653,10 @@
         
         // Scroll to center on load
         setTimeout(() => {
-            const container = document.getElementById('mindmapCanvas');
-            container.scrollLeft = (container.scrollWidth - container.clientWidth) / 2;
-            container.scrollTop = (container.scrollHeight - container.clientHeight) / 2;
+            const canvas = document.querySelector('.mindmap-canvas');
+            canvas.scrollLeft = (canvas.scrollWidth - canvas.clientWidth) / 2;
+            canvas.scrollTop = (canvas.scrollHeight - canvas.clientHeight) / 2;
         }, 100);
-        
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            const container = document.getElementById('mindmapCanvas');
-            if (e.key === 'ArrowLeft') container.scrollLeft -= 50;
-            if (e.key === 'ArrowRight') container.scrollLeft += 50;
-            if (e.key === 'ArrowUp') container.scrollTop -= 50;
-            if (e.key === 'ArrowDown') container.scrollTop += 50;
-            if (e.key === 'Escape') {
-                document.querySelectorAll('.node, .admin-node').forEach(n => n.classList.remove('active'));
-                document.getElementById('infoContent').innerHTML = 'Выберите партнера для просмотра информации';
-            }
-        });
     </script>
 </body>
 </html>
