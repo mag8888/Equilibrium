@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌳 Структура TRINARY PRO - ГОРИЗОНТАЛЬНАЯ</title>
+    <title>🌳 Структура TRINARY PRO</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -12,7 +12,7 @@
             min-height: 100vh;
             padding: 20px;
         }
-        .container { max-width: 1800px; margin: 0 auto; }
+        .container { max-width: 1400px; margin: 0 auto; }
         .header {
             background: rgba(255, 255, 255, 0.95);
             padding: 25px;
@@ -21,13 +21,15 @@
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
         }
         .header h1 { color: #667eea; font-size: 2.2rem; margin-bottom: 5px; }
+        .header p { color: #999; font-size: 0.95rem; }
+        
         .structure-container {
             background: rgba(255, 255, 255, 0.95);
             padding: 40px;
             border-radius: 15px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-            overflow-x: auto;
         }
+        
         .info-box {
             background: #e3f2fd;
             border-left: 4px solid #667eea;
@@ -37,12 +39,14 @@
             color: #1565c0;
             font-size: 0.9rem;
         }
+        
         .controls {
             display: flex;
             gap: 8px;
             margin-bottom: 25px;
             flex-wrap: wrap;
         }
+        
         .btn {
             padding: 8px 16px;
             background: #667eea;
@@ -54,118 +58,157 @@
             transition: all 0.3s ease;
             font-size: 0.9rem;
         }
-        .btn:hover { background: #764ba2; transform: translateY(-2px); }
         
-        /* Горизонтальная структура */
-        .tree-horizontal {
+        .btn:hover { 
+            background: #764ba2; 
+            transform: translateY(-2px); 
+        }
+        
+        /* Вертикальная древовидная структура */
+        .tree-container {
             display: flex;
             flex-direction: column;
+            align-items: center;
             gap: 50px;
-            min-width: 100%;
-        }
-        
-        .level-row {
-            display: flex;
-            align-items: flex-start;
-            gap: 40px;
             position: relative;
         }
         
-        .level-label {
-            color: #667eea;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            background: #f0f4ff;
-            padding: 6px 12px;
-            border-radius: 16px;
-            white-space: nowrap;
-            min-width: 180px;
-            text-align: center;
-            flex-shrink: 0;
-        }
-        
-        .nodes-container {
+        /* Администратор */
+        .admin-row {
             display: flex;
-            gap: 20px;
-            align-items: flex-start;
-            flex-wrap: wrap;
-            flex: 1;
+            justify-content: center;
             position: relative;
+            width: 100%;
+            margin-bottom: 30px;
         }
         
-        .user-node {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 12px 14px;
-            border-radius: 12px;
-            min-width: 130px;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-            transition: all 0.3s ease;
-        }
-        
-        .user-node:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-        }
-        
-        .user-node.root {
+        .admin-node {
             background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
-            min-width: 150px;
-            padding: 14px 16px;
+            color: white;
+            padding: 16px 20px;
+            border-radius: 12px;
+            min-width: 160px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+            z-index: 10;
+        }
+        
+        .admin-node:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.5);
         }
         
         .node-name {
             font-weight: 700;
-            font-size: 0.95rem;
+            font-size: 1rem;
             margin-bottom: 4px;
         }
         
         .node-username {
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             opacity: 0.85;
             margin-bottom: 3px;
         }
         
         .node-count {
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             opacity: 0.8;
             margin-bottom: 3px;
         }
         
         .node-level {
-            font-size: 0.65rem;
+            font-size: 0.7rem;
             opacity: 0.75;
-            background: rgba(255,255,255,0.15);
-            padding: 2px 6px;
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
             border-radius: 4px;
             display: inline-block;
         }
         
-        /* Линии связи */
-        .connections {
+        /* Партнеры уровня 1 */
+        .partners-level1 {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            width: 100%;
+            position: relative;
+            margin-bottom: 50px;
+        }
+        
+        .partner-node {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 14px 16px;
+            border-radius: 12px;
+            min-width: 140px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+            z-index: 5;
+        }
+        
+        .partner-node:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        /* Партнеры уровня 2 */
+        .partners-level2 {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+            width: 100%;
+            position: relative;
+        }
+        
+        .partner-node-l2 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 14px 16px;
+            border-radius: 12px;
+            min-width: 140px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .partner-node-l2:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        /* SVG для линий */
+        .svg-lines {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             pointer-events: none;
-            z-index: 0;
         }
         
-        svg {
-            width: 100%;
-            height: 100%;
-            position: absolute;
+        /* Контейнер для групп партнеров */
+        .partners-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .group-connectors {
+            position: relative;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
         }
         
         @media (max-width: 1024px) {
             .structure-container { padding: 20px; }
-            .level-row { gap: 20px; }
-            .level-label { min-width: 150px; font-size: 0.7rem; }
-            .user-node { min-width: 110px; padding: 10px 12px; }
+            .partners-level1 { gap: 20px; }
+            .admin-node { min-width: 130px; padding: 12px 16px; }
+            .partner-node { min-width: 120px; }
+            .node-name { font-size: 0.9rem; }
         }
     </style>
 </head>
@@ -173,7 +216,7 @@
     <div class="container">
         <div class="header">
             <h1>🌳 СТРУКТУРА TRINARY PRO</h1>
-            <p>Горизонтальная визуализация трехуровневой иерархии</p>
+            <p>Трехуровневая иерархия с красными связями</p>
         </div>
         
         <div class="structure-container">
@@ -188,76 +231,92 @@
                 <button class="btn">💾 Сохранить</button>
             </div>
             
-            <div class="tree-horizontal">
-                <!-- УРОВЕНЬ 0 -->
-                <div class="level-row">
-                    <div class="level-label">УРОВЕНЬ 0<br/>АДМИНИСТРАТОР</div>
-                    <div class="nodes-container">
-                        <div class="user-node root">
-                            <div class="node-name">🔴 Администратор</div>
-                            <div class="node-username">@admin</div>
-                            <div class="node-count">3 партнеров</div>
-                            <div class="node-level">Уровень 2</div>
-                        </div>
+            <div class="tree-container">
+                <!-- АДМИНИСТРАТОР -->
+                <div class="admin-row">
+                    <div class="admin-node">
+                        <div class="node-name">🔴 Администратор</div>
+                        <div class="node-username">@admin</div>
+                        <div class="node-count">3 партнеров</div>
+                        <div class="node-level">Уровень 2</div>
                     </div>
                 </div>
                 
-                <!-- УРОВЕНЬ 1 -->
-                <div class="level-row">
-                    <div class="level-label">УРОВЕНЬ 1<br/>ПУ1 ПАРТНЕРЫ<br/>(3/3)</div>
-                    <div class="nodes-container">
-                        <div class="user-node">
+                <!-- СВЯЗИ ОТ АДМИНИСТРАТОРА К ПАРТНЕРАМ -->
+                <svg class="svg-lines" style="height: 120px; margin-bottom: 20px;">
+                    <line x1="50%" y1="0" x2="15%" y2="120" stroke="#ff6b6b" stroke-width="3" opacity="0.7"/>
+                    <line x1="50%" y1="0" x2="50%" y2="120" stroke="#ff6b6b" stroke-width="3" opacity="0.7"/>
+                    <line x1="50%" y1="0" x2="85%" y2="120" stroke="#ff6b6b" stroke-width="3" opacity="0.7"/>
+                </svg>
+                
+                <!-- ПАРТНЕРЫ УРОВНЯ 1 -->
+                <div class="partners-level1">
+                    <div class="partners-group">
+                        <div class="partner-node">
                             <div class="node-name">Партнер 1</div>
                             <div class="node-username">@user1</div>
                             <div class="node-count">3 партнеров</div>
                             <div class="node-level">Уровень 1</div>
                         </div>
-                        <svg class="connections" viewBox="0 0 100 150" style="width: 20px; height: 150px; margin: 0 -10px;">
-                            <line x1="50" y1="0" x2="50" y2="150" stroke="#ff6b6b" stroke-width="2" opacity="0.5"/>
+                        
+                        <!-- СВЯЗИ ОТ ПАРТНЕРА 1 К ЕГО ПОДЧИНЕННЫМ -->
+                        <svg class="svg-lines" style="height: 100px; margin-top: 20px;">
+                            <line x1="50%" y1="0" x2="20%" y2="100" stroke="#ff6b6b" stroke-width="2" opacity="0.5"/>
+                            <line x1="50%" y1="0" x2="50%" y2="100" stroke="#ff6b6b" stroke-width="2" opacity="0.5"/>
+                            <line x1="50%" y1="0" x2="80%" y2="100" stroke="#ff6b6b" stroke-width="2" opacity="0.5"/>
                         </svg>
-                        <div class="user-node">
+                        
+                        <!-- ПАРТНЕРЫ УРОВНЯ 2 (ПОД ПАРТНЕРОМ 1) -->
+                        <div class="group-connectors">
+                            <div class="partner-node-l2">
+                                <div class="node-name">Партнер 1-1</div>
+                                <div class="node-username">@user2</div>
+                                <div class="node-count">0 партнеров</div>
+                                <div class="node-level">Уровень 0</div>
+                            </div>
+                            <div class="partner-node-l2">
+                                <div class="node-name">Партнер 1-2</div>
+                                <div class="node-username">@user3</div>
+                                <div class="node-count">0 партнеров</div>
+                                <div class="node-level">Уровень 0</div>
+                            </div>
+                            <div class="partner-node-l2">
+                                <div class="node-name">Партнер 1-3</div>
+                                <div class="node-username">@user4</div>
+                                <div class="node-count">0 партнеров</div>
+                                <div class="node-level">Уровень 0</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="partners-group">
+                        <div class="partner-node">
                             <div class="node-name">Партнер 2</div>
                             <div class="node-username">@user5</div>
                             <div class="node-count">1 партнер</div>
                             <div class="node-level">Уровень 1</div>
                         </div>
-                        <svg class="connections" viewBox="0 0 100 150" style="width: 20px; height: 150px; margin: 0 -10px;">
-                            <line x1="50" y1="0" x2="50" y2="150" stroke="#ff6b6b" stroke-width="2" opacity="0.5"/>
+                        
+                        <!-- СВЯЗИ ОТ ПАРТНЕРА 2 К ЕГО ПОДЧИНЕННОМУ -->
+                        <svg class="svg-lines" style="height: 100px; margin-top: 20px;">
+                            <line x1="50%" y1="0" x2="50%" y2="100" stroke="#ff6b6b" stroke-width="2" opacity="0.5"/>
                         </svg>
-                        <div class="user-node">
-                            <div class="node-name">Партнер 3</div>
-                            <div class="node-username">@user7</div>
-                            <div class="node-count">0 партнеров</div>
-                            <div class="node-level">Уровень 0</div>
+                        
+                        <!-- ПАРТНЕР УРОВНЯ 2 (ПОД ПАРТНЕРОМ 2) -->
+                        <div class="group-connectors">
+                            <div class="partner-node-l2">
+                                <div class="node-name">Партнер 2-1</div>
+                                <div class="node-username">@user6</div>
+                                <div class="node-count">0 партнеров</div>
+                                <div class="node-level">Уровень 0</div>
+                            </div>
                         </div>
                     </div>
-                </div>
-                
-                <!-- УРОВЕНЬ 2 -->
-                <div class="level-row">
-                    <div class="level-label">УРОВЕНЬ 2<br/>ПУ1 ПАРТНЕРОВ<br/>(ПОД ПАР1<br/>3/3)</div>
-                    <div class="nodes-container">
-                        <div class="user-node">
-                            <div class="node-name">Партнер 1-1</div>
-                            <div class="node-username">@user2</div>
-                            <div class="node-count">0 партнеров</div>
-                            <div class="node-level">Уровень 0</div>
-                        </div>
-                        <svg class="connections" viewBox="0 0 100 150" style="width: 20px; height: 150px; margin: 0 -10px;">
-                            <line x1="50" y1="0" x2="50" y2="150" stroke="#667eea" stroke-width="2" opacity="0.4" stroke-dasharray="5,5"/>
-                        </svg>
-                        <div class="user-node">
-                            <div class="node-name">Партнер 1-2</div>
-                            <div class="node-username">@user3</div>
-                            <div class="node-count">0 партнеров</div>
-                            <div class="node-level">Уровень 0</div>
-                        </div>
-                        <svg class="connections" viewBox="0 0 100 150" style="width: 20px; height: 150px; margin: 0 -10px;">
-                            <line x1="50" y1="0" x2="50" y2="150" stroke="#667eea" stroke-width="2" opacity="0.4" stroke-dasharray="5,5"/>
-                        </svg>
-                        <div class="user-node">
-                            <div class="node-name">Партнер 1-3</div>
-                            <div class="node-username">@user4</div>
+                    
+                    <div class="partners-group">
+                        <div class="partner-node">
+                            <div class="node-name">Партнер 3</div>
+                            <div class="node-username">@user7</div>
                             <div class="node-count">0 партнеров</div>
                             <div class="node-level">Уровень 0</div>
                         </div>
