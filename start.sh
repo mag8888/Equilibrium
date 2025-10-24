@@ -2,6 +2,11 @@
 
 echo "🚀 Starting TRINARY MLM System..."
 
+# Очистка Python кэша
+echo "🧹 Cleaning Python cache..."
+find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
+find . -type f -name "*.pyc" -delete 2>/dev/null || true
+
 # Создание директории для статических файлов
 echo "📁 Creating staticfiles directory..."
 mkdir -p staticfiles
