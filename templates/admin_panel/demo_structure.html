@@ -433,7 +433,11 @@
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
             const container = document.getElementById('treeContainer');
-            renderTree(demoStructure, container);
+            if (container) {
+                renderTree(demoStructure, container);
+            } else {
+                console.error('Container not found');
+            }
         });
     </script>
 </body>
