@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌳 TRINARY PRO - Real MLM Logic</title>
+    <title>🌳 TRINARY PRO - Horizontal MLM</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -26,8 +26,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
             height: 60px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
             z-index: 1000;
@@ -92,8 +90,6 @@
             width: 280px;
             background: white;
             border-right: 1px solid #e0e6f0;
-            display: flex;
-            flex-direction: column;
             overflow-y: auto;
             box-shadow: 2px 0 8px rgba(0, 0, 0, 0.04);
         }
@@ -120,14 +116,6 @@
             border-bottom: 1px solid #f5f5f5;
         }
         
-        .metric-row:last-child {
-            border-bottom: none;
-        }
-        
-        .metric-label {
-            color: #666;
-        }
-        
         .metric-value {
             font-weight: 700;
             color: #667eea;
@@ -136,13 +124,13 @@
         .scroll-container {
             flex: 1;
             overflow-x: auto;
-            overflow-y: hidden;
+            overflow-y: auto;
             background: linear-gradient(135deg, #f5f7fa 0%, #f0f3f7 100%);
-            position: relative;
         }
         
         .scroll-container::-webkit-scrollbar {
             height: 10px;
+            width: 10px;
         }
         
         .scroll-container::-webkit-scrollbar-track {
@@ -156,79 +144,107 @@
         
         .hierarchy {
             display: flex;
-            height: 100%;
-            padding: 40px;
-            gap: 60px;
-            align-items: flex-start;
+            flex-direction: column;
+            padding: 30px;
+            gap: 30px;
+            min-height: fit-content;
             min-width: fit-content;
         }
         
         .branch {
             display: flex;
-            flex-direction: column;
             gap: 20px;
-            position: relative;
+            align-items: flex-start;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         }
         
         .branch-label {
-            position: absolute;
-            top: -30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: white;
-            padding: 4px 12px;
-            border-radius: 4px;
-            font-size: 0.75rem;
+            font-size: 0.9rem;
             font-weight: 700;
             color: #667eea;
-            border: 1px solid #e0e6f0;
-            white-space: nowrap;
+            min-width: 140px;
+            padding: 10px;
+            background: #f0f4ff;
+            border-radius: 8px;
+            text-align: center;
+            flex-shrink: 0;
         }
         
-        .level {
+        .branch-content {
             display: flex;
             gap: 15px;
-            align-items: center;
-            justify-content: center;
-            flex-wrap: wrap;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+        
+        .branch-content::-webkit-scrollbar {
+            height: 6px;
+        }
+        
+        .branch-content::-webkit-scrollbar-thumb {
+            background: #ddd;
+            border-radius: 3px;
+        }
+        
+        .level-column {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-width: 160px;
+            flex-shrink: 0;
+        }
+        
+        .level-header {
+            background: #667eea;
+            color: white;
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 0.85rem;
         }
         
         .card {
             background: white;
             border: 2px solid #e0e6f0;
             border-radius: 10px;
-            padding: 14px;
-            min-width: 140px;
+            padding: 12px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
             position: relative;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
         
         .card:hover {
             border-color: #667eea;
             box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
-            transform: translateY(-3px);
+            transform: translateY(-2px);
         }
         
         .card.root {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: 2px solid rgba(102, 126, 234, 0.3);
-            min-width: 160px;
-            padding: 16px;
             font-weight: 700;
+            min-height: 100px;
+        }
+        
+        .card.root:hover {
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
         }
         
         .card.locked {
             opacity: 0.5;
             cursor: not-allowed;
-        }
-        
-        .card.locked .card-info {
-            color: #e74c3c;
-            font-size: 0.7rem;
+            background: #fff9e6;
         }
         
         .card-name {
@@ -244,53 +260,35 @@
         }
         
         .card-info {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             background: rgba(102, 126, 234, 0.08);
             padding: 4px;
             border-radius: 3px;
             margin-top: 6px;
+            line-height: 1.3;
         }
         
         .card.root .card-info {
             background: rgba(255, 255, 255, 0.15);
+            font-size: 0.75rem;
         }
         
-        .depth-indicator {
+        .card-warning {
             position: absolute;
             top: -8px;
             right: 8px;
-            width: 16px;
-            height: 16px;
-            background: #667eea;
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background: #ffc107;
+            color: #333;
+            padding: 2px 6px;
+            border-radius: 3px;
             font-size: 0.65rem;
             font-weight: 700;
         }
         
-        .requirement {
-            position: absolute;
-            bottom: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #fff3cd;
-            color: #856404;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 0.65rem;
-            white-space: nowrap;
-            border: 1px solid #ffc107;
-        }
-        
         .right-sidebar {
-            width: 280px;
+            width: 250px;
             background: white;
             border-left: 1px solid #e0e6f0;
-            display: flex;
-            flex-direction: column;
             overflow-y: auto;
             box-shadow: -2px 0 8px rgba(0, 0, 0, 0.04);
             padding: 20px;
@@ -305,48 +303,29 @@
         }
         
         .property {
-            margin-bottom: 15px;
-            padding-bottom: 15px;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
             border-bottom: 1px solid #f0f0f0;
         }
         
         .property-label {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: #999;
             text-transform: uppercase;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             font-weight: 600;
         }
         
         .property-value {
-            font-size: 1rem;
+            font-size: 0.9rem;
             font-weight: 700;
             color: #667eea;
         }
         
-        .requirement-table {
-            font-size: 0.8rem;
-            margin-top: 10px;
-        }
-        
-        .req-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 6px 0;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        
-        .req-row:last-child {
-            border-bottom: none;
-        }
-        
-        .req-label {
-            color: #666;
-        }
-        
-        .req-value {
-            font-weight: 700;
-            color: #667eea;
+        @media (max-width: 1024px) {
+            .left-sidebar { width: 200px; }
+            .right-sidebar { width: 200px; }
+            .level-column { min-width: 140px; }
         }
     </style>
 </head>
@@ -354,10 +333,10 @@
     <div class="top-header">
         <div class="header-left">
             <div class="header-title">🌳 TRINARY PRO</div>
-            <div class="breadcrumb">MLM Real Logic System</div>
+            <div class="breadcrumb">Горизонтальный скролл | 6 уровней</div>
         </div>
         <div class="header-right">
-            <div class="info-badge">📊 Max 6 levels shown</div>
+            <div class="info-badge">📊 Горизонтальный вид</div>
             <button class="btn-small">⚙️ Параметры</button>
         </div>
     </div>
@@ -367,264 +346,260 @@
             <div class="sidebar-section">
                 <div class="sidebar-title">📊 Метрики</div>
                 <div class="metric-row">
-                    <span class="metric-label">Партнеров:</span>
+                    <span>Партнеров:</span>
                     <span class="metric-value">12</span>
                 </div>
                 <div class="metric-row">
-                    <span class="metric-label">Ветвей:</span>
+                    <span>Ветвей:</span>
                     <span class="metric-value">3</span>
                 </div>
                 <div class="metric-row">
-                    <span class="metric-label">Макс. уровень:</span>
+                    <span>Уровней:</span>
                     <span class="metric-value">6</span>
                 </div>
                 <div class="metric-row">
-                    <span class="metric-label">Доход:</span>
+                    <span>Доход:</span>
                     <span class="metric-value">$5.2K</span>
                 </div>
             </div>
             
             <div class="sidebar-section">
-                <div class="sidebar-title">📋 ПРАВИЛА УРОВНЕЙ</div>
-                <div style="font-size: 0.85rem; color: #666; line-height: 1.6;">
-                    <strong>Level 0:</strong> Партнер (без требований)
-                    <br><br>
-                    <strong>Level 1:</strong> Нужно 3 партнера L0
-                    <br><br>
-                    <strong>Level 2:</strong> 
-                    <br>- 3 партнера L1
-                    <br>- 9 партнеров L0
-                    <br><br>
-                    <strong>Level 3:</strong>
-                    <br>- 3 партнера L2
-                    <br>- 9 партнеров L1
-                    <br>- 27 партнеров L0
-                    <br><br>
-                    И так далее...
+                <div class="sidebar-title">📋 Логика</div>
+                <div style="font-size: 0.8rem; color: #666; line-height: 1.5;">
+                    <strong>L0:</strong> Партнер
+                    <br><strong>L1:</strong> 3 L0
+                    <br><strong>L2:</strong> 3 L1 + 9 L0
+                    <br><strong>L3:</strong> 3 L2 + 27 L0
+                    <br><strong>...</strong>
+                    <br><strong>Формула:</strong> 3^n
                 </div>
             </div>
             
             <div class="sidebar-section">
-                <div class="sidebar-title">ℹ️ ИНФОРМАЦИЯ</div>
-                <div style="font-size: 0.85rem; color: #666; line-height: 1.5;">
-                    <strong>Отображение:</strong> 6 уровней макс
-                    <br><br>
-                    <strong>Ветви:</strong> 3
-                    <br><br>
-                    <strong>Красные карточки:</strong> заблокированы (не хватает партнеров)
+                <div class="sidebar-title">✅ Статусы</div>
+                <div style="font-size: 0.8rem; color: #27ae60; line-height: 1.8;">
+                    ✓ Alice: L3
+                    <br>✓ Bob: L2
+                    <br>✓ Carol: L1
                 </div>
             </div>
         </div>
         
         <div class="scroll-container">
             <div class="hierarchy">
-                <!-- BRANCH 1: 6 LEVELS -->
+                <!-- BRANCH 1 -->
                 <div class="branch">
-                    <div class="branch-label">Ветвь 1 (6 уровней)</div>
-                    
-                    <div class="level">
-                        <div class="card root">
-                            <div class="card-name">Alice</div>
-                            <div class="card-level">Level 3</div>
-                            <div class="card-info">27 L0, 9 L1, 3 L2</div>
+                    <div class="branch-label">Ветвь 1<br>(6 уровней)</div>
+                    <div class="branch-content">
+                        <div class="level-column">
+                            <div class="level-header">Root</div>
+                            <div class="card root">
+                                <div class="card-name">Alice</div>
+                                <div class="card-level">Level 3</div>
+                                <div class="card-info">27 L0<br>9 L1<br>3 L2</div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="level">
-                        <div class="card">
-                            <div class="card-name">L1-A</div>
-                            <div class="card-level">Level 1</div>
-                            <div class="card-info">3 партнера L0</div>
-                            <div class="depth-indicator">1</div>
+                        
+                        <div class="level-column">
+                            <div class="level-header">Level 1</div>
+                            <div class="card">
+                                <div class="card-name">L1-A</div>
+                                <div class="card-level">Level 1</div>
+                                <div class="card-info">3 L0</div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="level">
-                        <div class="card">
-                            <div class="card-name">L2-A</div>
-                            <div class="card-level">Level 2</div>
-                            <div class="card-info">3 L1, 9 L0</div>
-                            <div class="depth-indicator">2</div>
+                        
+                        <div class="level-column">
+                            <div class="level-header">Level 2</div>
+                            <div class="card">
+                                <div class="card-name">L2-A</div>
+                                <div class="card-level">Level 2</div>
+                                <div class="card-info">3 L1<br>9 L0</div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="level">
-                        <div class="card">
-                            <div class="card-name">L3-A</div>
-                            <div class="card-level">Level 3</div>
-                            <div class="card-info">27 L0</div>
-                            <div class="depth-indicator">3</div>
+                        
+                        <div class="level-column">
+                            <div class="level-header">Level 3</div>
+                            <div class="card">
+                                <div class="card-name">L3-A</div>
+                                <div class="card-level">Level 3</div>
+                                <div class="card-info">27 L0</div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="level">
-                        <div class="card locked">
-                            <div class="card-name">L4-A</div>
-                            <div class="card-level">Level 4</div>
-                            <div class="card-info">⚠️ Нужно 3 L3</div>
-                            <div class="depth-indicator">4</div>
-                            <div class="requirement">Недостаточно</div>
+                        
+                        <div class="level-column">
+                            <div class="level-header">Level 4</div>
+                            <div class="card locked">
+                                <div class="card-warning">⚠️</div>
+                                <div class="card-name">L4-A</div>
+                                <div class="card-level">Level 4</div>
+                                <div class="card-info">Нужно 3 L3</div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="level">
-                        <div class="card locked">
-                            <div class="card-name">L5-A</div>
-                            <div class="card-level">Level 5</div>
-                            <div class="card-info">⚠️ Нужно 3 L4</div>
-                            <div class="depth-indicator">5</div>
-                            <div class="requirement">Недостаточно</div>
+                        
+                        <div class="level-column">
+                            <div class="level-header">Level 5</div>
+                            <div class="card locked">
+                                <div class="card-warning">⚠️</div>
+                                <div class="card-name">L5-A</div>
+                                <div class="card-level">Level 5</div>
+                                <div class="card-info">Нужно 3 L4</div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="level">
-                        <div class="card locked">
-                            <div class="card-name">L6-A</div>
-                            <div class="card-level">Level 6</div>
-                            <div class="card-info">⚠️ Нужно 3 L5</div>
-                            <div class="depth-indicator">6</div>
-                            <div class="requirement">Недостаточно</div>
+                        
+                        <div class="level-column">
+                            <div class="level-header">Level 6</div>
+                            <div class="card locked">
+                                <div class="card-warning">⚠️</div>
+                                <div class="card-name">L6-A</div>
+                                <div class="card-level">Level 6</div>
+                                <div class="card-info">Нужно 3 L5</div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- BRANCH 2: 6 LEVELS -->
+                <!-- BRANCH 2 -->
                 <div class="branch">
-                    <div class="branch-label">Ветвь 2 (6 уровней)</div>
-                    
-                    <div class="level">
-                        <div class="card root">
-                            <div class="card-name">Bob</div>
-                            <div class="card-level">Level 2</div>
-                            <div class="card-info">9 L0, 3 L1</div>
+                    <div class="branch-label">Ветвь 2<br>(6 уровней)</div>
+                    <div class="branch-content">
+                        <div class="level-column">
+                            <div class="level-header">Root</div>
+                            <div class="card root">
+                                <div class="card-name">Bob</div>
+                                <div class="card-level">Level 2</div>
+                                <div class="card-info">9 L0<br>3 L1</div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="level">
-                        <div class="card">
-                            <div class="card-name">L1-B</div>
-                            <div class="card-level">Level 1</div>
-                            <div class="card-info">3 партнера L0</div>
-                            <div class="depth-indicator">1</div>
+                        
+                        <div class="level-column">
+                            <div class="level-header">Level 1</div>
+                            <div class="card">
+                                <div class="card-name">L1-B</div>
+                                <div class="card-level">Level 1</div>
+                                <div class="card-info">3 L0</div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="level">
-                        <div class="card">
-                            <div class="card-name">L2-B</div>
-                            <div class="card-level">Level 0</div>
-                            <div class="card-info">0 партнеров</div>
-                            <div class="depth-indicator">2</div>
+                        
+                        <div class="level-column">
+                            <div class="level-header">Level 2</div>
+                            <div class="card">
+                                <div class="card-name">L2-B</div>
+                                <div class="card-level">Level 0</div>
+                                <div class="card-info">0</div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="level">
-                        <div class="card locked">
-                            <div class="card-name">L3-B</div>
-                            <div class="card-level">Level ?</div>
-                            <div class="card-info">⚠️ Нужно 3 L1</div>
-                            <div class="depth-indicator">3</div>
-                            <div class="requirement">Недостаточно</div>
+                        
+                        <div class="level-column">
+                            <div class="level-header">Level 3</div>
+                            <div class="card locked">
+                                <div class="card-warning">⚠️</div>
+                                <div class="card-name">L3-B</div>
+                                <div class="card-level">Level ?</div>
+                                <div class="card-info">Нужно 3 L1</div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="level">
-                        <div class="card locked">
-                            <div class="card-name">L4-B</div>
-                            <div class="card-level">Level ?</div>
-                            <div class="card-info">⚠️ Нужно 3 L2</div>
-                            <div class="depth-indicator">4</div>
-                            <div class="requirement">Недостаточно</div>
+                        
+                        <div class="level-column">
+                            <div class="level-header">Level 4</div>
+                            <div class="card locked">
+                                <div class="card-warning">⚠️</div>
+                                <div class="card-name">L4-B</div>
+                                <div class="card-level">Level ?</div>
+                                <div class="card-info">Нужно 3 L2</div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="level">
-                        <div class="card locked">
-                            <div class="card-name">L5-B</div>
-                            <div class="card-level">Level ?</div>
-                            <div class="card-info">⚠️ Нужно 3 L3</div>
-                            <div class="depth-indicator">5</div>
-                            <div class="requirement">Недостаточно</div>
+                        
+                        <div class="level-column">
+                            <div class="level-header">Level 5</div>
+                            <div class="card locked">
+                                <div class="card-warning">⚠️</div>
+                                <div class="card-name">L5-B</div>
+                                <div class="card-level">Level ?</div>
+                                <div class="card-info">Нужно 3 L3</div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="level">
-                        <div class="card locked">
-                            <div class="card-name">L6-B</div>
-                            <div class="card-level">Level ?</div>
-                            <div class="card-info">⚠️ Нужно 3 L4</div>
-                            <div class="depth-indicator">6</div>
-                            <div class="requirement">Недостаточно</div>
+                        
+                        <div class="level-column">
+                            <div class="level-header">Level 6</div>
+                            <div class="card locked">
+                                <div class="card-warning">⚠️</div>
+                                <div class="card-name">L6-B</div>
+                                <div class="card-level">Level ?</div>
+                                <div class="card-info">Нужно 3 L4</div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- BRANCH 3: 6 LEVELS -->
+                <!-- BRANCH 3 -->
                 <div class="branch">
-                    <div class="branch-label">Ветвь 3 (6 уровней)</div>
-                    
-                    <div class="level">
-                        <div class="card root">
-                            <div class="card-name">Carol</div>
-                            <div class="card-level">Level 1</div>
-                            <div class="card-info">3 партнера L0</div>
+                    <div class="branch-label">Ветвь 3<br>(6 уровней)</div>
+                    <div class="branch-content">
+                        <div class="level-column">
+                            <div class="level-header">Root</div>
+                            <div class="card root">
+                                <div class="card-name">Carol</div>
+                                <div class="card-level">Level 1</div>
+                                <div class="card-info">3 L0</div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="level">
-                        <div class="card">
-                            <div class="card-name">L1-C</div>
-                            <div class="card-level">Level 0</div>
-                            <div class="card-info">0 партнеров</div>
-                            <div class="depth-indicator">1</div>
+                        
+                        <div class="level-column">
+                            <div class="level-header">Level 1</div>
+                            <div class="card">
+                                <div class="card-name">L1-C</div>
+                                <div class="card-level">Level 0</div>
+                                <div class="card-info">0</div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="level">
-                        <div class="card">
-                            <div class="card-name">L2-C</div>
-                            <div class="card-level">Level 0</div>
-                            <div class="card-info">0 партнеров</div>
-                            <div class="depth-indicator">2</div>
+                        
+                        <div class="level-column">
+                            <div class="level-header">Level 2</div>
+                            <div class="card">
+                                <div class="card-name">L2-C</div>
+                                <div class="card-level">Level 0</div>
+                                <div class="card-info">0</div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="level">
-                        <div class="card">
-                            <div class="card-name">L3-C</div>
-                            <div class="card-level">Level 0</div>
-                            <div class="card-info">0 партнеров</div>
-                            <div class="depth-indicator">3</div>
+                        
+                        <div class="level-column">
+                            <div class="level-header">Level 3</div>
+                            <div class="card">
+                                <div class="card-name">L3-C</div>
+                                <div class="card-level">Level 0</div>
+                                <div class="card-info">0</div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="level">
-                        <div class="card locked">
-                            <div class="card-name">L4-C</div>
-                            <div class="card-level">Level ?</div>
-                            <div class="card-info">⚠️ Нужно 3 L0</div>
-                            <div class="depth-indicator">4</div>
-                            <div class="requirement">Недостаточно</div>
+                        
+                        <div class="level-column">
+                            <div class="level-header">Level 4</div>
+                            <div class="card locked">
+                                <div class="card-warning">⚠️</div>
+                                <div class="card-name">L4-C</div>
+                                <div class="card-level">Level ?</div>
+                                <div class="card-info">Нужно 3 L0</div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="level">
-                        <div class="card locked">
-                            <div class="card-name">L5-C</div>
-                            <div class="card-level">Level ?</div>
-                            <div class="card-info">⚠️ Нужно 3 L1</div>
-                            <div class="depth-indicator">5</div>
-                            <div class="requirement">Недостаточно</div>
+                        
+                        <div class="level-column">
+                            <div class="level-header">Level 5</div>
+                            <div class="card locked">
+                                <div class="card-warning">⚠️</div>
+                                <div class="card-name">L5-C</div>
+                                <div class="card-level">Level ?</div>
+                                <div class="card-info">Нужно 3 L1</div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="level">
-                        <div class="card locked">
-                            <div class="card-name">L6-C</div>
-                            <div class="card-level">Level ?</div>
-                            <div class="card-info">⚠️ Нужно 3 L2</div>
-                            <div class="depth-indicator">6</div>
-                            <div class="requirement">Недостаточно</div>
+                        
+                        <div class="level-column">
+                            <div class="level-header">Level 6</div>
+                            <div class="card locked">
+                                <div class="card-warning">⚠️</div>
+                                <div class="card-name">L6-C</div>
+                                <div class="card-level">Level ?</div>
+                                <div class="card-info">Нужно 3 L2</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -632,91 +607,44 @@
         </div>
         
         <div class="right-sidebar">
-            <div class="sidebar-header">📋 Требования уровней</div>
-            
-            <div class="property">
-                <div class="property-label">Level 0</div>
-                <div class="property-value">Партнер</div>
-            </div>
+            <div class="sidebar-header">📋 Требования</div>
             
             <div class="property">
                 <div class="property-label">Level 1</div>
-                <div class="requirement-table">
-                    <div class="req-row">
-                        <span class="req-label">L0 партнеров:</span>
-                        <span class="req-value">3</span>
-                    </div>
-                </div>
+                <div class="property-value">3 L0</div>
             </div>
             
             <div class="property">
                 <div class="property-label">Level 2</div>
-                <div class="requirement-table">
-                    <div class="req-row">
-                        <span class="req-label">L1 партнеров:</span>
-                        <span class="req-value">3</span>
-                    </div>
-                    <div class="req-row">
-                        <span class="req-label">L0 партнеров:</span>
-                        <span class="req-value">9 (3×3)</span>
-                    </div>
-                </div>
+                <div class="property-value">3 L1 + 9 L0</div>
             </div>
             
             <div class="property">
                 <div class="property-label">Level 3</div>
-                <div class="requirement-table">
-                    <div class="req-row">
-                        <span class="req-label">L2 партнеров:</span>
-                        <span class="req-value">3</span>
-                    </div>
-                    <div class="req-row">
-                        <span class="req-label">L1 партнеров:</span>
-                        <span class="req-value">9 (3×3)</span>
-                    </div>
-                    <div class="req-row">
-                        <span class="req-label">L0 партнеров:</span>
-                        <span class="req-value">27 (3³)</span>
-                    </div>
-                </div>
+                <div class="property-value">3 L2 + 27 L0</div>
             </div>
             
             <div class="property">
                 <div class="property-label">Level 10</div>
-                <div class="requirement-table">
-                    <div class="req-row">
-                        <span class="req-label">L0 партнеров:</span>
-                        <span class="req-value">3¹⁰=59K</span>
-                    </div>
-                </div>
+                <div class="property-value">3¹⁰ = 59K L0</div>
             </div>
             
             <div class="property">
                 <div class="property-label">✅ Выполнено</div>
-                <div style="font-size: 0.9rem; color: #27ae60; line-height: 1.8;">
-                    <div>✓ Alice: Level 3</div>
-                    <div>✓ Bob: Level 2</div>
-                    <div>✓ Carol: Level 1</div>
+                <div style="font-size: 0.85rem; color: #27ae60; line-height: 1.8;">
+                    Alice: L3
+                    <br>Bob: L2
+                    <br>Carol: L1
                 </div>
             </div>
             
             <div class="property">
                 <div class="property-label">⚠️ Заблокировано</div>
-                <div style="font-size: 0.9rem; color: #e74c3c; line-height: 1.8;">
-                    <div>✗ L4+ (недостаточно)</div>
+                <div style="font-size: 0.85rem; color: #e74c3c;">
+                    L4+ недостаточно
                 </div>
             </div>
         </div>
     </div>
-    
-    <script>
-        document.querySelectorAll('.card:not(.locked)').forEach(card => {
-            card.addEventListener('click', function() {
-                const name = this.querySelector('.card-name').textContent;
-                const level = this.querySelector('.card-level').textContent;
-                console.log('Selected:', name, level);
-            });
-        });
-    </script>
 </body>
 </html>
