@@ -177,7 +177,7 @@ def structure_viewer(request):
         'is_demo': True,
     }
     
-    return render(request, 'admin_panel/structure_mlm_rule.html', context)
+    return render(request, 'admin_panel/mindmap_horizontal.html', context)
 
 
 def build_structure_tree(user, level=0):
