@@ -118,6 +118,25 @@ def admin_demo_structure_old(request):
     return render(request, 'admin_panel/demo_structure.html', context)
 
 
+def admin_demo_structure_new(request):
+    """Демо-версия структуры - НОВАЯ ГОРИЗОНТАЛЬНАЯ МАЙНД-КАРТА"""
+    
+    root_users = []
+    
+    try:
+        from users.models import User
+        root_users = list(User.objects.filter(invited_by__isnull=True).order_by('-date_joined')[:20])
+    except:
+        pass
+    
+    context = {
+        'root_users': root_users,
+        'is_demo': True,
+    }
+    
+    return render(request, 'admin_panel/mindmap_horizontal.html', context)
+
+
 def structure_viewer(request):
     """Интерактивная визуализация структуры пользователей"""
     
