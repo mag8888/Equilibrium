@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌐 MLM СТРУКТУРА - Правило 3 партнера для уровня</title>
+    <title>🌐 MLM СТРУКТУРА - Простая версия</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -11,9 +11,7 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: #ffffff;
             color: #1a202c;
-            overflow: hidden;
             padding: 20px;
-            min-height: 100vh;
         }
         
         .header {
@@ -139,25 +137,9 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             padding: 50px;
             overflow: hidden;
-            height: calc(100vh - 200px);
-            min-width: 100%;
+            min-height: 600px;
         }
 
-        /* Контейнер для скролла и масштабирования */
-        .scroll-container {
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            position: relative;
-        }
-
-        .zoom-container {
-            position: relative;
-            transform-origin: top left;
-            transition: transform 0.3s ease;
-        }
-
-        /* Майнд-карта структура */
         .mindmap-container {
             position: relative;
             width: 100%;
@@ -200,7 +182,6 @@
             transform: scale(1.05);
         }
 
-        /* Красные контуры для незавершенных узлов */
         .node.incomplete {
             border: 3px solid #ef4444;
             background: #fef2f2;
@@ -250,7 +231,6 @@
             color: rgba(255, 255, 255, 0.8);
         }
 
-        /* Синие точки рядом с юзернейм */
         .blue-dot {
             width: 8px;
             height: 8px;
@@ -259,18 +239,14 @@
             display: inline-block;
         }
 
-        /* Изогнутые связи для майнд-карты */
         .connection-line {
             position: absolute;
             stroke: #3b82f6;
             stroke-width: 2;
             fill: none;
             z-index: 5;
-            opacity: 0;
-            animation: fadeInLine 0.8s forwards;
         }
 
-        /* Красные связи для незавершенных соединений */
         .connection-line.incomplete {
             stroke: #ef4444;
             stroke-width: 3;
@@ -282,12 +258,6 @@
             to { stroke-dashoffset: -10; }
         }
 
-        @keyframes fadeInLine {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        /* Синие кружки для майнд-карты */
         .expand-circle {
             position: absolute;
             width: 12px;
@@ -311,7 +281,6 @@
             border-color: #fef2f2;
         }
 
-        /* Chat bubble */
         .chat-bubble {
             position: absolute;
             top: -8px;
@@ -383,12 +352,6 @@
             transform: translateY(-1px);
         }
 
-        /* Скрытие элементов */
-        .hidden {
-            display: none !important;
-        }
-
-        /* Статистика логики */
         .logic-stats {
             position: absolute;
             top: 20px;
@@ -420,33 +383,6 @@
 
         .logic-stats .stat-dot.incomplete {
             background: #ef4444;
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-                gap: 15px;
-                text-align: center;
-            }
-            .title {
-                font-size: 1.5rem;
-            }
-            .structure-container {
-                padding: 15px;
-                border-radius: 0;
-                min-width: 100%;
-            }
-            .node {
-                min-width: 160px;
-                padding: 12px 16px;
-            }
-            .node-name {
-                font-size: 1rem;
-            }
-            .node-level {
-                font-size: 0.8rem;
-            }
         }
     </style>
 </head>
@@ -504,12 +440,8 @@
             <button class="zoom-btn" id="zoomInBtn">+</button>
         </div>
         
-        <div class="scroll-container" id="scrollContainer">
-            <div class="zoom-container" id="zoomContainer">
-                <div class="mindmap-container" id="mindmapContainer">
-                    <!-- Mindmap nodes will be rendered here -->
-                </div>
-            </div>
+        <div class="mindmap-container" id="mindmapContainer">
+            <!-- Структура будет отображена здесь -->
         </div>
         
         <div class="controls">
@@ -520,22 +452,10 @@
     </div>
 
     <script>
-        // Упрощенная версия с гарантированным отображением
         console.log('🚀 MLM Structure Loading...');
         
-        const mindmapContainer = document.getElementById('mindmapContainer');
-        const completeCount = document.getElementById('completeCount');
-        const incompleteCount = document.getElementById('incompleteCount');
-        const plazmaLevel = document.getElementById('plazmaLevel');
-        
-        if (!mindmapContainer) {
-            console.error('❌ mindmapContainer not found!');
-        } else {
-            console.log('✅ mindmapContainer found');
-        }
-
-        // Простая структура для тестирования
-        const testStructure = {
+        // Простая структура данных
+        const structure = {
             id: 'plazma', 
             name: 'PLAZMA', 
             level: 4, 
@@ -609,10 +529,8 @@
             ]
         };
 
-        // Функция для расчета позиций узлов
-        function calculateNodePositions(node, level = 0, xOffset = 0, yOffset = 0, parentX = 0, parentY = 0, branchIndex = 0, totalBranches = 1) {
-            const nodeWidth = 180;
-            const nodeHeight = 80;
+        // Функция для расчета позиций
+        function calculatePositions(node, level = 0, xOffset = 0, yOffset = 0, parentX = 0, parentY = 0, branchIndex = 0, totalBranches = 1) {
             const horizontalSpacing = 400;
             const verticalSpacing = 200;
             const containerPadding = 300;
@@ -621,10 +539,8 @@
             let currentY = yOffset + level * verticalSpacing;
 
             if (level === 0) {
-                // PLAZMA в центре (4й уровень)
                 currentX = containerPadding + 800;
             } else {
-                // Правильное распределение для всех уровней
                 const totalWidth = (totalBranches - 1) * horizontalSpacing;
                 const startX = parentX - totalWidth / 2;
                 currentX = startX + branchIndex * horizontalSpacing;
@@ -639,7 +555,7 @@
 
             if (node.children && node.children.length > 0 && node.expanded) {
                 node.children.forEach((child, i) => {
-                    calculateNodePositions(child, level + 1, 0, yOffset, currentX, currentY, i, node.children.length);
+                    calculatePositions(child, level + 1, 0, yOffset, currentX, currentY, i, node.children.length);
                 });
             }
         }
@@ -665,7 +581,10 @@
                 nodeElement.appendChild(chatBubble);
             }
             
-            mindmapContainer.appendChild(nodeElement);
+            const container = document.getElementById('mindmapContainer');
+            if (container) {
+                container.appendChild(nodeElement);
+            }
 
             if (node.children && node.children.length > 0) {
                 const expandCircle = document.createElement('div');
@@ -674,26 +593,28 @@
                 expandCircle.style.top = `${node.y + 40}px`;
                 expandCircle.onclick = (e) => {
                     e.stopPropagation();
-                    toggleNodeExpansion(node.id);
+                    toggleExpansion(node.id);
                 };
-                mindmapContainer.appendChild(expandCircle);
+                if (container) {
+                    container.appendChild(expandCircle);
+                }
             }
 
             nodeElement.addEventListener('click', (e) => {
                 if (node.children && node.children.length > 0) {
-                    toggleNodeExpansion(node.id);
+                    toggleExpansion(node.id);
                 }
             });
         }
 
         // Функция для рендеринга соединений
         function renderConnection(parentId, childId) {
-            const parent = findNodeById(testStructure, parentId);
-            const child = findNodeById(testStructure, childId);
+            const parent = findNodeById(structure, parentId);
+            const child = findNodeById(structure, childId);
 
             if (!parent || !child) return;
 
-            const pX = parent.x + 90; // центр узла
+            const pX = parent.x + 90;
             const pY = parent.y + 40;
             const cX = child.x + 90;
             const cY = child.y + 40;
@@ -729,7 +650,10 @@
                 svg.style.width = '100%';
                 svg.style.height = '100%';
                 svg.style.pointerEvents = 'none';
-                mindmapContainer.appendChild(svg);
+                const container = document.getElementById('mindmapContainer');
+                if (container) {
+                    container.appendChild(svg);
+                }
             }
             svg.appendChild(path);
         }
@@ -746,27 +670,49 @@
             return null;
         }
 
-        // Функция для переключения расширения узла
-        function toggleNodeExpansion(nodeId) {
-            const node = findNodeById(testStructure, nodeId);
+        // Функция для переключения расширения
+        function toggleExpansion(nodeId) {
+            const node = findNodeById(structure, nodeId);
             if (node) {
                 node.expanded = !node.expanded;
-                renderMindmapStructure();
+                renderStructure();
                 updateStats();
             }
         }
 
         // Функция для рендеринга структуры
-        function renderStructure(node) {
+        function renderStructure() {
+            console.log('🎨 Rendering structure...');
+            
+            const container = document.getElementById('mindmapContainer');
+            if (!container) {
+                console.error('❌ Container not found!');
+                return;
+            }
+            
+            container.innerHTML = '';
+            const svg = document.getElementById('connection-svg');
+            if (svg) svg.remove();
+
+            calculatePositions(structure);
+            renderStructureRecursive(structure);
+            updateConnections();
+            updateStats();
+            
+            console.log('✅ Structure rendered successfully!');
+        }
+
+        // Рекурсивный рендеринг
+        function renderStructureRecursive(node) {
             if (node.expanded) {
                 renderNode(node);
                 if (node.children) {
-                    node.children.forEach(child => renderStructure(child));
+                    node.children.forEach(child => renderStructureRecursive(child));
                 }
             }
         }
 
-        // Функция для обновления соединений
+        // Обновление соединений
         function updateConnections() {
             const svg = document.getElementById('connection-svg');
             if (svg) {
@@ -783,10 +729,10 @@
                     });
                 }
             }
-            traverseAndConnect(testStructure);
+            traverseAndConnect(structure);
         }
 
-        // Функция для обновления статистики
+        // Обновление статистики
         function updateStats() {
             let complete = 0;
             let incomplete = 0;
@@ -802,39 +748,27 @@
                 }
             }
             
-            countNodes(testStructure);
+            countNodes(structure);
             
-            completeCount.textContent = complete;
-            incompleteCount.textContent = incomplete;
-            plazmaLevel.textContent = 4;
+            const completeCount = document.getElementById('completeCount');
+            const incompleteCount = document.getElementById('incompleteCount');
+            const plazmaLevel = document.getElementById('plazmaLevel');
+            
+            if (completeCount) completeCount.textContent = complete;
+            if (incompleteCount) incompleteCount.textContent = incomplete;
+            if (plazmaLevel) plazmaLevel.textContent = 4;
         }
 
-        // Основная функция рендеринга
-        function renderMindmapStructure() {
-            console.log('🎨 Rendering mindmap structure...');
-            
-            mindmapContainer.innerHTML = '';
-            const svg = document.getElementById('connection-svg');
-            if (svg) svg.remove();
-
-            calculateNodePositions(testStructure);
-            renderStructure(testStructure);
-            updateConnections();
-            updateStats();
-            
-            console.log('✅ Mindmap structure rendered successfully!');
-        }
-
-        // Инициализация при загрузке страницы
+        // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
             console.log('📄 DOM Content Loaded');
-            renderMindmapStructure();
+            renderStructure();
         });
 
-        // Дополнительная инициализация через небольшую задержку
+        // Дополнительная инициализация
         setTimeout(function() {
             console.log('⏰ Delayed initialization');
-            renderMindmapStructure();
+            renderStructure();
         }, 100);
     </script>
 </body>
