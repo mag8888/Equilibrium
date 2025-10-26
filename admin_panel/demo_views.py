@@ -96,7 +96,7 @@ def admin_demo_structure(request):
         'is_demo': True,
     }
     
-    return render(request, 'admin_panel/horizontal_mindmap.html', context)
+    return render(request, 'admin_panel/mindmap_new.html', context)
 
 
 def admin_demo_structure_old(request):
@@ -134,7 +134,7 @@ def admin_demo_structure_new(request):
         'is_demo': True,
     }
     
-    return render(request, 'admin_panel/horizontal_mindmap.html', context)
+    return render(request, 'admin_panel/mindmap_new.html', context)
 
 
 def structure_viewer(request):
@@ -177,7 +177,7 @@ def structure_viewer(request):
         'is_demo': True,
     }
     
-    return render(request, 'admin_panel/horizontal_mindmap.html', context)
+    return render(request, 'admin_panel/mindmap_new.html', context)
 
 
 def build_structure_tree(user, level=0):
