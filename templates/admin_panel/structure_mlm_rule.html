@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌐 MLM СТРУКТУРА - Отладка</title>
+    <title>🌐 MLM СТРУКТУРА - Исправлена ошибка SVG</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -457,7 +457,7 @@
 
     <div class="structure-container" id="structureContainer">
         <div class="debug-info" id="debugInfo">
-            �� Отладка: Загрузка структуры...
+            🔍 Отладка: Загрузка структуры...
         </div>
         
         <div class="logic-stats" id="logicStats">
@@ -672,23 +672,23 @@
             let d = `M ${pX} ${pY} L ${cX} ${cY}`;
             path.setAttribute('d', d);
 
-            let svg = document.getElementById('connection-svg');
-            if (!svg) {
-                svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                svg.setAttribute('id', 'connection-svg');
-                svg.style.position = 'absolute';
-                svg.style.top = '0';
-                svg.style.left = '0';
-                svg.style.width = '100%';
-                svg.style.height = '100%';
-                svg.style.pointerEvents = 'none';
-                svg.style.zIndex = '1';
+            let connectionSvg = document.getElementById('connection-svg');
+            if (!connectionSvg) {
+                connectionSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                connectionSvg.setAttribute('id', 'connection-svg');
+                connectionSvg.style.position = 'absolute';
+                connectionSvg.style.top = '0';
+                connectionSvg.style.left = '0';
+                connectionSvg.style.width = '100%';
+                connectionSvg.style.height = '100%';
+                connectionSvg.style.pointerEvents = 'none';
+                connectionSvg.style.zIndex = '1';
                 const container = document.getElementById('mindmapContainer');
                 if (container) {
-                    container.appendChild(svg);
+                    container.appendChild(connectionSvg);
                 }
             }
-            svg.appendChild(path);
+            connectionSvg.appendChild(path);
         }
 
         // Функция для поиска узла по ID
@@ -716,22 +716,22 @@
             }
             
             container.innerHTML = '';
-            const svg = document.getElementById('connection-svg');
-            if (svg) svg.remove();
+            const existingSvg = document.getElementById('connection-svg');
+            if (existingSvg) existingSvg.remove();
 
             updateDebugInfo('🔍 Создаем SVG для соединений...');
             
             // Создаем SVG
-            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-            svg.setAttribute('id', 'connection-svg');
-            svg.style.position = 'absolute';
-            svg.style.top = '0';
-            svg.style.left = '0';
-            svg.style.width = '100%';
-            svg.style.height = '100%';
-            svg.style.pointerEvents = 'none';
-            svg.style.zIndex = '1';
-            container.appendChild(svg);
+            const newSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            newSvg.setAttribute('id', 'connection-svg');
+            newSvg.style.position = 'absolute';
+            newSvg.style.top = '0';
+            newSvg.style.left = '0';
+            newSvg.style.width = '100%';
+            newSvg.style.height = '100%';
+            newSvg.style.pointerEvents = 'none';
+            newSvg.style.zIndex = '1';
+            container.appendChild(newSvg);
             
             updateDebugInfo('🔍 Рендерим узлы...');
             
