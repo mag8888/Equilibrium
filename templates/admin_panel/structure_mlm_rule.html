@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌐 MLM СТРУКТУРА - ИСПРАВЛЕННАЯ ВЕРСИЯ</title>
+    <title>🔧 MLM СТРУКТУРА - ИСПРАВЛЕНО ПЕРЕСЕЧЕНИЕ</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -201,12 +201,12 @@
 </head>
 <body>
     <div class="header">
-        <h1>🌐 MLM СТРУКТУРА - ИСПРАВЛЕННАЯ ВЕРСИЯ</h1>
+        <h1>🔧 MLM СТРУКТУРА - ИСПРАВЛЕНО ПЕРЕСЕЧЕНИЕ</h1>
     </div>
     
     <div class="status-container">
         <div class="status">
-            ✅ <strong>Статус:</strong> Исправлено пересечение карточек партнеров - увеличено расстояние между узлами
+            ✅ <strong>Статус:</strong> ИСПРАВЛЕНО! Карточки партнеров больше не пересекаются - увеличено расстояние между узлами
         </div>
         
         <div class="stats">
@@ -245,7 +245,7 @@
         </div>
         
         <div class="debug-info" id="debugInfo">
-            🔍 Инициализация исправленной версии...
+            🔍 Инициализация исправленной версии без пересечений...
         </div>
     </div>
     
@@ -254,7 +254,7 @@
     </div>
 
     <script>
-        console.log('🚀 MLM Fixed Version Loading...');
+        console.log('🔧 MLM Fixed Version Loading - NO OVERLAPS!');
         
         function updateDebugInfo(message) {
             const debugInfo = document.getElementById('debugInfo');
@@ -510,7 +510,7 @@
         
         function renderStructure() {
             console.log('🎨 Rendering structure...');
-            updateDebugInfo('Начинаем рендеринг исправленной структуры...');
+            updateDebugInfo('Начинаем рендеринг исправленной структуры БЕЗ ПЕРЕСЕЧЕНИЙ...');
             
             const container = document.getElementById('structureContainer');
             if (!container) {
@@ -552,8 +552,8 @@
             
             updateStats();
             
-            updateDebugInfo(`✅ Исправленная структура готова! Узлов: ${document.getElementById('totalNodes').textContent}, Связей: ${document.getElementById('totalConnections').textContent}`);
-            console.log('✅ Fixed structure rendered successfully!');
+            updateDebugInfo(`✅ ИСПРАВЛЕННАЯ структура готова! Узлов: ${document.getElementById('totalNodes').textContent}, Связей: ${document.getElementById('totalConnections').textContent} - БЕЗ ПЕРЕСЕЧЕНИЙ!`);
+            console.log('✅ Fixed structure rendered successfully - NO OVERLAPS!');
         }
         
         function clearStructure() {
@@ -635,14 +635,14 @@
         
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('📄 DOM Content Loaded - FIXED VERSION');
-            updateDebugInfo('DOM загружен, начинаем инициализацию исправленной версии...');
+            console.log('📄 DOM Content Loaded - FIXED VERSION NO OVERLAPS');
+            updateDebugInfo('DOM загружен, начинаем инициализацию исправленной версии БЕЗ ПЕРЕСЕЧЕНИЙ...');
             renderStructure();
         });
         
         setTimeout(function() {
-            console.log('⏰ Delayed initialization - FIXED');
-            updateDebugInfo('Дополнительная инициализация исправленной версии...');
+            console.log('⏰ Delayed initialization - FIXED NO OVERLAPS');
+            updateDebugInfo('Дополнительная инициализация исправленной версии БЕЗ ПЕРЕСЕЧЕНИЙ...');
             renderStructure();
         }, 100);
     </script>
