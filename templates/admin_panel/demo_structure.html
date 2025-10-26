@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌐 MLM СТРУКТУРА - Точная копия</title>
+    <title>🌐 MLM СТРУКТУРА - С взаимосвязями</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -43,20 +43,21 @@
             box-shadow: 0 8px 32px rgba(0,0,0,0.1);
             min-height: 80vh;
             overflow: auto;
+            position: relative;
         }
         
         .mlm-tree {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 50px;
+            gap: 80px;
             min-width: fit-content;
             position: relative;
         }
         
         .level {
             display: flex;
-            gap: 30px;
+            gap: 40px;
             align-items: center;
             justify-content: center;
             flex-wrap: wrap;
@@ -79,6 +80,7 @@
             flex-direction: column;
             justify-content: center;
             border: 2px solid rgba(255, 255, 255, 0.2);
+            z-index: 10;
         }
         
         .user-card:hover {
@@ -99,6 +101,7 @@
         .user-icon {
             font-size: 1.2rem;
             margin-bottom: 5px;
+            color: #60A5FA;
         }
         
         .user-name {
@@ -114,33 +117,153 @@
             font-weight: 600;
         }
         
+        /* Связи между узлами */
+        .connection-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
         .connection-line {
             position: absolute;
-            background: #1F2937;
-            z-index: -1;
+            background: #DC2626;
+            border-radius: 2px;
+            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
         }
         
         .vertical-line {
-            width: 2px;
-            height: 50px;
-            left: 50%;
-            top: -50px;
-            transform: translateX(-50%);
+            width: 4px;
+            height: 80px;
         }
         
         .horizontal-line {
-            height: 2px;
-            width: 30px;
-            top: 50%;
-            transform: translateY(-50%);
+            height: 4px;
+            width: 40px;
         }
         
-        .horizontal-line.left {
-            left: -30px;
+        /* Специфичные позиции для связей */
+        .line-root-to-l1-1 {
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 80px;
+            width: 4px;
         }
         
-        .horizontal-line.right {
-            right: -30px;
+        .line-root-to-l1-2 {
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 80px;
+            width: 4px;
+        }
+        
+        .line-root-to-l1-3 {
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 80px;
+            width: 4px;
+        }
+        
+        .line-l1-1-to-l2-1 {
+            top: 160px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 80px;
+            width: 4px;
+        }
+        
+        .line-l1-1-to-l2-2 {
+            top: 160px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 80px;
+            width: 4px;
+        }
+        
+        .line-l1-1-to-l2-3 {
+            top: 160px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 80px;
+            width: 4px;
+        }
+        
+        .line-l1-2-to-l2-4 {
+            top: 160px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 80px;
+            width: 4px;
+        }
+        
+        .line-l1-3-to-l2-5 {
+            top: 160px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 80px;
+            width: 4px;
+        }
+        
+        .line-l1-3-to-l2-6 {
+            top: 160px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 80px;
+            width: 4px;
+        }
+        
+        .line-l2-1-to-l3-1 {
+            top: 240px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 80px;
+            width: 4px;
+        }
+        
+        .line-l2-1-to-l3-2 {
+            top: 240px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 80px;
+            width: 4px;
+        }
+        
+        .line-l2-3-to-l3-3 {
+            top: 240px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 80px;
+            width: 4px;
+        }
+        
+        .line-l2-3-to-l3-4 {
+            top: 240px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 80px;
+            width: 4px;
+        }
+        
+        .line-l2-5-to-l3-5 {
+            top: 240px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 80px;
+            width: 4px;
+        }
+        
+        .line-l2-5-to-l3-6 {
+            top: 240px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 80px;
+            width: 4px;
         }
         
         .stats-panel {
@@ -192,17 +315,42 @@
             .level { flex-direction: column; gap: 20px; }
             .stats-grid { grid-template-columns: 1fr; }
             .user-card { min-width: 140px; }
+            .mlm-tree { gap: 60px; }
         }
     </style>
 </head>
 <body>
     <div class="header">
         <div class="title">🌐 MLM СТРУКТУРА</div>
-        <div class="subtitle">Точная копия тринарной системы</div>
+        <div class="subtitle">С визуальными взаимосвязями</div>
     </div>
     
     <div class="structure-container">
         <div class="mlm-tree">
+            <!-- Связи -->
+            <div class="connection-lines">
+                <!-- От корня к уровню 1 -->
+                <div class="connection-line line-root-to-l1-1"></div>
+                <div class="connection-line line-root-to-l1-2"></div>
+                <div class="connection-line line-root-to-l1-3"></div>
+                
+                <!-- От уровня 1 к уровню 2 -->
+                <div class="connection-line line-l1-1-to-l2-1"></div>
+                <div class="connection-line line-l1-1-to-l2-2"></div>
+                <div class="connection-line line-l1-1-to-l2-3"></div>
+                <div class="connection-line line-l1-2-to-l2-4"></div>
+                <div class="connection-line line-l1-3-to-l2-5"></div>
+                <div class="connection-line line-l1-3-to-l2-6"></div>
+                
+                <!-- От уровня 2 к уровню 3 -->
+                <div class="connection-line line-l2-1-to-l3-1"></div>
+                <div class="connection-line line-l2-1-to-l3-2"></div>
+                <div class="connection-line line-l2-3-to-l3-3"></div>
+                <div class="connection-line line-l2-3-to-l3-4"></div>
+                <div class="connection-line line-l2-5-to-l3-5"></div>
+                <div class="connection-line line-l2-5-to-l3-6"></div>
+            </div>
+            
             <!-- Уровень 0 - Корень -->
             <div class="level">
                 <div class="user-card root">
@@ -297,132 +445,19 @@
                     <div class="user-name">ISOBILIKA</div>
                     <div class="user-id">ID438</div>
                 </div>
-                <div class="user-card">
-                    <div class="user-icon">👤</div>
-                    <div class="user-name">Kurepray49</div>
-                    <div class="user-id">ID522</div>
-                </div>
-                <div class="user-card">
-                    <div class="user-icon">👤</div>
-                    <div class="user-name">anuska777</div>
-                    <div class="user-id">ID555</div>
-                </div>
-                <div class="user-card">
-                    <div class="user-icon">👤</div>
-                    <div class="user-name">Ilva_2805</div>
-                    <div class="user-id">ID452</div>
-                </div>
-            </div>
-            
-            <!-- Уровень 4 -->
-            <div class="level">
-                <div class="user-card">
-                    <div class="user-icon">👤</div>
-                    <div class="user-name">firstTimik</div>
-                    <div class="user-id">ID569</div>
-                </div>
-                <div class="user-card">
-                    <div class="user-icon">👤</div>
-                    <div class="user-name">DEMOSHE1899</div>
-                    <div class="user-id">ID675</div>
-                </div>
-                <div class="user-card">
-                    <div class="user-icon">👤</div>
-                    <div class="user-name">DoveMillennium</div>
-                    <div class="user-id">ID489</div>
-                </div>
-                <div class="user-card">
-                    <div class="user-icon">👤</div>
-                    <div class="user-name">Marina_Avalon</div>
-                    <div class="user-id">ID763</div>
-                </div>
-                <div class="user-card">
-                    <div class="user-icon">👤</div>
-                    <div class="user-name">ElenaPleshkaGanga</div>
-                    <div class="user-id">ID764</div>
-                </div>
-                <div class="user-card">
-                    <div class="user-icon">👤</div>
-                    <div class="user-name">NikaQueenAfrica</div>
-                    <div class="user-id">ID775</div>
-                </div>
-                <div class="user-card">
-                    <div class="user-icon">👤</div>
-                    <div class="user-name">Tatianacoaching</div>
-                    <div class="user-id">ID571</div>
-                </div>
-                <div class="user-card">
-                    <div class="user-icon">👤</div>
-                    <div class="user-name">gabitovrn</div>
-                    <div class="user-id">ID573</div>
-                </div>
-                <div class="user-card">
-                    <div class="user-icon">👤</div>
-                    <div class="user-name">gabitovaang</div>
-                    <div class="user-id">ID574</div>
-                </div>
-            </div>
-            
-            <!-- Уровень 5 -->
-            <div class="level">
-                <div class="user-card">
-                    <div class="user-icon">👤</div>
-                    <div class="user-name">ezhik_liza</div>
-                    <div class="user-id">ID575</div>
-                </div>
-                <div class="user-card">
-                    <div class="user-icon">👤</div>
-                    <div class="user-name">SergioFed70</div>
-                    <div class="user-id">ID579</div>
-                </div>
-                <div class="user-card">
-                    <div class="user-icon">👤</div>
-                    <div class="user-name">Total_Tot1</div>
-                    <div class="user-id">ID602</div>
-                </div>
-                <div class="user-card">
-                    <div class="user-icon">👤</div>
-                    <div class="user-name">Gefest3377</div>
-                    <div class="user-id">ID801</div>
-                </div>
-                <div class="user-card">
-                    <div class="user-icon">👤</div>
-                    <div class="user-name">Serhiy_Rod_Onishchenko</div>
-                    <div class="user-id">ID582</div>
-                </div>
-                <div class="user-card">
-                    <div class="user-icon">👤</div>
-                    <div class="user-name">space_oko</div>
-                    <div class="user-id">ID583</div>
-                </div>
-                <div class="user-card">
-                    <div class="user-icon">👤</div>
-                    <div class="user-name">Feride19</div>
-                    <div class="user-id">ID593</div>
-                </div>
-                <div class="user-card">
-                    <div class="user-icon">👤</div>
-                    <div class="user-name">Kseniacavdari</div>
-                    <div class="user-id">ID628</div>
-                </div>
-                <div class="user-card">
-                    <div class="user-icon">👤</div>
-                    <div class="user-name">Lelion45</div>
-                    <div class="user-id">ID633</div>
-                </div>
             </div>
         </div>
     </div>
     
     <div class="stats-panel">
-        <div class="stats-title">📊 Статистика тринарной структуры</div>
+        <div class="stats-title">📊 Статистика с взаимосвязями</div>
         <div class="stats-grid">
             <div class="stat-item">
-                <div class="stat-number">35</div>
+                <div class="stat-number">16</div>
                 <div class="stat-label">👥 Всего участников</div>
             </div>
             <div class="stat-item">
-                <div class="stat-number">6</div>
+                <div class="stat-number">4</div>
                 <div class="stat-label">📊 Уровней</div>
             </div>
             <div class="stat-item">
@@ -430,8 +465,8 @@
                 <div class="stat-label">🌿 Ветвей</div>
             </div>
             <div class="stat-item">
-                <div class="stat-number">95%</div>
-                <div class="stat-label">✅ Активность</div>
+                <div class="stat-number">15</div>
+                <div class="stat-label">🔗 Связей</div>
             </div>
         </div>
     </div>
@@ -473,6 +508,10 @@
                     <h3 style="color: #667eea; margin-bottom: 15px;">👤 Информация о пользователе</h3>
                     <p style="font-size: 1.2rem; margin-bottom: 10px;"><strong>${userName}</strong></p>
                     <p style="color: #666; margin-bottom: 20px;">${userId}</p>
+                    <div style="background: #f0f4ff; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <p style="color: #667eea; font-weight: 600;">�� Связи:</p>
+                        <p style="font-size: 0.9rem; color: #666;">Показаны красными линиями</p>
+                    </div>
                     <button onclick="this.closest('.modal').remove()" style="
                         background: linear-gradient(135deg, #667eea, #764ba2);
                         color: white;
@@ -495,6 +534,23 @@
                     }
                 });
             });
+        });
+        
+        // Анимация появления связей
+        setTimeout(() => {
+            document.querySelectorAll('.connection-line').forEach((line, index) => {
+                setTimeout(() => {
+                    line.style.opacity = '1';
+                    line.style.transform = 'scaleY(1)';
+                }, index * 100);
+            });
+        }, 500);
+        
+        // Изначально скрываем связи
+        document.querySelectorAll('.connection-line').forEach(line => {
+            line.style.opacity = '0';
+            line.style.transform = 'scaleY(0)';
+            line.style.transition = 'all 0.5s ease';
         });
     </script>
 </body>
