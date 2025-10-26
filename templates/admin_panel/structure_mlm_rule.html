@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌐 MLM СТРУКТУРА - Исправлены линии</title>
+    <title>🌐 MLM СТРУКТУРА - Исправлены все связи</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -452,12 +452,12 @@
 
     <div class="view-toggle">
         <button class="toggle-btn" id="verticalBtn">📊 Вертикальная</button>
-        <button class="toggle-btn active" id="mindmapBtn">��️ Майнд-карта</button>
+        <button class="toggle-btn active" id="mindmapBtn">🗺️ Майнд-карта</button>
     </div>
 
     <div class="structure-container" id="structureContainer">
         <div class="debug-info" id="debugInfo">
-            🔍 Отладка: Исправляем отрисовку линий...
+            🔍 Отладка: Исправляем все связи...
         </div>
         
         <div class="logic-stats" id="logicStats">
@@ -523,7 +523,7 @@
         
         updateDebugInfo('🔍 Инициализация элементов...');
         
-        // УПРОЩЕННАЯ СТРУКТУРА ДЛЯ ОТЛАДКИ ЛИНИЙ
+        // ПОЛНАЯ СТРУКТУРА С ВСЕМИ СВЯЗЯМИ
         const structure = {
             id: 'plazma', 
             name: 'PLAZMA', 
@@ -699,7 +699,7 @@
             ]
         };
 
-        updateDebugInfo('🔍 Упрощенная структура создана для отладки линий...');
+        updateDebugInfo('🔍 Полная структура создана...');
 
         // Функция для обновления масштаба
         function updateZoom() {
@@ -873,7 +873,7 @@
         // Функция для рендеринга структуры
         function renderStructure() {
             console.log('🎨 Rendering structure...');
-            updateDebugInfo('🔍 Начинаем рендеринг структуры с исправленными линиями...');
+            updateDebugInfo('🔍 Начинаем рендеринг структуры с исправленными связями...');
             
             const container = document.getElementById('mindmapContainer');
             if (!container) {
@@ -914,22 +914,23 @@
             
             updateDebugInfo('🔍 Рендерим соединения...');
             
-            // Рендерим соединения рекурсивно
-            function renderConnectionsRecursive(node) {
+            // ИСПРАВЛЕННАЯ ЛОГИКА РЕНДЕРИНГА СОЕДИНЕНИЙ
+            function renderAllConnections(node) {
                 if (node.children) {
                     node.children.forEach(child => {
+                        console.log(`🔗 Rendering connection: ${node.id} -> ${child.id}`);
                         renderConnection(node.id, child.id);
-                        renderConnectionsRecursive(child);
+                        renderAllConnections(child);
                     });
                 }
             }
             
-            renderConnectionsRecursive(structure);
+            renderAllConnections(structure);
             
             updateStats();
             
-            updateDebugInfo('✅ Структура с исправленными линиями готова!');
-            console.log('✅ Structure with fixed lines rendered successfully!');
+            updateDebugInfo('✅ Структура с исправленными связями готова!');
+            console.log('✅ Structure with fixed connections rendered successfully!');
         }
 
         // Обновление статистики
