@@ -3,503 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌐 MLM СТРУКТУРА - С 0-м уровнем</title>
+    <title>🔧 MLM ОТЛАДКА</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #ffffff;
-            color: #1a202c;
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
             padding: 20px;
-            overflow: hidden;
         }
         
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding: 15px 25px;
-            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-            color: white;
-            border-radius: 15px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-        }
-        
-        .logo-section {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .logo {
-            width: 32px;
-            height: 32px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 18px;
-        }
-        
-        .title {
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin: 0;
-        }
-        
-        .header-controls {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .search-box {
-            display: flex;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            padding: 8px 12px;
-            gap: 8px;
-        }
-        
-        .search-icon {
-            width: 16px;
-            height: 16px;
-            opacity: 0.8;
-        }
-        
-        .search-input {
-            background: none;
-            border: none;
-            color: white;
-            outline: none;
-            width: 200px;
-        }
-        
-        .search-input::placeholder {
-            color: rgba(255, 255, 255, 0.7);
-        }
-        
-        .upgrade-btn {
-            background: #fbbf24;
-            color: #1a202c;
-            border: none;
-            border-radius: 8px;
-            padding: 8px 16px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.3s ease;
-        }
-        
-        .upgrade-btn:hover {
-            background: #f59e0b;
-            transform: translateY(-1px);
-        }
-
-        .view-toggle {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-            gap: 10px;
-        }
-
-        .toggle-btn {
-            padding: 10px 20px;
-            border: 2px solid #8b5cf6;
+        .debug-container {
             background: white;
-            color: #8b5cf6;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
         }
-
-        .toggle-btn.active {
-            background: #8b5cf6;
-            color: white;
+        
+        .debug-info {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-family: monospace;
         }
-
-        .toggle-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
-        }
-
+        
         .structure-container {
             position: relative;
             background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            padding: 50px;
-            overflow: hidden;
-            height: calc(100vh - 200px);
-            min-width: 100%;
-        }
-
-        /* Контейнер для скролла и масштабирования */
-        .scroll-container {
-            width: 100%;
-            height: 100%;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 600px;
             overflow: auto;
-            position: relative;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-        }
-
-        .zoom-container {
-            position: relative;
-            transform-origin: top left;
-            transition: transform 0.3s ease;
-            min-width: 6000px;
-            min-height: 5000px;
-        }
-
-        .mindmap-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            min-height: 500px;
-            background: #f8fafc;
-        }
-
-        /* ЕДИНЫЙ СТИЛЬ ДЛЯ ВСЕХ УЗЛОВ */
-        .node {
-            position: absolute;
-            background: #ffffff;
-            border: 2px solid #ef4444;
-            border-radius: 12px;
-            padding: 15px 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            min-width: 180px;
-            z-index: 10;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
         }
         
-        .node:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-            border-color: #dc2626;
+        .node {
+            position: absolute;
+            background: #fff;
+            border: 2px solid #ef4444;
+            border-radius: 8px;
+            padding: 10px 15px;
+            text-align: center;
+            min-width: 150px;
+            z-index: 10;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
         .node.active {
             background: linear-gradient(145deg, #8b5cf6, #7c3aed);
             color: white;
             border-color: #7c3aed;
-            font-weight: bold;
         }
         
-        .node.active:hover {
-            transform: scale(1.05);
-        }
-
-        .node.incomplete {
-            background: #ffffff;
-            border: 2px solid #ef4444;
-            position: relative;
-        }
-
-        .node.incomplete::before {
-            content: '';
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            border: 2px solid #ef4444;
-            border-radius: 12px;
-            background: transparent;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-
         .node-name {
-            font-weight: 700;
-            font-size: 1.1rem;
-            color: #1a202c;
+            font-weight: bold;
+            font-size: 14px;
             margin-bottom: 5px;
         }
         
-        .node.active .node-name {
-            color: white;
-        }
-        
         .node-level {
-            font-size: 0.9rem;
-            color: #64748b;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+            font-size: 12px;
+            color: #666;
         }
         
         .node.active .node-level {
             color: rgba(255, 255, 255, 0.8);
         }
-
-        .blue-dot {
-            width: 8px;
-            height: 8px;
-            background: #3b82f6;
-            border-radius: 50%;
-            display: inline-block;
-        }
-
+        
         .connection-line {
             position: absolute;
             stroke: #3b82f6;
-            stroke-width: 3;
+            stroke-width: 2;
             fill: none;
             z-index: 5;
             pointer-events: none;
         }
-
-        .connection-line.incomplete {
-            stroke: #ef4444;
-            stroke-width: 4;
-            stroke-dasharray: 5,5;
-            animation: dash 1s linear infinite;
-        }
-
-        @keyframes dash {
-            to { stroke-dashoffset: -10; }
-        }
-
-        .expand-circle {
-            position: absolute;
-            width: 12px;
-            height: 12px;
-            background: #3b82f6;
-            border-radius: 50%;
-            cursor: pointer;
-            z-index: 15;
-            transition: all 0.3s ease;
-            border: 2px solid white;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        
+        .stats {
+            background: #f8f9fa;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
         }
         
-        .expand-circle:hover {
-            background: #2563eb;
-            transform: scale(1.2);
-        }
-
-        .expand-circle.incomplete {
-            background: #ef4444;
-            border-color: #fef2f2;
-        }
-
-        .chat-bubble {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            width: 24px;
-            height: 24px;
-            background: #10b981;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
-            font-weight: bold;
-            color: white;
-            border: 2px solid white;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
         .controls {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            display: flex;
-            gap: 10px;
-            z-index: 20;
+            margin-bottom: 10px;
         }
-
-        .control-btn {
-            background: #374151;
+        
+        .btn {
+            background: #007bff;
             color: white;
             border: none;
-            border-radius: 8px;
-            padding: 10px 20px;
-            font-weight: 600;
+            border-radius: 5px;
+            padding: 8px 16px;
+            margin-right: 10px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
         
-        .control-btn:hover {
-            background: #1f2937;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-        }
-
-        .zoom-controls {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            gap: 10px;
-            z-index: 20;
-        }
-
-        .zoom-btn {
-            background: rgba(255, 255, 255, 0.9);
-            color: #374151;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 8px 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        
-        .zoom-btn:hover {
-            background: #f9fafb;
-            transform: translateY(-1px);
-        }
-
-        .logic-stats {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 8px;
-            padding: 10px 15px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            font-size: 0.9rem;
-            z-index: 20;
-        }
-
-        .logic-stats .stat-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 5px;
-        }
-
-        .logic-stats .stat-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-        }
-
-        .logic-stats .stat-dot.complete {
-            background: #10b981;
-        }
-
-        .logic-stats .stat-dot.incomplete {
-            background: #ef4444;
-        }
-
-        .debug-info {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 8px;
-            padding: 10px 15px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            font-size: 0.9rem;
-            z-index: 20;
-            color: #374151;
+        .btn:hover {
+            background: #0056b3;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="logo-section">
-            <div class="logo">P</div>
-            <h1 class="title">PLAZMA</h1>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="6,9 12,15 18,9"></polyline>
-            </svg>
-        </div>
-        <div class="header-controls">
-            <div class="search-box">
-                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <path d="m21 21-4.35-4.35"></path>
-                </svg>
-                <input type="text" class="search-input" placeholder="Поиск...">
-            </div>
-            <button class="upgrade-btn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M7 17L17 7"></path>
-                    <path d="M7 7h10v10"></path>
-                </svg>
-                Upgrade
-            </button>
-        </div>
-    </div>
-
-    <div class="view-toggle">
-        <button class="toggle-btn" id="verticalBtn">📊 Вертикальная</button>
-        <button class="toggle-btn active" id="mindmapBtn">🗺️ Майнд-карта</button>
-    </div>
-
-    <div class="structure-container" id="structureContainer">
+    <div class="debug-container">
+        <h2>🔧 MLM СТРУКТУРА - ОТЛАДКА</h2>
+        
         <div class="debug-info" id="debugInfo">
-            🔍 Отладка: Добавляем 0-й уровень...
+            🔍 Инициализация...
         </div>
         
-        <div class="logic-stats" id="logicStats">
-            <div class="stat-item">
-                <div class="stat-dot complete"></div>
-                <span>Завершенные узлы: <span id="completeCount">0</span></span>
-            </div>
-            <div class="stat-item">
-                <div class="stat-dot incomplete"></div>
-                <span>Незавершенные узлы: <span id="incompleteCount">0</span></span>
-            </div>
-            <div class="stat-item">
-                <div class="stat-dot complete"></div>
-                <span>Уровень PLAZMA: <span id="plazmaLevel">4</span></span>
-            </div>
-        </div>
-
-        <div class="zoom-controls">
-            <button class="zoom-btn" id="zoomOutBtn">-</button>
-            <span class="zoom-btn" id="zoomLevel">100%</span>
-            <button class="zoom-btn" id="zoomInBtn">+</button>
-        </div>
-        
-        <div class="scroll-container" id="scrollContainer">
-            <div class="zoom-container" id="zoomContainer">
-                <div class="mindmap-container" id="mindmapContainer">
-                    <!-- Структура будет отображена здесь -->
-                </div>
-            </div>
+        <div class="stats">
+            <strong>Статистика:</strong>
+            <span id="nodeCount">Узлов: 0</span> | 
+            <span id="connectionCount">Связей: 0</span>
         </div>
         
         <div class="controls">
-            <button class="control-btn" id="expandBtn">Expand All</button>
-            <button class="control-btn" id="resetBtn">Reset View</button>
-            <button class="control-btn" id="centerBtn">Center</button>
+            <button class="btn" onclick="renderStructure()">🔄 Перерисовать</button>
+            <button class="btn" onclick="clearStructure()">🗑️ Очистить</button>
+            <button class="btn" onclick="testConnections()">🔗 Тест связей</button>
         </div>
+    </div>
+    
+    <div class="structure-container" id="structureContainer">
+        <!-- Структура будет здесь -->
     </div>
 
     <script>
-        console.log('🚀 MLM Structure Loading...');
+        console.log('🚀 MLM Debug Loading...');
         
-        // Функция для обновления отладочной информации
         function updateDebugInfo(message) {
             const debugInfo = document.getElementById('debugInfo');
             if (debugInfo) {
@@ -508,708 +144,149 @@
             }
         }
         
-        // Переменные для масштабирования и скролла
-        let currentZoom = 1;
-        
-        // Элементы
-        const scrollContainer = document.getElementById('scrollContainer');
-        const zoomContainer = document.getElementById('zoomContainer');
-        const zoomInBtn = document.getElementById('zoomInBtn');
-        const zoomOutBtn = document.getElementById('zoomOutBtn');
-        const zoomLevel = document.getElementById('zoomLevel');
-        const expandBtn = document.getElementById('expandBtn');
-        const resetBtn = document.getElementById('resetBtn');
-        const centerBtn = document.getElementById('centerBtn');
-        
-        updateDebugInfo('🔍 Инициализация элементов...');
-        
-        // ПОЛНАЯ СТРУКТУРА С 0-М УРОВНЕМ
+        // ПРОСТАЯ СТРУКТУРА ДЛЯ ОТЛАДКИ
         const structure = {
-            id: 'plazma', 
-            name: 'PLAZMA', 
-            level: 4, 
-            expanded: true, 
-            hasChat: true, 
-            complete: true,
-            x: 2000,
-            y: 100,
+            id: 'plazma',
+            name: 'PLAZMA',
+            level: 4,
+            x: 300,
+            y: 50,
             children: [
-                // Первый партнер 3-го уровня
-                { 
-                    id: '3-1', 
-                    name: '3*/1 юзернейм', 
-                    level: 3, 
-                    expanded: true, 
-                    complete: true, 
-                    x: 1000, 
-                    y: 400,
+                {
+                    id: '3-1',
+                    name: '3*/1',
+                    level: 3,
+                    x: 150,
+                    y: 200,
                     children: [
-                        { 
-                            id: '2-1', 
-                            name: '2*/1 юзернейм', 
-                            level: 2, 
-                            expanded: true, 
-                            complete: true, 
-                            x: 600, 
-                            y: 700,
+                        {
+                            id: '2-1',
+                            name: '2*/1',
+                            level: 2,
+                            x: 100,
+                            y: 350,
                             children: [
-                                { 
-                                    id: '1-1', 
-                                    name: '1*/1 юзернейм', 
-                                    level: 1, 
-                                    expanded: true, 
-                                    complete: true, 
-                                    x: 400, 
-                                    y: 1000,
-                                    children: [
-                                        { id: '0-1', name: '0*/1 юзернейм', level: 0, expanded: true, complete: true, x: 300, y: 1300 },
-                                        { id: '0-2', name: '0*/2 юзернейм', level: 0, expanded: true, complete: true, x: 400, y: 1300 },
-                                        { id: '0-3', name: '0*/3 юзернейм', level: 0, expanded: true, complete: true, x: 500, y: 1300 }
-                                    ]
-                                },
-                                { 
-                                    id: '1-2', 
-                                    name: '1*/2 юзернейм', 
-                                    level: 1, 
-                                    expanded: true, 
-                                    complete: true, 
-                                    x: 600, 
-                                    y: 1000,
-                                    children: [
-                                        { id: '0-4', name: '0*/4 юзернейм', level: 0, expanded: true, complete: true, x: 500, y: 1300 },
-                                        { id: '0-5', name: '0*/5 юзернейм', level: 0, expanded: true, complete: true, x: 600, y: 1300 },
-                                        { id: '0-6', name: '0*/6 юзернейм', level: 0, expanded: true, complete: true, x: 700, y: 1300 }
-                                    ]
-                                },
-                                { 
-                                    id: '1-3', 
-                                    name: '1*/3 юзернейм', 
-                                    level: 1, 
-                                    expanded: true, 
-                                    complete: true, 
-                                    x: 800, 
-                                    y: 1000,
-                                    children: [
-                                        { id: '0-7', name: '0*/7 юзернейм', level: 0, expanded: true, complete: true, x: 700, y: 1300 },
-                                        { id: '0-8', name: '0*/8 юзернейм', level: 0, expanded: true, complete: true, x: 800, y: 1300 },
-                                        { id: '0-9', name: '0*/9 юзернейм', level: 0, expanded: true, complete: true, x: 900, y: 1300 }
-                                    ]
-                                }
+                                { id: '1-1', name: '1*/1', level: 1, x: 50, y: 500 },
+                                { id: '1-2', name: '1*/2', level: 1, x: 150, y: 500 }
                             ]
                         },
-                        { 
-                            id: '2-2', 
-                            name: '2*/2 юзернейм', 
-                            level: 2, 
-                            expanded: true, 
-                            complete: true, 
-                            x: 1000, 
-                            y: 700,
+                        {
+                            id: '2-2',
+                            name: '2*/2',
+                            level: 2,
+                            x: 200,
+                            y: 350,
                             children: [
-                                { 
-                                    id: '1-4', 
-                                    name: '1*/4 юзернейм', 
-                                    level: 1, 
-                                    expanded: true, 
-                                    complete: true, 
-                                    x: 800, 
-                                    y: 1000,
-                                    children: [
-                                        { id: '0-10', name: '0*/10 юзернейм', level: 0, expanded: true, complete: true, x: 700, y: 1300 },
-                                        { id: '0-11', name: '0*/11 юзернейм', level: 0, expanded: true, complete: true, x: 800, y: 1300 },
-                                        { id: '0-12', name: '0*/12 юзернейм', level: 0, expanded: true, complete: true, x: 900, y: 1300 }
-                                    ]
-                                },
-                                { 
-                                    id: '1-5', 
-                                    name: '1*/5 юзернейм', 
-                                    level: 1, 
-                                    expanded: true, 
-                                    complete: true, 
-                                    x: 1000, 
-                                    y: 1000,
-                                    children: [
-                                        { id: '0-13', name: '0*/13 юзернейм', level: 0, expanded: true, complete: true, x: 900, y: 1300 },
-                                        { id: '0-14', name: '0*/14 юзернейм', level: 0, expanded: true, complete: true, x: 1000, y: 1300 },
-                                        { id: '0-15', name: '0*/15 юзернейм', level: 0, expanded: true, complete: true, x: 1100, y: 1300 }
-                                    ]
-                                },
-                                { 
-                                    id: '1-6', 
-                                    name: '1*/6 юзернейм', 
-                                    level: 1, 
-                                    expanded: true, 
-                                    complete: true, 
-                                    x: 1200, 
-                                    y: 1000,
-                                    children: [
-                                        { id: '0-16', name: '0*/16 юзернейм', level: 0, expanded: true, complete: true, x: 1100, y: 1300 },
-                                        { id: '0-17', name: '0*/17 юзернейм', level: 0, expanded: true, complete: true, x: 1200, y: 1300 },
-                                        { id: '0-18', name: '0*/18 юзернейм', level: 0, expanded: true, complete: true, x: 1300, y: 1300 }
-                                    ]
-                                }
-                            ]
-                        },
-                        { 
-                            id: '2-3', 
-                            name: '2*/3 юзернейм', 
-                            level: 2, 
-                            expanded: true, 
-                            complete: true, 
-                            x: 1400, 
-                            y: 700,
-                            children: [
-                                { 
-                                    id: '1-7', 
-                                    name: '1*/7 юзернейм', 
-                                    level: 1, 
-                                    expanded: true, 
-                                    complete: true, 
-                                    x: 1200, 
-                                    y: 1000,
-                                    children: [
-                                        { id: '0-19', name: '0*/19 юзернейм', level: 0, expanded: true, complete: true, x: 1100, y: 1300 },
-                                        { id: '0-20', name: '0*/20 юзернейм', level: 0, expanded: true, complete: true, x: 1200, y: 1300 },
-                                        { id: '0-21', name: '0*/21 юзернейм', level: 0, expanded: true, complete: true, x: 1300, y: 1300 }
-                                    ]
-                                },
-                                { 
-                                    id: '1-8', 
-                                    name: '1*/8 юзернейм', 
-                                    level: 1, 
-                                    expanded: true, 
-                                    complete: true, 
-                                    x: 1400, 
-                                    y: 1000,
-                                    children: [
-                                        { id: '0-22', name: '0*/22 юзернейм', level: 0, expanded: true, complete: true, x: 1300, y: 1300 },
-                                        { id: '0-23', name: '0*/23 юзернейм', level: 0, expanded: true, complete: true, x: 1400, y: 1300 },
-                                        { id: '0-24', name: '0*/24 юзернейм', level: 0, expanded: true, complete: true, x: 1500, y: 1300 }
-                                    ]
-                                },
-                                { 
-                                    id: '1-9', 
-                                    name: '1*/9 юзернейм', 
-                                    level: 1, 
-                                    expanded: true, 
-                                    complete: true, 
-                                    x: 1600, 
-                                    y: 1000,
-                                    children: [
-                                        { id: '0-25', name: '0*/25 юзернейм', level: 0, expanded: true, complete: true, x: 1500, y: 1300 },
-                                        { id: '0-26', name: '0*/26 юзернейм', level: 0, expanded: true, complete: true, x: 1600, y: 1300 },
-                                        { id: '0-27', name: '0*/27 юзернейм', level: 0, expanded: true, complete: true, x: 1700, y: 1300 }
-                                    ]
-                                }
+                                { id: '1-3', name: '1*/3', level: 1, x: 150, y: 500 },
+                                { id: '1-4', name: '1*/4', level: 1, x: 250, y: 500 }
                             ]
                         }
                     ]
                 },
-                // Второй партнер 3-го уровня
-                { 
-                    id: '3-2', 
-                    name: '3*/2 юзернейм', 
-                    level: 3, 
-                    expanded: true, 
-                    complete: true, 
-                    x: 2000, 
-                    y: 400,
+                {
+                    id: '3-2',
+                    name: '3*/2',
+                    level: 3,
+                    x: 450,
+                    y: 200,
                     children: [
-                        { 
-                            id: '2-4', 
-                            name: '2*/4 юзернейм', 
-                            level: 2, 
-                            expanded: true, 
-                            complete: true, 
-                            x: 1600, 
-                            y: 700,
+                        {
+                            id: '2-3',
+                            name: '2*/3',
+                            level: 2,
+                            x: 400,
+                            y: 350,
                             children: [
-                                { 
-                                    id: '1-10', 
-                                    name: '1*/10 юзернейм', 
-                                    level: 1, 
-                                    expanded: true, 
-                                    complete: true, 
-                                    x: 1400, 
-                                    y: 1000,
-                                    children: [
-                                        { id: '0-28', name: '0*/28 юзернейм', level: 0, expanded: true, complete: true, x: 1300, y: 1300 },
-                                        { id: '0-29', name: '0*/29 юзернейм', level: 0, expanded: true, complete: true, x: 1400, y: 1300 },
-                                        { id: '0-30', name: '0*/30 юзернейм', level: 0, expanded: true, complete: true, x: 1500, y: 1300 }
-                                    ]
-                                },
-                                { 
-                                    id: '1-11', 
-                                    name: '1*/11 юзернейм', 
-                                    level: 1, 
-                                    expanded: true, 
-                                    complete: true, 
-                                    x: 1600, 
-                                    y: 1000,
-                                    children: [
-                                        { id: '0-31', name: '0*/31 юзернейм', level: 0, expanded: true, complete: true, x: 1500, y: 1300 },
-                                        { id: '0-32', name: '0*/32 юзернейм', level: 0, expanded: true, complete: true, x: 1600, y: 1300 },
-                                        { id: '0-33', name: '0*/33 юзернейм', level: 0, expanded: true, complete: true, x: 1700, y: 1300 }
-                                    ]
-                                },
-                                { 
-                                    id: '1-12', 
-                                    name: '1*/12 юзернейм', 
-                                    level: 1, 
-                                    expanded: true, 
-                                    complete: true, 
-                                    x: 1800, 
-                                    y: 1000,
-                                    children: [
-                                        { id: '0-34', name: '0*/34 юзернейм', level: 0, expanded: true, complete: true, x: 1700, y: 1300 },
-                                        { id: '0-35', name: '0*/35 юзернейм', level: 0, expanded: true, complete: true, x: 1800, y: 1300 },
-                                        { id: '0-36', name: '0*/36 юзернейм', level: 0, expanded: true, complete: true, x: 1900, y: 1300 }
-                                    ]
-                                }
+                                { id: '1-5', name: '1*/5', level: 1, x: 350, y: 500 },
+                                { id: '1-6', name: '1*/6', level: 1, x: 450, y: 500 }
                             ]
                         },
-                        { 
-                            id: '2-5', 
-                            name: '2*/5 юзернейм', 
-                            level: 2, 
-                            expanded: true, 
-                            complete: true, 
-                            x: 2000, 
-                            y: 700,
+                        {
+                            id: '2-4',
+                            name: '2*/4',
+                            level: 2,
+                            x: 500,
+                            y: 350,
                             children: [
-                                { 
-                                    id: '1-13', 
-                                    name: '1*/13 юзернейм', 
-                                    level: 1, 
-                                    expanded: true, 
-                                    complete: true, 
-                                    x: 1800, 
-                                    y: 1000,
-                                    children: [
-                                        { id: '0-37', name: '0*/37 юзернейм', level: 0, expanded: true, complete: true, x: 1700, y: 1300 },
-                                        { id: '0-38', name: '0*/38 юзернейм', level: 0, expanded: true, complete: true, x: 1800, y: 1300 },
-                                        { id: '0-39', name: '0*/39 юзернейм', level: 0, expanded: true, complete: true, x: 1900, y: 1300 }
-                                    ]
-                                },
-                                { 
-                                    id: '1-14', 
-                                    name: '1*/14 юзернейм', 
-                                    level: 1, 
-                                    expanded: true, 
-                                    complete: true, 
-                                    x: 2000, 
-                                    y: 1000,
-                                    children: [
-                                        { id: '0-40', name: '0*/40 юзернейм', level: 0, expanded: true, complete: true, x: 1900, y: 1300 },
-                                        { id: '0-41', name: '0*/41 юзернейм', level: 0, expanded: true, complete: true, x: 2000, y: 1300 },
-                                        { id: '0-42', name: '0*/42 юзернейм', level: 0, expanded: true, complete: true, x: 2100, y: 1300 }
-                                    ]
-                                },
-                                { 
-                                    id: '1-15', 
-                                    name: '1*/15 юзернейм', 
-                                    level: 1, 
-                                    expanded: true, 
-                                    complete: true, 
-                                    x: 2200, 
-                                    y: 1000,
-                                    children: [
-                                        { id: '0-43', name: '0*/43 юзернейм', level: 0, expanded: true, complete: true, x: 2100, y: 1300 },
-                                        { id: '0-44', name: '0*/44 юзернейм', level: 0, expanded: true, complete: true, x: 2200, y: 1300 },
-                                        { id: '0-45', name: '0*/45 юзернейм', level: 0, expanded: true, complete: true, x: 2300, y: 1300 }
-                                    ]
-                                }
-                            ]
-                        },
-                        { 
-                            id: '2-6', 
-                            name: '2*/6 юзернейм', 
-                            level: 2, 
-                            expanded: true, 
-                            complete: true, 
-                            x: 2400, 
-                            y: 700,
-                            children: [
-                                { 
-                                    id: '1-16', 
-                                    name: '1*/16 юзернейм', 
-                                    level: 1, 
-                                    expanded: true, 
-                                    complete: true, 
-                                    x: 2200, 
-                                    y: 1000,
-                                    children: [
-                                        { id: '0-46', name: '0*/46 юзернейм', level: 0, expanded: true, complete: true, x: 2100, y: 1300 },
-                                        { id: '0-47', name: '0*/47 юзернейм', level: 0, expanded: true, complete: true, x: 2200, y: 1300 },
-                                        { id: '0-48', name: '0*/48 юзернейм', level: 0, expanded: true, complete: true, x: 2300, y: 1300 }
-                                    ]
-                                },
-                                { 
-                                    id: '1-17', 
-                                    name: '1*/17 юзернейм', 
-                                    level: 1, 
-                                    expanded: true, 
-                                    complete: true, 
-                                    x: 2400, 
-                                    y: 1000,
-                                    children: [
-                                        { id: '0-49', name: '0*/49 юзернейм', level: 0, expanded: true, complete: true, x: 2300, y: 1300 },
-                                        { id: '0-50', name: '0*/50 юзернейм', level: 0, expanded: true, complete: true, x: 2400, y: 1300 },
-                                        { id: '0-51', name: '0*/51 юзернейм', level: 0, expanded: true, complete: true, x: 2500, y: 1300 }
-                                    ]
-                                },
-                                { 
-                                    id: '1-18', 
-                                    name: '1*/18 юзернейм', 
-                                    level: 1, 
-                                    expanded: true, 
-                                    complete: true, 
-                                    x: 2600, 
-                                    y: 1000,
-                                    children: [
-                                        { id: '0-52', name: '0*/52 юзернейм', level: 0, expanded: true, complete: true, x: 2500, y: 1300 },
-                                        { id: '0-53', name: '0*/53 юзернейм', level: 0, expanded: true, complete: true, x: 2600, y: 1300 },
-                                        { id: '0-54', name: '0*/54 юзернейм', level: 0, expanded: true, complete: true, x: 2700, y: 1300 }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                },
-                // Третий партнер 3-го уровня
-                { 
-                    id: '3-3', 
-                    name: '3*/3 юзернейм', 
-                    level: 3, 
-                    expanded: true, 
-                    complete: true, 
-                    x: 3000, 
-                    y: 400,
-                    children: [
-                        { 
-                            id: '2-7', 
-                            name: '2*/7 юзернейм', 
-                            level: 2, 
-                            expanded: true, 
-                            complete: true, 
-                            x: 2600, 
-                            y: 700,
-                            children: [
-                                { 
-                                    id: '1-19', 
-                                    name: '1*/19 юзернейм', 
-                                    level: 1, 
-                                    expanded: true, 
-                                    complete: true, 
-                                    x: 2400, 
-                                    y: 1000,
-                                    children: [
-                                        { id: '0-55', name: '0*/55 юзернейм', level: 0, expanded: true, complete: true, x: 2300, y: 1300 },
-                                        { id: '0-56', name: '0*/56 юзернейм', level: 0, expanded: true, complete: true, x: 2400, y: 1300 },
-                                        { id: '0-57', name: '0*/57 юзернейм', level: 0, expanded: true, complete: true, x: 2500, y: 1300 }
-                                    ]
-                                },
-                                { 
-                                    id: '1-20', 
-                                    name: '1*/20 юзернейм', 
-                                    level: 1, 
-                                    expanded: true, 
-                                    complete: true, 
-                                    x: 2600, 
-                                    y: 1000,
-                                    children: [
-                                        { id: '0-58', name: '0*/58 юзернейм', level: 0, expanded: true, complete: true, x: 2500, y: 1300 },
-                                        { id: '0-59', name: '0*/59 юзернейм', level: 0, expanded: true, complete: true, x: 2600, y: 1300 },
-                                        { id: '0-60', name: '0*/60 юзернейм', level: 0, expanded: true, complete: true, x: 2700, y: 1300 }
-                                    ]
-                                },
-                                { 
-                                    id: '1-21', 
-                                    name: '1*/21 юзернейм', 
-                                    level: 1, 
-                                    expanded: true, 
-                                    complete: true, 
-                                    x: 2800, 
-                                    y: 1000,
-                                    children: [
-                                        { id: '0-61', name: '0*/61 юзернейм', level: 0, expanded: true, complete: true, x: 2700, y: 1300 },
-                                        { id: '0-62', name: '0*/62 юзернейм', level: 0, expanded: true, complete: true, x: 2800, y: 1300 },
-                                        { id: '0-63', name: '0*/63 юзернейм', level: 0, expanded: true, complete: true, x: 2900, y: 1300 }
-                                    ]
-                                }
-                            ]
-                        },
-                        { 
-                            id: '2-8', 
-                            name: '2*/8 юзернейм', 
-                            level: 2, 
-                            expanded: true, 
-                            complete: true, 
-                            x: 3000, 
-                            y: 700,
-                            children: [
-                                { 
-                                    id: '1-22', 
-                                    name: '1*/22 юзернейм', 
-                                    level: 1, 
-                                    expanded: true, 
-                                    complete: true, 
-                                    x: 2800, 
-                                    y: 1000,
-                                    children: [
-                                        { id: '0-64', name: '0*/64 юзернейм', level: 0, expanded: true, complete: true, x: 2700, y: 1300 },
-                                        { id: '0-65', name: '0*/65 юзернейм', level: 0, expanded: true, complete: true, x: 2800, y: 1300 },
-                                        { id: '0-66', name: '0*/66 юзернейм', level: 0, expanded: true, complete: true, x: 2900, y: 1300 }
-                                    ]
-                                },
-                                { 
-                                    id: '1-23', 
-                                    name: '1*/23 юзернейм', 
-                                    level: 1, 
-                                    expanded: true, 
-                                    complete: true, 
-                                    x: 3000, 
-                                    y: 1000,
-                                    children: [
-                                        { id: '0-67', name: '0*/67 юзернейм', level: 0, expanded: true, complete: true, x: 2900, y: 1300 },
-                                        { id: '0-68', name: '0*/68 юзернейм', level: 0, expanded: true, complete: true, x: 3000, y: 1300 },
-                                        { id: '0-69', name: '0*/69 юзернейм', level: 0, expanded: true, complete: true, x: 3100, y: 1300 }
-                                    ]
-                                },
-                                { 
-                                    id: '1-24', 
-                                    name: '1*/24 юзернейм', 
-                                    level: 1, 
-                                    expanded: true, 
-                                    complete: true, 
-                                    x: 3200, 
-                                    y: 1000,
-                                    children: [
-                                        { id: '0-70', name: '0*/70 юзернейм', level: 0, expanded: true, complete: true, x: 3100, y: 1300 },
-                                        { id: '0-71', name: '0*/71 юзернейм', level: 0, expanded: true, complete: true, x: 3200, y: 1300 },
-                                        { id: '0-72', name: '0*/72 юзернейм', level: 0, expanded: true, complete: true, x: 3300, y: 1300 }
-                                    ]
-                                }
-                            ]
-                        },
-                        { 
-                            id: '2-9', 
-                            name: '2*/9 юзернейм', 
-                            level: 2, 
-                            expanded: true, 
-                            complete: true, 
-                            x: 3400, 
-                            y: 700,
-                            children: [
-                                { 
-                                    id: '1-25', 
-                                    name: '1*/25 юзернейм', 
-                                    level: 1, 
-                                    expanded: true, 
-                                    complete: true, 
-                                    x: 3200, 
-                                    y: 1000,
-                                    children: [
-                                        { id: '0-73', name: '0*/73 юзернейм', level: 0, expanded: true, complete: true, x: 3100, y: 1300 },
-                                        { id: '0-74', name: '0*/74 юзернейм', level: 0, expanded: true, complete: true, x: 3200, y: 1300 },
-                                        { id: '0-75', name: '0*/75 юзернейм', level: 0, expanded: true, complete: true, x: 3300, y: 1300 }
-                                    ]
-                                },
-                                { 
-                                    id: '1-26', 
-                                    name: '1*/26 юзернейм', 
-                                    level: 1, 
-                                    expanded: true, 
-                                    complete: true, 
-                                    x: 3400, 
-                                    y: 1000,
-                                    children: [
-                                        { id: '0-76', name: '0*/76 юзернейм', level: 0, expanded: true, complete: true, x: 3300, y: 1300 },
-                                        { id: '0-77', name: '0*/77 юзернейм', level: 0, expanded: true, complete: true, x: 3400, y: 1300 },
-                                        { id: '0-78', name: '0*/78 юзернейм', level: 0, expanded: true, complete: true, x: 3500, y: 1300 }
-                                    ]
-                                },
-                                { 
-                                    id: '1-27', 
-                                    name: '1*/27 юзернейм', 
-                                    level: 1, 
-                                    expanded: true, 
-                                    complete: true, 
-                                    x: 3600, 
-                                    y: 1000,
-                                    children: [
-                                        { id: '0-79', name: '0*/79 юзернейм', level: 0, expanded: true, complete: true, x: 3500, y: 1300 },
-                                        { id: '0-80', name: '0*/80 юзернейм', level: 0, expanded: true, complete: true, x: 3600, y: 1300 },
-                                        { id: '0-81', name: '0*/81 юзернейм', level: 0, expanded: true, complete: true, x: 3700, y: 1300 }
-                                    ]
-                                }
+                                { id: '1-7', name: '1*/7', level: 1, x: 450, y: 500 },
+                                { id: '1-8', name: '1*/8', level: 1, x: 550, y: 500 }
                             ]
                         }
                     ]
                 }
             ]
         };
-
-        updateDebugInfo('🔍 Полная структура с 0-м уровнем создана...');
-
-        // Функция для обновления масштаба
-        function updateZoom() {
-            if (zoomContainer) {
-                zoomContainer.style.transform = `scale(${currentZoom})`;
-            }
-            if (zoomLevel) {
-                zoomLevel.textContent = `${Math.round(currentZoom * 100)}%`;
-            }
-        }
-
-        // Обработчики масштабирования
-        if (zoomInBtn) {
-            zoomInBtn.addEventListener('click', () => {
-                currentZoom = Math.min(currentZoom * 1.2, 3);
-                updateZoom();
-            });
-        }
-
-        if (zoomOutBtn) {
-            zoomOutBtn.addEventListener('click', () => {
-                currentZoom = Math.max(currentZoom / 1.2, 0.3);
-                updateZoom();
-            });
-        }
-
-        // Обработчик скролла с масштабированием (Ctrl + колесо мыши)
-        if (scrollContainer) {
-            scrollContainer.addEventListener('wheel', (e) => {
-                if (e.ctrlKey) {
-                    e.preventDefault();
-                    if (e.deltaY < 0) {
-                        currentZoom = Math.min(currentZoom * 1.1, 3);
-                    } else {
-                        currentZoom = Math.max(currentZoom / 1.1, 0.3);
-                    }
-                    updateZoom();
-                }
-            });
-        }
-
-        // Обработчики кнопок управления
-        if (expandBtn) {
-            expandBtn.addEventListener('click', () => {
-                updateDebugInfo('🔍 Expand All clicked');
-                renderStructure();
-            });
-        }
-
-        if (resetBtn) {
-            resetBtn.addEventListener('click', () => {
-                currentZoom = 1;
-                updateZoom();
-                if (scrollContainer) {
-                    scrollContainer.scrollTo(0, 0);
-                }
-                updateDebugInfo('🔍 Reset View clicked');
-            });
-        }
-
-        if (centerBtn) {
-            centerBtn.addEventListener('click', () => {
-                if (scrollContainer) {
-                    const containerWidth = scrollContainer.clientWidth;
-                    const containerHeight = scrollContainer.clientHeight;
-                    const contentWidth = scrollContainer.scrollWidth;
-                    const contentHeight = scrollContainer.scrollHeight;
-                    
-                    const scrollX = (contentWidth - containerWidth) / 2;
-                    const scrollY = (contentHeight - containerHeight) / 2;
-                    
-                    scrollContainer.scrollTo(scrollX, scrollY);
-                }
-                updateDebugInfo('🔍 Center clicked');
-            });
-        }
-
-        // Функция для рендеринга узла
+        
+        let nodeCount = 0;
+        let connectionCount = 0;
+        
         function renderNode(node) {
             console.log('🎯 Rendering node:', node.name, 'at', node.x, node.y);
-            updateDebugInfo(`🔍 Рендеринг узла: ${node.name} в позиции (${node.x}, ${node.y})`);
+            updateDebugInfo(`Рендеринг узла: ${node.name} в позиции (${node.x}, ${node.y})`);
             
             const nodeElement = document.createElement('div');
-            nodeElement.className = `node ${node.level === 4 && node.id === 'plazma' ? 'active' : ''} ${!node.complete ? 'incomplete' : ''}`;
+            nodeElement.className = `node ${node.level === 4 ? 'active' : ''}`;
             nodeElement.id = `node-${node.id}`;
             nodeElement.style.left = `${node.x}px`;
             nodeElement.style.top = `${node.y}px`;
             nodeElement.innerHTML = `
                 <div class="node-name">${node.name}</div>
-                <div class="node-level">${node.level}*/${node.id.split('-')[1] || '1'} юзернейм <span class="blue-dot"></span></div>
+                <div class="node-level">${node.level}*/${node.id.split('-')[1] || '1'}</div>
             `;
             
-            if (node.hasChat) {
-                const chatBubble = document.createElement('div');
-                chatBubble.className = 'chat-bubble';
-                chatBubble.textContent = '1';
-                nodeElement.appendChild(chatBubble);
-            }
-            
-            const container = document.getElementById('mindmapContainer');
+            const container = document.getElementById('structureContainer');
             if (container) {
                 container.appendChild(nodeElement);
+                nodeCount++;
                 console.log('✅ Node added to container');
             } else {
                 console.error('❌ Container not found!');
                 updateDebugInfo('❌ Ошибка: контейнер не найден!');
             }
         }
-
-        // Функция для рендеринга соединений
+        
         function renderConnection(parentId, childId) {
             const parent = findNodeById(structure, parentId);
             const child = findNodeById(structure, childId);
-
+            
             if (!parent || !child) {
                 console.log('❌ Parent or child not found:', parentId, childId);
                 return;
             }
-
-            // ПРАВИЛЬНЫЕ КООРДИНАТЫ ДЛЯ СОЕДИНЕНИЯ
-            const pX = parent.x + 90; // Центр узла по горизонтали
-            const pY = parent.y + 60; // Низ узла
-            const cX = child.x + 90;  // Центр узла по горизонтали
+            
+            console.log(`🔗 Connecting ${parentId} to ${childId}`);
+            
+            const pX = parent.x + 75; // Центр узла
+            const pY = parent.y + 40; // Низ узла
+            const cX = child.x + 75;  // Центр узла
             const cY = child.y;       // Верх узла
-
-            console.log(`🔗 Connecting ${parentId} (${pX}, ${pY}) to ${childId} (${cX}, ${cY})`);
-
+            
             const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             path.setAttribute('stroke', '#3b82f6');
-            path.setAttribute('stroke-width', '3');
+            path.setAttribute('stroke-width', '2');
             path.setAttribute('fill', 'none');
             path.setAttribute('class', 'connection-line');
-            path.setAttribute('id', `conn-${parentId}-${childId}`);
-
-            // Прямая линия от низа родителя к верху ребенка
-            let d = `M ${pX} ${pY} L ${cX} ${cY}`;
-            path.setAttribute('d', d);
-
-            let connectionSvg = document.getElementById('connection-svg');
-            if (!connectionSvg) {
-                connectionSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                connectionSvg.setAttribute('id', 'connection-svg');
-                connectionSvg.style.position = 'absolute';
-                connectionSvg.style.top = '0';
-                connectionSvg.style.left = '0';
-                connectionSvg.style.width = '100%';
-                connectionSvg.style.height = '100%';
-                connectionSvg.style.pointerEvents = 'none';
-                connectionSvg.style.zIndex = '1';
-                const container = document.getElementById('mindmapContainer');
-                if (container) {
-                    container.appendChild(connectionSvg);
-                }
+            path.setAttribute('d', `M ${pX} ${pY} L ${cX} ${cY}`);
+            
+            let svg = document.getElementById('connection-svg');
+            if (!svg) {
+                svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('id', 'connection-svg');
+                svg.style.position = 'absolute';
+                svg.style.top = '0';
+                svg.style.left = '0';
+                svg.style.width = '100%';
+                svg.style.height = '100%';
+                svg.style.pointerEvents = 'none';
+                svg.style.zIndex = '1';
+                document.getElementById('structureContainer').appendChild(svg);
             }
-            connectionSvg.appendChild(path);
+            
+            svg.appendChild(path);
+            connectionCount++;
             console.log('✅ Connection line added');
         }
-
-        // Функция для поиска узла по ID
+        
         function findNodeById(root, id) {
             if (root.id === id) return root;
             if (root.children) {
@@ -1220,38 +297,33 @@
             }
             return null;
         }
-
-        // Функция для рендеринга структуры
+        
         function renderStructure() {
             console.log('🎨 Rendering structure...');
-            updateDebugInfo('🔍 Начинаем рендеринг полной структуры с 0-м уровнем...');
+            updateDebugInfo('Начинаем рендеринг структуры...');
             
-            const container = document.getElementById('mindmapContainer');
+            const container = document.getElementById('structureContainer');
             if (!container) {
                 console.error('❌ Container not found!');
-                updateDebugInfo('❌ Ошибка: контейнер не найден!');
                 return;
             }
             
+            // Очищаем контейнер
             container.innerHTML = '';
-            const existingSvg = document.getElementById('connection-svg');
-            if (existingSvg) existingSvg.remove();
-
-            updateDebugInfo('🔍 Создаем SVG для соединений...');
+            nodeCount = 0;
+            connectionCount = 0;
             
-            // Создаем SVG
-            const newSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-            newSvg.setAttribute('id', 'connection-svg');
-            newSvg.style.position = 'absolute';
-            newSvg.style.top = '0';
-            newSvg.style.left = '0';
-            newSvg.style.width = '100%';
-            newSvg.style.height = '100%';
-            newSvg.style.pointerEvents = 'none';
-            newSvg.style.zIndex = '1';
-            container.appendChild(newSvg);
-            
-            updateDebugInfo('🔍 Рендерим узлы...');
+            // Создаем SVG для связей
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('id', 'connection-svg');
+            svg.style.position = 'absolute';
+            svg.style.top = '0';
+            svg.style.left = '0';
+            svg.style.width = '100%';
+            svg.style.height = '100%';
+            svg.style.pointerEvents = 'none';
+            svg.style.zIndex = '1';
+            container.appendChild(svg);
             
             // Рендерим узлы рекурсивно
             function renderNodeRecursive(node) {
@@ -1263,77 +335,67 @@
             
             renderNodeRecursive(structure);
             
-            updateDebugInfo('🔍 Рендерим соединения...');
-            
-            // ИСПРАВЛЕННАЯ ЛОГИКА РЕНДЕРИНГА СОЕДИНЕНИЙ
-            function renderAllConnections(node) {
+            // Рендерим связи рекурсивно
+            function renderConnectionsRecursive(node) {
                 if (node.children) {
                     node.children.forEach(child => {
-                        console.log(`�� Rendering connection: ${node.id} -> ${child.id}`);
                         renderConnection(node.id, child.id);
-                        renderAllConnections(child);
+                        renderConnectionsRecursive(child);
                     });
                 }
             }
             
-            renderAllConnections(structure);
+            renderConnectionsRecursive(structure);
             
-            updateStats();
+            // Обновляем статистику
+            document.getElementById('nodeCount').textContent = `Узлов: ${nodeCount}`;
+            document.getElementById('connectionCount').textContent = `Связей: ${connectionCount}`;
             
-            updateDebugInfo('✅ Полная структура с 0-м уровнем готова!');
-            console.log('✅ Full structure with level 0 rendered successfully!');
+            updateDebugInfo(`✅ Структура готова! Узлов: ${nodeCount}, Связей: ${connectionCount}`);
+            console.log('✅ Structure rendered successfully!');
         }
-
-        // Обновление статистики
-        function updateStats() {
-            let complete = 0;
-            let incomplete = 0;
-            
-            function countNodes(node) {
-                if (node.complete) {
-                    complete++;
-                } else {
-                    incomplete++;
-                }
-                if (node.children) {
-                    node.children.forEach(child => countNodes(child));
-                }
-            }
-            
-            countNodes(structure);
-            
-            const completeCount = document.getElementById('completeCount');
-            const incompleteCount = document.getElementById('incompleteCount');
-            const plazmaLevel = document.getElementById('plazmaLevel');
-            
-            if (completeCount) completeCount.textContent = complete;
-            if (incompleteCount) incompleteCount.textContent = incomplete;
-            if (plazmaLevel) plazmaLevel.textContent = 4;
+        
+        function clearStructure() {
+            const container = document.getElementById('structureContainer');
+            container.innerHTML = '';
+            nodeCount = 0;
+            connectionCount = 0;
+            document.getElementById('nodeCount').textContent = 'Узлов: 0';
+            document.getElementById('connectionCount').textContent = 'Связей: 0';
+            updateDebugInfo('🗑️ Структура очищена');
         }
-
+        
+        function testConnections() {
+            updateDebugInfo('🔗 Тестируем связи...');
+            console.log('🔗 Testing connections...');
+            
+            // Тестируем поиск узлов
+            const plazma = findNodeById(structure, 'plazma');
+            const node3_1 = findNodeById(structure, '3-1');
+            const node2_1 = findNodeById(structure, '2-1');
+            const node1_1 = findNodeById(structure, '1-1');
+            
+            console.log('PLAZMA found:', plazma);
+            console.log('3-1 found:', node3_1);
+            console.log('2-1 found:', node2_1);
+            console.log('1-1 found:', node1_1);
+            
+            updateDebugInfo(`🔗 Тест завершен. PLAZMA: ${plazma ? '✅' : '❌'}, 3-1: ${node3_1 ? '✅' : '❌'}, 2-1: ${node2_1 ? '✅' : '❌'}, 1-1: ${node1_1 ? '✅' : '❌'}`);
+        }
+        
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
             console.log('📄 DOM Content Loaded');
-            updateDebugInfo('🔍 DOM загружен, начинаем инициализацию...');
+            updateDebugInfo('DOM загружен, начинаем инициализацию...');
             renderStructure();
-            updateZoom();
         });
-
+        
         // Дополнительная инициализация
         setTimeout(function() {
             console.log('⏰ Delayed initialization');
-            updateDebugInfo('🔍 Дополнительная инициализация...');
+            updateDebugInfo('Дополнительная инициализация...');
             renderStructure();
-            updateZoom();
         }, 100);
-
-        // Еще одна попытка через 500ms
-        setTimeout(function() {
-            console.log('⏰ Final initialization');
-            updateDebugInfo('🔍 Финальная инициализация...');
-            renderStructure();
-            updateZoom();
-        }, 500);
     </script>
 </body>
 </html>
