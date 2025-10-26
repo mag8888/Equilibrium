@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌐 MLM СТРУКТУРА - С рабочим скроллом и масштабированием</title>
+    <title>🌐 MLM СТРУКТУРА - Правильная структура 3→3→3→3</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -156,8 +156,8 @@
             position: relative;
             transform-origin: top left;
             transition: transform 0.3s ease;
-            min-width: 2000px;
-            min-height: 1000px;
+            min-width: 3000px;
+            min-height: 1500px;
         }
 
         .mindmap-container {
@@ -494,7 +494,7 @@
         const resetBtn = document.getElementById('resetBtn');
         const centerBtn = document.getElementById('centerBtn');
         
-        // Простая структура данных
+        // ПРАВИЛЬНАЯ MLM СТРУКТУРА: каждый партнер имеет ровно 3 партнера более низкого уровня
         const structure = {
             id: 'plazma', 
             name: 'PLAZMA', 
@@ -503,12 +503,16 @@
             hasChat: true, 
             complete: true,
             children: [
+                // Уровень 3: под PLAZMA (4й уровень) - 3 партнера
                 { id: '3-1', name: '3*/1 юзернейм', level: 3, expanded: true, complete: true,
                     children: [
+                        // Уровень 2: под 3м уровнем - РОВНО 3 ПАРТНЕРА
                         { id: '2-1', name: '2*/1 юзернейм', level: 2, expanded: true, complete: true,
                             children: [
+                                // Уровень 1: под 2м уровнем - РОВНО 3 ПАРТНЕРА
                                 { id: '1-1', name: '1*/1 юзернейм', level: 1, expanded: true, complete: true,
                                     children: [
+                                        // Уровень 0: самый низкий уровень - РОВНО 3 ПАРТНЕРА
                                         { id: '0-1', name: '0*/1 юзернейм', level: 0, expanded: false, children: [], complete: true },
                                         { id: '0-2', name: '0*/2 юзернейм', level: 0, expanded: false, children: [], complete: true },
                                         { id: '0-3', name: '0*/3 юзернейм', level: 0, expanded: false, children: [], complete: false }
@@ -525,45 +529,65 @@
                                 { id: '1-6', name: '1*/6 юзернейм', level: 1, expanded: false, children: [], complete: false }
                             ]
                         },
-                        { id: '2-3', name: '2*/3 юзернейм', level: 2, expanded: false, children: [], complete: false }
-                    ]
-                },
-                { id: '3-2', name: '3*/2 юзернейм', level: 3, expanded: true, complete: true,
-                    children: [
-                        { id: '2-4', name: '2*/4 юзернейм', level: 2, expanded: true, complete: true,
+                        { id: '2-3', name: '2*/3 юзернейм', level: 2, expanded: true, complete: true,
                             children: [
                                 { id: '1-7', name: '1*/7 юзернейм', level: 1, expanded: false, children: [], complete: false },
                                 { id: '1-8', name: '1*/8 юзернейм', level: 1, expanded: false, children: [], complete: false },
                                 { id: '1-9', name: '1*/9 юзернейм', level: 1, expanded: false, children: [], complete: false }
                             ]
-                        },
-                        { id: '2-5', name: '2*/5 юзернейм', level: 2, expanded: true, complete: true,
+                        }
+                    ]
+                },
+                { id: '3-2', name: '3*/2 юзернейм', level: 3, expanded: true, complete: true,
+                    children: [
+                        // Уровень 2: под 3м уровнем - РОВНО 3 ПАРТНЕРА
+                        { id: '2-4', name: '2*/4 юзернейм', level: 2, expanded: true, complete: true,
                             children: [
                                 { id: '1-10', name: '1*/10 юзернейм', level: 1, expanded: false, children: [], complete: false },
                                 { id: '1-11', name: '1*/11 юзернейм', level: 1, expanded: false, children: [], complete: false },
                                 { id: '1-12', name: '1*/12 юзернейм', level: 1, expanded: false, children: [], complete: false }
                             ]
                         },
-                        { id: '2-6', name: '2*/6 юзернейм', level: 2, expanded: false, children: [], complete: false }
-                    ]
-                },
-                { id: '3-3', name: '3*/3 юзернейм', level: 3, expanded: true, complete: true,
-                    children: [
-                        { id: '2-7', name: '2*/7 юзернейм', level: 2, expanded: true, complete: true,
+                        { id: '2-5', name: '2*/5 юзернейм', level: 2, expanded: true, complete: true,
                             children: [
                                 { id: '1-13', name: '1*/13 юзернейм', level: 1, expanded: false, children: [], complete: false },
                                 { id: '1-14', name: '1*/14 юзернейм', level: 1, expanded: false, children: [], complete: false },
                                 { id: '1-15', name: '1*/15 юзернейм', level: 1, expanded: false, children: [], complete: false }
                             ]
                         },
-                        { id: '2-8', name: '2*/8 юзернейм', level: 2, expanded: true, complete: true,
+                        { id: '2-6', name: '2*/6 юзернейм', level: 2, expanded: true, complete: true,
                             children: [
                                 { id: '1-16', name: '1*/16 юзернейм', level: 1, expanded: false, children: [], complete: false },
                                 { id: '1-17', name: '1*/17 юзернейм', level: 1, expanded: false, children: [], complete: false },
                                 { id: '1-18', name: '1*/18 юзернейм', level: 1, expanded: false, children: [], complete: false }
                             ]
+                        }
+                    ]
+                },
+                { id: '3-3', name: '3*/3 юзернейм', level: 3, expanded: true, complete: true,
+                    children: [
+                        // Уровень 2: под 3м уровнем - РОВНО 3 ПАРТНЕРА
+                        { id: '2-7', name: '2*/7 юзернейм', level: 2, expanded: true, complete: true,
+                            children: [
+                                { id: '1-19', name: '1*/19 юзернейм', level: 1, expanded: false, children: [], complete: false },
+                                { id: '1-20', name: '1*/20 юзернейм', level: 1, expanded: false, children: [], complete: false },
+                                { id: '1-21', name: '1*/21 юзернейм', level: 1, expanded: false, children: [], complete: false }
+                            ]
                         },
-                        { id: '2-9', name: '2*/9 юзернейм', level: 2, expanded: false, children: [], complete: false }
+                        { id: '2-8', name: '2*/8 юзернейм', level: 2, expanded: true, complete: true,
+                            children: [
+                                { id: '1-22', name: '1*/22 юзернейм', level: 1, expanded: false, children: [], complete: false },
+                                { id: '1-23', name: '1*/23 юзернейм', level: 1, expanded: false, children: [], complete: false },
+                                { id: '1-24', name: '1*/24 юзернейм', level: 1, expanded: false, children: [], complete: false }
+                            ]
+                        },
+                        { id: '2-9', name: '2*/9 юзернейм', level: 2, expanded: true, complete: true,
+                            children: [
+                                { id: '1-25', name: '1*/25 юзернейм', level: 1, expanded: false, children: [], complete: false },
+                                { id: '1-26', name: '1*/26 юзернейм', level: 1, expanded: false, children: [], complete: false },
+                                { id: '1-27', name: '1*/27 юзернейм', level: 1, expanded: false, children: [], complete: false }
+                            ]
+                        }
                     ]
                 }
             ]
@@ -650,18 +674,20 @@
             });
         }
 
-        // Функция для расчета позиций
+        // Функция для расчета позиций с правильным распределением
         function calculatePositions(node, level = 0, xOffset = 0, yOffset = 0, parentX = 0, parentY = 0, branchIndex = 0, totalBranches = 1) {
-            const horizontalSpacing = 400;
-            const verticalSpacing = 200;
-            const containerPadding = 300;
+            const horizontalSpacing = 500; // Увеличено расстояние между ветками
+            const verticalSpacing = 250; // Увеличено расстояние между уровнями
+            const containerPadding = 400; // Увеличен отступ
 
             let currentX = xOffset;
             let currentY = yOffset + level * verticalSpacing;
 
             if (level === 0) {
-                currentX = containerPadding + 800;
+                // PLAZMA в центре (4й уровень)
+                currentX = containerPadding + 1000;
             } else {
+                // Правильное распределение для всех уровней
                 const totalWidth = (totalBranches - 1) * horizontalSpacing;
                 const startX = parentX - totalWidth / 2;
                 currentX = startX + branchIndex * horizontalSpacing;
@@ -728,7 +754,7 @@
             });
         }
 
-        // Функция для рендеринга соединений
+        // Функция для рендеринга соединений ТОЛЬКО между родителем и детьми
         function renderConnection(parentId, childId) {
             const parent = findNodeById(structure, parentId);
             const child = findNodeById(structure, childId);
@@ -833,7 +859,7 @@
             }
         }
 
-        // Обновление соединений
+        // Обновление соединений ТОЛЬКО между родителем и детьми
         function updateConnections() {
             const svg = document.getElementById('connection-svg');
             if (svg) {
@@ -843,6 +869,7 @@
             function traverseAndConnect(node) {
                 if (node.children && node.expanded) {
                     node.children.forEach(child => {
+                        // Соединяем ТОЛЬКО если ребенок тоже расширен или родитель расширен
                         if (child.expanded || node.expanded) {
                             renderConnection(node.id, child.id);
                         }
