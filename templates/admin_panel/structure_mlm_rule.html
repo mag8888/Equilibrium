@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌐 MLM СТРУКТУРА - Без пересечений, полное отображение</title>
+    <title>🌐 MLM СТРУКТУРА - Единый стиль</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -167,10 +167,11 @@
             min-height: 500px;
         }
 
+        /* ЕДИНЫЙ СТИЛЬ ДЛЯ ВСЕХ УЗЛОВ */
         .node {
             position: absolute;
-            background: white;
-            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            border: 2px solid #ef4444;
             border-radius: 12px;
             padding: 15px 20px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -188,7 +189,7 @@
         .node:hover {
             transform: translateY(-3px);
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-            border-color: #3b82f6;
+            border-color: #dc2626;
         }
         
         .node.active {
@@ -202,19 +203,20 @@
             transform: scale(1.05);
         }
 
+        /* Убираем все другие стили узлов - только единый стиль */
         .node.incomplete {
-            border: 3px solid #ef4444;
-            background: #fef2f2;
+            background: #ffffff;
+            border: 2px solid #ef4444;
             position: relative;
         }
 
         .node.incomplete::before {
             content: '';
             position: absolute;
-            top: -3px;
-            left: -3px;
-            right: -3px;
-            bottom: -3px;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
             border: 2px solid #ef4444;
             border-radius: 12px;
             background: transparent;
