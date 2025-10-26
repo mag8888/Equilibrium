@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌐 MLM СТРУКТУРА - Разная высота карточек</title>
+    <title>🌐 MLM СТРУКТУРА - Логичная и ровная</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -156,8 +156,8 @@
             position: relative;
             transform-origin: top left;
             transition: transform 0.3s ease;
-            min-width: 7000px;
-            min-height: 5000px;
+            min-width: 4000px;
+            min-height: 2000px;
         }
 
         .mindmap-container {
@@ -457,7 +457,7 @@
 
     <div class="structure-container" id="structureContainer">
         <div class="debug-info" id="debugInfo">
-            🔍 Отладка: Создаем ступенчатую структуру...
+            🔍 Отладка: Загрузка логичной структуры...
         </div>
         
         <div class="logic-stats" id="logicStats">
@@ -523,7 +523,7 @@
         
         updateDebugInfo('🔍 Инициализация элементов...');
         
-        // СТУПЕНЧАТАЯ СТРУКТУРА С РАЗНОЙ ВЫСОТОЙ КАРТОЧЕК
+        // ЛОГИЧНАЯ И РОВНАЯ СТРУКТУРА MLM
         const structure = {
             id: 'plazma', 
             name: 'PLAZMA', 
@@ -531,58 +531,58 @@
             expanded: true, 
             hasChat: true, 
             complete: true,
-            x: 3000,
-            y: 200,
+            x: 1500,
+            y: 100,
             children: [
-                // Первый партнер 3-го уровня - ЛЕВАЯ ВЕТКА
+                // Первый партнер 3-го уровня
                 { 
                     id: '3-1', 
                     name: '3*/1 юзернейм', 
                     level: 3, 
                     expanded: true, 
                     complete: true, 
-                    x: 1800, 
-                    y: 500,
+                    x: 800, 
+                    y: 400,
                     children: [
-                        { id: '2-1', name: '2*/1 юзернейм', level: 2, expanded: true, complete: true, x: 1200, y: 800 },
-                        { id: '2-2', name: '2*/2 юзернейм', level: 2, expanded: true, complete: true, x: 1800, y: 800 },
-                        { id: '2-3', name: '2*/3 юзернейм', level: 2, expanded: true, complete: true, x: 2400, y: 800 }
+                        { id: '2-1', name: '2*/1 юзернейм', level: 2, expanded: true, complete: true, x: 400, y: 700 },
+                        { id: '2-2', name: '2*/2 юзернейм', level: 2, expanded: true, complete: true, x: 800, y: 700 },
+                        { id: '2-3', name: '2*/3 юзернейм', level: 2, expanded: true, complete: true, x: 1200, y: 700 }
                     ]
                 },
-                // Второй партнер 3-го уровня - ЦЕНТРАЛЬНАЯ ВЕТКА (СРЕДНЯЯ ВЫСОТА)
+                // Второй партнер 3-го уровня
                 { 
                     id: '3-2', 
                     name: '3*/2 юзернейм', 
                     level: 3, 
                     expanded: true, 
                     complete: true, 
-                    x: 3000, 
-                    y: 500,
+                    x: 1500, 
+                    y: 400,
                     children: [
-                        { id: '2-4', name: '2*/4 юзернейм', level: 2, expanded: true, complete: true, x: 2400, y: 900 }, // НИЖЕ
-                        { id: '2-5', name: '2*/5 юзернейм', level: 2, expanded: true, complete: true, x: 3000, y: 800 }, // СРЕДНЯЯ ВЫСОТА
-                        { id: '2-6', name: '2*/6 юзернейм', level: 2, expanded: true, complete: true, x: 3600, y: 700 }  // ВЫШЕ
+                        { id: '2-4', name: '2*/4 юзернейм', level: 2, expanded: true, complete: true, x: 1200, y: 700 },
+                        { id: '2-5', name: '2*/5 юзернейм', level: 2, expanded: true, complete: true, x: 1500, y: 700 },
+                        { id: '2-6', name: '2*/6 юзернейм', level: 2, expanded: true, complete: true, x: 1800, y: 700 }
                     ]
                 },
-                // Третий партнер 3-го уровня - ПРАВАЯ ВЕТКА
+                // Третий партнер 3-го уровня
                 { 
                     id: '3-3', 
                     name: '3*/3 юзернейм', 
                     level: 3, 
                     expanded: true, 
                     complete: true, 
-                    x: 4200, 
-                    y: 500,
+                    x: 2200, 
+                    y: 400,
                     children: [
-                        { id: '2-7', name: '2*/7 юзернейм', level: 2, expanded: true, complete: true, x: 3600, y: 800 },
-                        { id: '2-8', name: '2*/8 юзернейм', level: 2, expanded: true, complete: true, x: 4200, y: 800 },
-                        { id: '2-9', name: '2*/9 юзернейм', level: 2, expanded: true, complete: true, x: 4800, y: 800 }
+                        { id: '2-7', name: '2*/7 юзернейм', level: 2, expanded: true, complete: true, x: 1800, y: 700 },
+                        { id: '2-8', name: '2*/8 юзернейм', level: 2, expanded: true, complete: true, x: 2200, y: 700 },
+                        { id: '2-9', name: '2*/9 юзернейм', level: 2, expanded: true, complete: true, x: 2600, y: 700 }
                     ]
                 }
             ]
         };
 
-        updateDebugInfo('🔍 Ступенчатая структура создана...');
+        updateDebugInfo('🔍 Логичная структура создана...');
 
         // Функция для обновления масштаба
         function updateZoom() {
@@ -756,7 +756,7 @@
         // Функция для рендеринга структуры
         function renderStructure() {
             console.log('🎨 Rendering structure...');
-            updateDebugInfo('🔍 Начинаем рендеринг ступенчатой структуры...');
+            updateDebugInfo('🔍 Начинаем рендеринг логичной структуры...');
             
             const container = document.getElementById('mindmapContainer');
             if (!container) {
@@ -783,7 +783,7 @@
             newSvg.style.zIndex = '1';
             container.appendChild(newSvg);
             
-            updateDebugInfo('🔍 Рендерим узлы с разной высотой...');
+            updateDebugInfo('🔍 Рендерим узлы...');
             
             // Рендерим узлы рекурсивно
             function renderNodeRecursive(node) {
@@ -811,8 +811,8 @@
             
             updateStats();
             
-            updateDebugInfo('✅ Ступенчатая структура готова!');
-            console.log('✅ Stepped structure rendered successfully!');
+            updateDebugInfo('✅ Логичная структура готова!');
+            console.log('✅ Logical structure rendered successfully!');
         }
 
         // Обновление статистики
