@@ -81,7 +81,7 @@ def admin_demo_users(request):
 
 
 def admin_demo_structure(request):
-    """Демо-версия структуры - ГОРИЗОНТАЛЬНАЯ МАЙНД-КАРТА"""
+    """Демо-версия структуры - СИММЕТРИЧНАЯ МАЙНД-КАРТА"""
     
     root_users = []
     
@@ -96,7 +96,7 @@ def admin_demo_structure(request):
         'is_demo': True,
     }
     
-    return render(request, 'admin_panel/mindmap_final.html', context)
+    return render(request, 'admin_panel/mindmap_symmetric.html', context)
 
 
 def admin_demo_structure_old(request):
