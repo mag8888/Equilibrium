@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌐 MLM СТРУКТУРА - Правильная симметрия 3→3</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #ffffff;
+            color: #1a202c;
+            overflow: hidden;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo {
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 8px 12px;
+            gap: 8px;
+        }
+        
+        .search-icon {
+            width: 16px;
+            height: 16px;
+            opacity: 0.8;
+        }
+        
+        .search-input {
+            background: none;
+            border: none;
+            color: white;
+            outline: none;
+            width: 200px;
+        }
+        
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .upgrade-btn {
+            background: #fbbf24;
+            color: #1a202c;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+        
+        .upgrade-btn:hover {
+            background: #f59e0b;
+            transform: translateY(-1px);
+        }
+
+        .view-toggle {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        .toggle-btn {
+            padding: 10px 20px;
+            border: 2px solid #8b5cf6;
+            background: white;
+            color: #8b5cf6;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-btn.active {
+            background: #8b5cf6;
+            color: white;
+        }
+
+        .toggle-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        .structure-container {
+            position: relative;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 50px;
+            overflow: hidden;
+            height: calc(100vh - 200px);
+            min-width: 100%;
+        }
+
+        /* Контейнер для скролла и масштабирования */
+        .scroll-container {
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            position: relative;
+        }
+
+        .zoom-container {
+            position: relative;
+            transform-origin: top left;
+            transition: transform 0.3s ease;
+        }
+
+        /* Майнд-карта структура */
+        .mindmap-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            min-height: 500px;
+        }
+
+        .node {
+            position: absolute;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 15px 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 180px;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .node:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            border-color: #3b82f6;
+        }
+        
+        .node.active {
+            background: linear-gradient(145deg, #8b5cf6, #7c3aed);
+            color: white;
+            border-color: #7c3aed;
+            font-weight: bold;
+        }
+        
+        .node.active:hover {
+            transform: scale(1.05);
+        }
+
+        /* Красные контуры для незавершенных узлов */
+        .node.incomplete {
+            border: 3px solid #ef4444;
+            background: #fef2f2;
+            position: relative;
+        }
+
+        .node.incomplete::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            border: 2px solid #ef4444;
+            border-radius: 12px;
+            background: transparent;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .node-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #1a202c;
+            margin-bottom: 5px;
+        }
+        
+        .node.active .node-name {
+            color: white;
+        }
+        
+        .node-level {
+            font-size: 0.9rem;
+            color: #64748b;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .node.active .node-level {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Синие точки рядом с юзернейм */
+        .blue-dot {
+            width: 8px;
+            height: 8px;
+            background: #3b82f6;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* Изогнутые связи для майнд-карты */
+        .connection-line {
+            position: absolute;
+            stroke: #3b82f6;
+            stroke-width: 2;
+            fill: none;
+            z-index: 5;
+            opacity: 0;
+            animation: fadeInLine 0.8s forwards;
+        }
+
+        /* Красные связи для незавершенных соединений */
+        .connection-line.incomplete {
+            stroke: #ef4444;
+            stroke-width: 3;
+            stroke-dasharray: 5,5;
+            animation: dash 1s linear infinite;
+        }
+
+        @keyframes dash {
+            to { stroke-dashoffset: -10; }
+        }
+
+        @keyframes fadeInLine {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Синие кружки для майнд-карты */
+        .expand-circle {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #3b82f6;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 15;
+            transition: all 0.3s ease;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .expand-circle:hover {
+            background: #2563eb;
+            transform: scale(1.2);
+        }
+
+        .expand-circle.incomplete {
+            background: #ef4444;
+            border-color: #fef2f2;
+        }
+
+        /* Chat bubble */
+        .chat-bubble {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 24px;
+            height: 24px;
+            background: #10b981;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: white;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 20;
+        }
+
+        .control-btn {
+            background: #374151;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .control-btn:hover {
+            background: #1f2937;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .zoom-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 20;
+        }
+
+        .zoom-btn {
+            background: rgba(255, 255, 255, 0.9);
+            color: #374151;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .zoom-btn:hover {
+            background: #f9fafb;
+            transform: translateY(-1px);
+        }
+
+        /* Скрытие элементов */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Статистика логики */
+        .logic-stats {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            padding: 10px 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            font-size: 0.9rem;
+            z-index: 20;
+        }
+
+        .logic-stats .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 5px;
+        }
+
+        .logic-stats .stat-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .logic-stats .stat-dot.complete {
+            background: #10b981;
+        }
+
+        .logic-stats .stat-dot.incomplete {
+            background: #ef4444;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            .title {
+                font-size: 1.5rem;
+            }
+            .structure-container {
+                padding: 15px;
+                border-radius: 0;
+                min-width: 100%;
+            }
+            .node {
+                min-width: 160px;
+                padding: 12px 16px;
+            }
+            .node-name {
+                font-size: 1rem;
+            }
+            .node-level {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo-section">
+            <div class="logo">P</div>
+            <h1 class="title">PLAZMA</h1>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6,9 12,15 18,9"></polyline>
+            </svg>
+        </div>
+        <div class="header-controls">
+            <div class="search-box">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                </svg>
+                <input type="text" class="search-input" placeholder="Поиск...">
+            </div>
+            <button class="upgrade-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 17L17 7"></path>
+                    <path d="M7 7h10v10"></path>
+                </svg>
+                Upgrade
+            </button>
+        </div>
+    </div>
+
+    <div class="view-toggle">
+        <button class="toggle-btn" id="verticalBtn">📊 Вертикальная</button>
+        <button class="toggle-btn active" id="mindmapBtn">🗺️ Майнд-карта</button>
+    </div>
+
+    <div class="structure-container" id="structureContainer">
+        <div class="logic-stats" id="logicStats">
+            <div class="stat-item">
+                <div class="stat-dot complete"></div>
+                <span>Завершенные узлы: <span id="completeCount">0</span></span>
+            </div>
+            <div class="stat-item">
+                <div class="stat-dot incomplete"></div>
+                <span>Незавершенные узлы: <span id="incompleteCount">0</span></span>
+            </div>
+            <div class="stat-item">
+                <div class="stat-dot complete"></div>
+                <span>Уровень PLAZMA: <span id="plazmaLevel">4</span></span>
+            </div>
+        </div>
+
+        <div class="zoom-controls">
+            <button class="zoom-btn" id="zoomOutBtn">-</button>
+            <span class="zoom-btn" id="zoomLevel">100%</span>
+            <button class="zoom-btn" id="zoomInBtn">+</button>
+        </div>
+        
+        <div class="scroll-container" id="scrollContainer">
+            <div class="zoom-container" id="zoomContainer">
+                <div class="mindmap-container" id="mindmapContainer">
+                    <!-- Mindmap nodes will be rendered here -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="control-btn" id="expandBtn">Expand All</button>
+            <button class="control-btn" id="resetBtn">Reset View</button>
+            <button class="control-btn" id="centerBtn">Center</button>
+        </div>
+    </div>
+
+    <script>
+        const verticalFlow = document.getElementById('verticalFlow');
+        const mindmapContainer = document.getElementById('mindmapContainer');
+        const verticalBtn = document.getElementById('verticalBtn');
+        const mindmapBtn = document.getElementById('mindmapBtn');
+        const expandBtn = document.getElementById('expandBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const centerBtn = document.getElementById('centerBtn');
+        const completeCount = document.getElementById('completeCount');
+        const incompleteCount = document.getElementById('incompleteCount');
+        const plazmaLevel = document.getElementById('plazmaLevel');
+        const zoomContainer = document.getElementById('zoomContainer');
+        const scrollContainer = document.getElementById('scrollContainer');
+        const zoomInBtn = document.getElementById('zoomInBtn');
+        const zoomOutBtn = document.getElementById('zoomOutBtn');
+        const zoomLevel = document.getElementById('zoomLevel');
+
+        let currentView = 'mindmap';
+        let nodes = {};
+        let connections = {};
+        let nodeData = {};
+        let currentZoom = 1;
+        let isDragging = false;
+        let dragStart = { x: 0, y: 0 };
+        let scrollStart = { x: 0, y: 0 };
+
+        // ИСПРАВЛЕННАЯ ПРАВИЛЬНАЯ СТРУКТУРА: каждый 3й уровень имеет ровно 3 партнера 2го уровня
+        const mindmapStructure = {
+            id: 'plazma', name: 'PLAZMA', level: 4, expanded: true, hasChat: true, complete: true,
+            children: [
+                // Уровень 3: под PLAZMA (4й уровень) - 3 партнера
+                { id: '3-1', name: '3*/1 юзернейм', level: 3, expanded: true, complete: true,
+                    children: [
+                        // Уровень 2: под 3м уровнем - РОВНО 3 ПАРТНЕРА!
+                        { id: '2-1', name: '2*/1 юзернейм', level: 2, expanded: true, complete: true,
+                            children: [
+                                // Уровень 1: под 2м уровнем
+                                { id: '1-1', name: '1*/1 юзернейм', level: 1, expanded: true, complete: true,
+                                    children: [
+                                        // Уровень 0: самый низкий уровень
+                                        { id: '0-1', name: '0*/1 юзернейм', level: 0, expanded: false, children: [], complete: true },
+                                        { id: '0-2', name: '0*/2 юзернейм', level: 0, expanded: false, children: [], complete: true },
+                                        { id: '0-3', name: '0*/3 юзернейм', level: 0, expanded: false, children: [], complete: false }
+                                    ]
+                                },
+                                { id: '1-2', name: '1*/2 юзернейм', level: 1, expanded: false, children: [], complete: false },
+                                { id: '1-3', name: '1*/3 юзернейм', level: 1, expanded: false, children: [], complete: false }
+                            ]
+                        },
+                        { id: '2-2', name: '2*/2 юзернейм', level: 2, expanded: true, complete: true,
+                            children: [
+                                { id: '1-4', name: '1*/4 юзернейм', level: 1, expanded: false, children: [], complete: false },
+                                { id: '1-5', name: '1*/5 юзернейм', level: 1, expanded: false, children: [], complete: false },
+                                { id: '1-6', name: '1*/6 юзернейм', level: 1, expanded: false, children: [], complete: false }
+                            ]
+                        },
+                        { id: '2-3', name: '2*/3 юзернейм', level: 2, expanded: false, children: [], complete: false }
+                    ]
+                },
+                { id: '3-2', name: '3*/2 юзернейм', level: 3, expanded: true, complete: true,
+                    children: [
+                        // Уровень 2: под 3м уровнем - РОВНО 3 ПАРТНЕРА!
+                        { id: '2-4', name: '2*/4 юзернейм', level: 2, expanded: true, complete: true,
+                            children: [
+                                { id: '1-7', name: '1*/7 юзернейм', level: 1, expanded: false, children: [], complete: false },
+                                { id: '1-8', name: '1*/8 юзернейм', level: 1, expanded: false, children: [], complete: false },
+                                { id: '1-9', name: '1*/9 юзернейм', level: 1, expanded: false, children: [], complete: false }
+                            ]
+                        },
+                        { id: '2-5', name: '2*/5 юзернейм', level: 2, expanded: true, complete: true,
+                            children: [
+                                { id: '1-10', name: '1*/10 юзернейм', level: 1, expanded: false, children: [], complete: false },
+                                { id: '1-11', name: '1*/11 юзернейм', level: 1, expanded: false, children: [], complete: false },
+                                { id: '1-12', name: '1*/12 юзернейм', level: 1, expanded: false, children: [], complete: false }
+                            ]
+                        },
+                        { id: '2-6', name: '2*/6 юзернейм', level: 2, expanded: false, children: [], complete: false }
+                    ]
+                },
+                { id: '3-3', name: '3*/3 юзернейм', level: 3, expanded: true, complete: true,
+                    children: [
+                        // Уровень 2: под 3м уровнем - РОВНО 3 ПАРТНЕРА!
+                        { id: '2-7', name: '2*/7 юзернейм', level: 2, expanded: true, complete: true,
+                            children: [
+                                { id: '1-13', name: '1*/13 юзернейм', level: 1, expanded: false, children: [], complete: false },
+                                { id: '1-14', name: '1*/14 юзернейм', level: 1, expanded: false, children: [], complete: false },
+                                { id: '1-15', name: '1*/15 юзернейм', level: 1, expanded: false, children: [], complete: false }
+                            ]
+                        },
+                        { id: '2-8', name: '2*/8 юзернейм', level: 2, expanded: true, complete: true,
+                            children: [
+                                { id: '1-16', name: '1*/16 юзернейм', level: 1, expanded: false, children: [], complete: false },
+                                { id: '1-17', name: '1*/17 юзернейм', level: 1, expanded: false, children: [], complete: false },
+                                { id: '1-18', name: '1*/18 юзернейм', level: 1, expanded: false, children: [], complete: false }
+                            ]
+                        },
+                        { id: '2-9', name: '2*/9 юзернейм', level: 2, expanded: false, children: [], complete: false }
+                    ]
+                }
+            ]
+        };
+
+        // Функция для расчета уровня PLAZMA на основе партнеров
+        function calculatePlazmaLevel() {
+            // PLAZMA теперь сам 4й уровень
+            return 4;
+        }
+
+        // Обновление статистики
+        function updateStats() {
+            let complete = 0;
+            let incomplete = 0;
+            
+            function countNodes(node) {
+                if (node.complete) {
+                    complete++;
+                } else {
+                    incomplete++;
+                }
+                if (node.children) {
+                    node.children.forEach(child => countNodes(child));
+                }
+            }
+            
+            countNodes(mindmapStructure);
+            
+            completeCount.textContent = complete;
+            incompleteCount.textContent = incomplete;
+            plazmaLevel.textContent = calculatePlazmaLevel();
+        }
+
+        // Переключение между видами
+        verticalBtn.addEventListener('click', () => {
+            currentView = 'vertical';
+            verticalBtn.classList.add('active');
+            mindmapBtn.classList.remove('active');
+            // Вертикальный вид пока не реализован для полной сетки
+        });
+
+        mindmapBtn.addEventListener('click', () => {
+            currentView = 'mindmap';
+            mindmapBtn.classList.add('active');
+            verticalBtn.classList.remove('active');
+            renderMindmapStructure();
+            updateStats();
+        });
+
+        // Рендеринг майнд-карты с правильным позиционированием (правильная симметрия 3→3)
+        function calculateNodePositions(node, level = 0, xOffset = 0, yOffset = 0, parentX = 0, parentY = 0, branchIndex = 0, totalBranches = 1) {
+            const nodeWidth = 180;
+            const nodeHeight = 80;
+            const horizontalSpacing = 400; // УВЕЛИЧЕНО для 3 партнеров
+            const verticalSpacing = 200; // УВЕЛИЧЕНО расстояние между уровнями
+            const containerPadding = 300; // УВЕЛИЧЕН отступ от краев
+
+            let currentX = xOffset;
+            let currentY = yOffset + level * verticalSpacing;
+
+            if (level === 0) {
+                // PLAZMA в центре (4й уровень)
+                currentX = containerPadding + 800;
+            } else {
+                // Правильное распределение для всех уровней с увеличенным расстоянием
+                const totalWidth = (totalBranches - 1) * horizontalSpacing;
+                const startX = parentX - totalWidth / 2;
+                currentX = startX + branchIndex * horizontalSpacing;
+                
+                if (currentX < containerPadding) {
+                    currentX = containerPadding;
+                }
+            }
+
+            node.x = currentX;
+            node.y = currentY;
+            nodeData[node.id] = { ...node, x: currentX, y: currentY };
+
+            if (node.children && node.children.length > 0 && node.expanded) {
+                node.children.forEach((child, i) => {
+                    calculateNodePositions(child, level + 1, 0, yOffset, currentX, currentY, i, node.children.length);
+                });
+            }
+        }
+
+        function renderNode(node) {
+            const nodeElement = document.createElement('div');
+            nodeElement.className = `node ${node.level === 4 && node.id === 'plazma' ? 'active' : ''} ${!node.complete ? 'incomplete' : ''}`;
+            nodeElement.id = `node-${node.id}`;
+            nodeElement.style.left = `${node.x}px`;
+            nodeElement.style.top = `${node.y}px`;
+            nodeElement.innerHTML = `
+                <div class="node-name">${node.name}</div>
+                <div class="node-level">${node.level}*/${node.id.split('-')[1] || '1'} юзернейм <span class="blue-dot"></span></div>
+            `;
+            
+            if (node.hasChat) {
+                const chatBubble = document.createElement('div');
+                chatBubble.className = 'chat-bubble';
+                chatBubble.textContent = '1';
+                nodeElement.appendChild(chatBubble);
+            }
+            
+            mindmapContainer.appendChild(nodeElement);
+            nodes[node.id] = nodeElement;
+
+            if (node.children && node.children.length > 0) {
+                const expandCircle = document.createElement('div');
+                expandCircle.className = `expand-circle ${node.expanded ? '' : 'collapsed'} ${!node.complete ? 'incomplete' : ''}`;
+                expandCircle.style.left = `${node.x + 90}px`;
+                expandCircle.style.top = `${node.y + 40}px`;
+                expandCircle.onclick = (e) => {
+                    e.stopPropagation();
+                    toggleNodeExpansion(node.id);
+                };
+                mindmapContainer.appendChild(expandCircle);
+            }
+
+            nodeElement.addEventListener('click', (e) => {
+                if (node.children && node.children.length > 0) {
+                    toggleNodeExpansion(node.id);
+                }
+            });
+        }
+
+        function renderConnection(parentId, childId) {
+            const parent = nodeData[parentId];
+            const child = nodeData[childId];
+
+            if (!parent || !child) return;
+
+            const parentEl = nodes[parentId];
+            const childEl = nodes[childId];
+
+            if (!parentEl || !childEl) return;
+
+            const parentRect = parentEl.getBoundingClientRect();
+            const childRect = childEl.getBoundingClientRect();
+
+            const pX = parent.x + parentRect.width / 2;
+            const pY = parent.y + parentRect.height;
+            const cX = child.x + childRect.width / 2;
+            const cY = child.y;
+
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('stroke', '#3b82f6');
+            path.setAttribute('stroke-width', '2');
+            path.setAttribute('fill', 'none');
+            path.setAttribute('class', 'connection-line');
+            path.setAttribute('id', `conn-${parentId}-${childId}`);
+
+            // Красная пунктирная линия для незавершенных соединений
+            if (!child.complete) {
+                path.classList.add('incomplete');
+            }
+
+            const controlPoint1X = pX;
+            const controlPoint1Y = pY + (cY - pY) * 0.3;
+            const controlPoint2X = cX;
+            const controlPoint2Y = cY - (cY - pY) * 0.3;
+
+            let d = `M ${pX} ${pY} `;
+            d += `C ${controlPoint1X} ${controlPoint1Y}, ${controlPoint2X} ${controlPoint2Y}, ${cX} ${cY}`;
+
+            path.setAttribute('d', d);
+
+            let svg = document.getElementById('connection-svg');
+            if (!svg) {
+                svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('id', 'connection-svg');
+                svg.style.position = 'absolute';
+                svg.style.top = '0';
+                svg.style.left = '0';
+                svg.style.width = '100%';
+                svg.style.height = '100%';
+                svg.style.pointerEvents = 'none';
+                mindmapContainer.appendChild(svg);
+            }
+            svg.appendChild(path);
+            connections[`${parentId}-${childId}`] = path;
+        }
+
+        function updateConnections() {
+            const svg = document.getElementById('connection-svg');
+            if (svg) {
+                svg.innerHTML = '';
+            }
+            connections = {};
+
+            function traverseAndConnect(node) {
+                if (node.children && node.expanded) {
+                    node.children.forEach(child => {
+                        if (child.expanded || node.expanded) {
+                            renderConnection(node.id, child.id);
+                        }
+                        traverseAndConnect(child);
+                    });
+                }
+            }
+            traverseAndConnect(mindmapStructure);
+        }
+
+        function toggleNodeExpansion(nodeId) {
+            const node = findNodeById(mindmapStructure, nodeId);
+            if (node) {
+                node.expanded = !node.expanded;
+                renderMindmapStructure();
+                updateStats();
+            }
+        }
+
+        function findNodeById(root, id) {
+            if (root.id === id) return root;
+            if (root.children) {
+                for (let child of root.children) {
+                    const found = findNodeById(child, id);
+                    if (found) return found;
+                }
+            }
+            return null;
+        }
+
+        function renderStructure(node) {
+            if (node.expanded) {
+                renderNode(node);
+                if (node.children) {
+                    node.children.forEach(child => renderStructure(child));
+                }
+            }
+        }
+
+        function renderMindmapStructure() {
+            mindmapContainer.innerHTML = '';
+            const svg = document.getElementById('connection-svg');
+            if (svg) svg.remove();
+
+            nodes = {};
+            connections = {};
+
+            calculateNodePositions(mindmapStructure);
+            renderStructure(mindmapStructure);
+            updateConnections();
+        }
+
+        // Управление масштабированием
+        function updateZoom() {
+            zoomContainer.style.transform = `scale(${currentZoom})`;
+            zoomLevel.textContent = `${Math.round(currentZoom * 100)}%`;
+        }
+
+        zoomInBtn.addEventListener('click', () => {
+            currentZoom = Math.min(currentZoom * 1.2, 3);
+            updateZoom();
+        });
+
+        zoomOutBtn.addEventListener('click', () => {
+            currentZoom = Math.max(currentZoom / 1.2, 0.3);
+            updateZoom();
+        });
+
+        // Управление скроллом
+        scrollContainer.addEventListener('wheel', (e) => {
+            if (e.ctrlKey) {
+                e.preventDefault();
+                if (e.deltaY < 0) {
+                    currentZoom = Math.min(currentZoom * 1.1, 3);
+                } else {
+                    currentZoom = Math.max(currentZoom / 1.1, 0.3);
+                }
+                updateZoom();
+            }
+        });
+
+        // Кнопки управления
+        expandBtn.addEventListener('click', () => {
+            function expandAll(node) {
+                node.expanded = true;
+                if (node.children) {
+                    node.children.forEach(child => expandAll(child));
+                }
+            }
+            expandAll(mindmapStructure);
+            renderMindmapStructure();
+            updateStats();
+        });
+
+        resetBtn.addEventListener('click', () => {
+            currentZoom = 1;
+            updateZoom();
+            scrollContainer.scrollTo(0, 0);
+        });
+
+        centerBtn.addEventListener('click', () => {
+            const containerWidth = scrollContainer.clientWidth;
+            const containerHeight = scrollContainer.clientHeight;
+            const contentWidth = mindmapContainer.scrollWidth;
+            const contentHeight = mindmapContainer.scrollHeight;
+            
+            const scrollX = (contentWidth - containerWidth) / 2;
+            const scrollY = (contentHeight - containerHeight) / 2;
+            
+            scrollContainer.scrollTo(scrollX, scrollY);
+        });
+
+        // Начальный рендеринг
+        renderMindmapStructure();
+        updateStats();
+        updateZoom();
+    </script>
+</body>
+</html>
