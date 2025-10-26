@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌐 MLM СТРУКТУРА - Все взаимосвязи</title>
+    <title>🌐 MLM СТРУКТУРА - Диагональные связи + карточки</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -155,7 +155,7 @@
             font-weight: 600;
         }
         
-        /* Связи между узлами - ИСПРАВЛЕННЫЕ ПОЗИЦИИ */
+        /* ДИАГОНАЛЬНЫЕ СВЯЗИ */
         .connection-lines {
             position: absolute;
             top: 0;
@@ -179,19 +179,30 @@
             box-shadow: 0 4px 12px rgba(220, 38, 38, 0.5);
         }
         
-        /* От корня к уровню 1 - ТРИ ЛИНИИ */
+        /* Вертикальные линии */
+        .vertical-line {
+            width: 4px;
+        }
+        
+        /* Диагональные линии */
+        .diagonal-line {
+            width: 4px;
+            transform-origin: top left;
+        }
+        
+        /* От корня к уровню 1 - ТРИ ДИАГОНАЛЬНЫЕ ЛИНИИ */
         .line-root-to-l1-1 {
             top: 100px;
             left: 25%;
-            transform: translateX(-50%);
-            height: 100px;
+            transform: translateX(-50%) rotate(15deg);
+            height: 120px;
             width: 4px;
         }
         
         .line-root-to-l1-2 {
             top: 100px;
             left: 50%;
-            transform: translateX(-50%);
+            transform: translateX(-50%) rotate(0deg);
             height: 100px;
             width: 4px;
         }
@@ -199,40 +210,40 @@
         .line-root-to-l1-3 {
             top: 100px;
             left: 75%;
-            transform: translateX(-50%);
-            height: 100px;
+            transform: translateX(-50%) rotate(-15deg);
+            height: 120px;
             width: 4px;
         }
         
-        /* От уровня 1 к уровню 2 - ШЕСТЬ ЛИНИЙ */
+        /* От уровня 1 к уровню 2 - ДИАГОНАЛЬНЫЕ ЛИНИИ */
         .line-l1-1-to-l2-1 {
             top: 220px;
             left: 15%;
-            transform: translateX(-50%);
-            height: 100px;
+            transform: translateX(-50%) rotate(20deg);
+            height: 130px;
             width: 4px;
         }
         
         .line-l1-1-to-l2-2 {
             top: 220px;
             left: 25%;
-            transform: translateX(-50%);
-            height: 100px;
+            transform: translateX(-50%) rotate(5deg);
+            height: 110px;
             width: 4px;
         }
         
         .line-l1-1-to-l2-3 {
             top: 220px;
             left: 35%;
-            transform: translateX(-50%);
-            height: 100px;
+            transform: translateX(-50%) rotate(-10deg);
+            height: 125px;
             width: 4px;
         }
         
         .line-l1-2-to-l2-4 {
             top: 220px;
             left: 50%;
-            transform: translateX(-50%);
+            transform: translateX(-50%) rotate(0deg);
             height: 100px;
             width: 4px;
         }
@@ -240,65 +251,65 @@
         .line-l1-3-to-l2-5 {
             top: 220px;
             left: 75%;
-            transform: translateX(-50%);
-            height: 100px;
+            transform: translateX(-50%) rotate(-20deg);
+            height: 130px;
             width: 4px;
         }
         
         .line-l1-3-to-l2-6 {
             top: 220px;
             left: 85%;
-            transform: translateX(-50%);
-            height: 100px;
+            transform: translateX(-50%) rotate(-35deg);
+            height: 140px;
             width: 4px;
         }
         
-        /* От уровня 2 к уровню 3 - ШЕСТЬ ЛИНИЙ */
+        /* От уровня 2 к уровню 3 - ДИАГОНАЛЬНЫЕ ЛИНИИ */
         .line-l2-1-to-l3-1 {
-            top: 340px;
+            top: 350px;
             left: 10%;
-            transform: translateX(-50%);
-            height: 100px;
+            transform: translateX(-50%) rotate(25deg);
+            height: 140px;
             width: 4px;
         }
         
         .line-l2-1-to-l3-2 {
-            top: 340px;
+            top: 350px;
             left: 20%;
-            transform: translateX(-50%);
-            height: 100px;
+            transform: translateX(-50%) rotate(10deg);
+            height: 120px;
             width: 4px;
         }
         
         .line-l2-3-to-l3-3 {
-            top: 340px;
+            top: 350px;
             left: 30%;
-            transform: translateX(-50%);
-            height: 100px;
+            transform: translateX(-50%) rotate(-15deg);
+            height: 130px;
             width: 4px;
         }
         
         .line-l2-3-to-l3-4 {
-            top: 340px;
+            top: 350px;
             left: 40%;
-            transform: translateX(-50%);
-            height: 100px;
+            transform: translateX(-50%) rotate(-30deg);
+            height: 140px;
             width: 4px;
         }
         
         .line-l2-5-to-l3-5 {
-            top: 340px;
+            top: 350px;
             left: 70%;
-            transform: translateX(-50%);
-            height: 100px;
+            transform: translateX(-50%) rotate(-25deg);
+            height: 140px;
             width: 4px;
         }
         
         .line-l2-5-to-l3-6 {
-            top: 340px;
+            top: 350px;
             left: 80%;
-            transform: translateX(-50%);
-            height: 100px;
+            transform: translateX(-50%) rotate(-40deg);
+            height: 150px;
             width: 4px;
         }
         
@@ -358,7 +369,7 @@
 <body>
     <div class="header">
         <div class="title">🌐 MLM СТРУКТУРА</div>
-        <div class="subtitle">Все взаимосвязи показаны</div>
+        <div class="subtitle">Диагональные связи + карточки пользователей</div>
     </div>
     
     <div class="controls">
@@ -372,12 +383,12 @@
         <div class="mlm-tree">
             <!-- Связи -->
             <div class="connection-lines">
-                <!-- От корня к уровню 1 - ТРИ ЛИНИИ -->
+                <!-- От корня к уровню 1 - ТРИ ДИАГОНАЛЬНЫЕ ЛИНИИ -->
                 <div class="connection-line line-root-to-l1-1"></div>
                 <div class="connection-line line-root-to-l1-2"></div>
                 <div class="connection-line line-root-to-l1-3"></div>
                 
-                <!-- От уровня 1 к уровню 2 - ШЕСТЬ ЛИНИЙ -->
+                <!-- От уровня 1 к уровню 2 - ДИАГОНАЛЬНЫЕ ЛИНИИ -->
                 <div class="connection-line line-l1-1-to-l2-1"></div>
                 <div class="connection-line line-l1-1-to-l2-2"></div>
                 <div class="connection-line line-l1-1-to-l2-3"></div>
@@ -385,7 +396,7 @@
                 <div class="connection-line line-l1-3-to-l2-5"></div>
                 <div class="connection-line line-l1-3-to-l2-6"></div>
                 
-                <!-- От уровня 2 к уровню 3 - ШЕСТЬ ЛИНИЙ -->
+                <!-- От уровня 2 к уровню 3 - ДИАГОНАЛЬНЫЕ ЛИНИИ -->
                 <div class="connection-line line-l2-1-to-l3-1"></div>
                 <div class="connection-line line-l2-1-to-l3-2"></div>
                 <div class="connection-line line-l2-3-to-l3-3"></div>
@@ -493,7 +504,7 @@
     </div>
     
     <div class="stats-panel">
-        <div class="stats-title">📊 Статистика с полными взаимосвязями</div>
+        <div class="stats-title">📊 Статистика с диагональными связями</div>
         <div class="stats-grid">
             <div class="stat-item">
                 <div class="stat-number">16</div>
@@ -509,7 +520,7 @@
             </div>
             <div class="stat-item">
                 <div class="stat-number">15</div>
-                <div class="stat-label">🔗 Связей</div>
+                <div class="stat-label">🔗 Диагональных связей</div>
             </div>
         </div>
     </div>
@@ -603,8 +614,8 @@
                 <p style="font-size: 1.2rem; margin-bottom: 10px;"><strong>${userName}</strong></p>
                 <p style="color: #666; margin-bottom: 20px;">${userId}</p>
                 <div style="background: #f0f4ff; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                    <p style="color: #667eea; font-weight: 600;">🔗 Связи:</p>
-                    <p style="font-size: 0.9rem; color: #666;">Показаны красными линиями</p>
+                    <p style="color: #667eea; font-weight: 600;">🔗 Диагональные связи:</p>
+                    <p style="font-size: 0.9rem; color: #666;">Показаны красными диагональными линиями</p>
                 </div>
                 <button onclick="this.closest('.modal').remove()" style="
                     background: linear-gradient(135deg, #667eea, #764ba2);
@@ -740,12 +751,12 @@
             }
         }
         
-        // Анимация появления связей
+        // Анимация появления диагональных связей
         setTimeout(() => {
             document.querySelectorAll('.connection-line').forEach((line, index) => {
                 setTimeout(() => {
                     line.style.opacity = '1';
-                    line.style.transform = 'scaleY(1)';
+                    line.style.transform = line.style.transform.replace('scaleY(0)', 'scaleY(1)');
                 }, index * 50);
             });
         }, 500);
@@ -753,7 +764,7 @@
         // Изначально скрываем связи
         document.querySelectorAll('.connection-line').forEach(line => {
             line.style.opacity = '0';
-            line.style.transform = 'scaleY(0)';
+            line.style.transform = line.style.transform.replace('scaleY(1)', 'scaleY(0)');
             line.style.transition = 'all 0.5s ease';
         });
         
