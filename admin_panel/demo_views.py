@@ -96,7 +96,7 @@ def admin_demo_structure(request):
         'is_demo': True,
     }
     
-    return render(request, 'admin_panel/demo_structure.html', context)
+    return render(request, 'admin_panel/mindmap_horizontal.html', context)
 
 
 def structure_viewer(request):
