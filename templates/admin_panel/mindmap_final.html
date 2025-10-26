@@ -308,8 +308,17 @@
     <script>
         console.log('🌐 MLM Mind Map Loading - FINAL VERSION!');
         
+        const CARD_WIDTH = 150;
+        const CARD_HEIGHT = 70;
+        const COLUMN_GAP = 170;
+        const ROW_GAP = 35;
+        const BASE_LEFT = 150;
+        const BASE_TOP = 80;
+        
         let mindMapNodes = [];
         let mindMapConnections = [];
+        let connectionPairs = [];
+        let currentLayout = null;
         
         // Структура данных для горизонтальной майнд-карты СИММЕТРИЧНО ВВЕРХ И ВНИЗ
         const mindMapStructure = {
@@ -458,7 +467,8 @@
         };
         
         // Функция создания узла
-        function createNode(id, name, level, x, y) {
+        function createNode(id, name, level, position) {
+            const { x, y } = position;
             const node = document.createElement('div');
             node.className = 'user-card';
             node.id = id;
@@ -487,8 +497,6 @@
         // Функция создания изогнутой связи
         function createCurvedConnection(fromId, toId, fromX, fromY, toX, toY) {
             const svg = document.getElementById('connectionSvg');
-            
-            // Создаем путь для изогнутой линии
             const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             
             // Вычисляем контрольные точки для кривой Безье
@@ -511,7 +519,76 @@
             return path;
         }
         
-        // Функция рендеринга майнд-карты
+        function linkNodesById(parentId, childId) {
+            const parentEl = document.getElementById(parentId);
+            const childEl = document.getElementById(childId);
+            if (!parentEl || !childEl) return;
+            
+            const fromX = parentEl.offsetLeft + parentEl.offsetWidth;
+            const fromY = parentEl.offsetTop + parentEl.offsetHeight / 2;
+            const toX = childEl.offsetLeft;
+            const toY = childEl.offsetTop + childEl.offsetHeight / 2;
+            createCurvedConnection(parentId, childId, fromX, fromY, toX, toY);
+        }
+        
+        function computeLayout(root) {
+            const nodes = [];
+            let maxDepth = 0;
+            
+            function assign(node, depth = 0, startUnit = 0) {
+                maxDepth = Math.max(maxDepth, depth);
+                const children = node.children || [];
+                node._depth = depth;
+                
+                if (!children.length) {
+                    node._leafCount = 1;
+                    node._unitCenter = startUnit + 0.5;
+                    nodes.push(node);
+                    return startUnit + 1;
+                }
+                
+                let cursor = startUnit;
+                children.forEach(child => {
+                    cursor = assign(child, depth + 1, cursor);
+                });
+                
+                node._leafCount = cursor - startUnit;
+                const first = children[0];
+                const last = children[children.length - 1];
+                node._unitCenter = (first._unitCenter + last._unitCenter) / 2;
+                nodes.push(node);
+                return cursor;
+            }
+            
+            const totalLeaves = assign(root, 0, 0);
+            const verticalSpacing = CARD_HEIGHT + ROW_GAP;
+            const horizontalSpacing = CARD_WIDTH + COLUMN_GAP;
+            
+            const positions = {};
+            nodes.forEach(node => {
+                positions[node.id] = {
+                    x: BASE_LEFT + node._depth * horizontalSpacing,
+                    y: BASE_TOP + (node._unitCenter - 0.5) * verticalSpacing
+                };
+            });
+            
+            const canvasHeight = BASE_TOP * 2 + (totalLeaves || 1) * verticalSpacing + CARD_HEIGHT;
+            const canvasWidth = BASE_LEFT * 2 + (maxDepth + 1) * horizontalSpacing + CARD_WIDTH;
+            
+            return { positions, canvasHeight, canvasWidth };
+        }
+        
+        function renderConnectionsFromDom() {
+            const svg = document.getElementById('connectionSvg');
+            if (!svg) return;
+            svg.innerHTML = '';
+            mindMapConnections = [];
+            
+            connectionPairs.forEach(({ parentId, childId }) => {
+                linkNodesById(parentId, childId);
+            });
+        }
+        
         function renderMindMap() {
             console.log('🎨 Rendering horizontal mind map...');
             
@@ -527,29 +604,32 @@
             svg.innerHTML = '';
             mindMapNodes = [];
             mindMapConnections = [];
+            connectionPairs = [];
             
-            // Рендерим корневой узел
-            const rootNode = createNode('plazma', 'PLAZMA', 4, 200, 1000);
-            container.appendChild(rootNode);
+            const existingNodes = container.querySelectorAll('.user-card');
+            existingNodes.forEach(node => node.remove());
             
-            // Рендерим все остальные узлы рекурсивно
-            function renderNode(nodeData, parentId, parentX, parentY) {
-                if (!nodeData.children) return;
+            currentLayout = computeLayout(mindMapStructure);
+            const { positions, canvasHeight, canvasWidth } = currentLayout;
+            container.style.height = `${canvasHeight}px`;
+            container.style.width = `${canvasWidth}px`;
+            
+            function renderNodeRecursive(nodeData, parentId = null) {
+                const position = positions[nodeData.id];
+                if (!position) return;
                 
-                nodeData.children.forEach(child => {
-                    const childNode = createNode(child.id, child.name, child.level, child.x, child.y);
-                    container.appendChild(childNode);
-                    
-                    // Создаем изогнутую связь от родителя к ребенку
-                    createCurvedConnection(parentId, child.id, parentX + 60, parentY + 30, child.x, child.y + 30);
-                    
-                    // Рекурсивно рендерим детей
-                    renderNode(child, child.id, child.x, child.y);
-                });
+                const nodeEl = createNode(nodeData.id, nodeData.name, nodeData.level, position);
+                container.appendChild(nodeEl);
+                
+                if (parentId) {
+                    connectionPairs.push({ parentId, childId: nodeData.id });
+                }
+                
+                (nodeData.children || []).forEach(child => renderNodeRecursive(child, nodeData.id));
             }
             
-            // Рендерим детей корневого узла
-            renderNode(mindMapStructure, 'plazma', 200, 1000);
+            renderNodeRecursive(mindMapStructure, null);
+            renderConnectionsFromDom();
             
             updateStats();
             console.log('✅ Horizontal mind map rendered successfully!');
@@ -561,11 +641,11 @@
             
             // Добавляем уровень 0 под каждый узел уровня 1
             const level1Nodes = document.querySelectorAll('.user-card[data-level="1"]');
+            const mindmapRect = document.getElementById('mindmapContainer').getBoundingClientRect();
             level1Nodes.forEach((node, index) => {
                 const nodeRect = node.getBoundingClientRect();
-                const containerRect = document.querySelector('.structure-container').getBoundingClientRect();
-                const nodeX = nodeRect.left - containerRect.left;
-                const nodeY = nodeRect.top - containerRect.top;
+                const nodeX = nodeRect.left - mindmapRect.left;
+                const nodeY = nodeRect.top - mindmapRect.top;
                 
                 // Создаем 3 узла уровня 0 под каждым узлом уровня 1 СИММЕТРИЧНО
                 for (let i = 0; i < 3; i++) {
@@ -580,11 +660,12 @@
                         level0Y = nodeY + 80; // Нижний
                     }
                     
-                    const level0Node = createNode(`0-${index * 3 + i + 1}`, `0*/${index * 3 + i + 1}`, 0, level0X, level0Y);
+                    const newId = `0-${index * 3 + i + 1}`;
+                    const level0Node = createNode(newId, `0*/${index * 3 + i + 1}`, 0, { x: level0X, y: level0Y });
                     document.getElementById('mindmapContainer').appendChild(level0Node);
                     
-                    // Создаем изогнутую связь от уровня 1 к уровню 0
-                    createCurvedConnection(node.id, `0-${index * 3 + i + 1}`, nodeX + 120, nodeY + 30, level0X, level0Y + 30);
+                    connectionPairs.push({ parentId: node.id, childId: newId });
+                    linkNodesById(node.id, newId);
                 }
             });
             
@@ -625,6 +706,7 @@
             
             mindMapNodes = [];
             mindMapConnections = [];
+            connectionPairs = [];
             updateStats();
         }
         
