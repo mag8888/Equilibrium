@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌐 MLM СТРУКТУРА - ГОРИЗОНТАЛЬНАЯ МАЙНД-КАРТА WORKING</title>
+    <title>🌐 MLM СТРУКТУРА - ГОРИЗОНТАЛЬНАЯ МАЙНД-КАРТА WORKING v2</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -526,9 +526,8 @@
                 return;
             }
             
-            // Очищаем контейнер
-            container.innerHTML = '';
-            svg.innerHTML = '';
+            // Очищаем контейнер, но сохраняем SVG
+            container.innerHTML = '<svg class="connection-svg" id="connectionSvg"></svg>';
             mindMapNodes = [];
             mindMapConnections = [];
             
@@ -610,10 +609,10 @@
         // Функции управления
         function clearMindMap() {
             const container = document.getElementById('mindmapContainer');
-            const svg = document.getElementById('connectionSvg');
             
-            if (container) container.innerHTML = '';
-            if (svg) svg.innerHTML = '';
+            if (container) {
+                container.innerHTML = '<svg class="connection-svg" id="connectionSvg"></svg>';
+            }
             
             mindMapNodes = [];
             mindMapConnections = [];
