@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔧 MLM ОТЛАДКА - ИСПРАВЛЕНО</title>
+    <title>🌐 MLM СТРУКТУРА - ФИНАЛЬНАЯ ВЕРСИЯ</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -13,7 +13,21 @@
             padding: 20px;
         }
         
-        .debug-container {
+        .header {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+        
+        .status-container {
             background: white;
             border-radius: 10px;
             padding: 20px;
@@ -21,13 +35,78 @@
             margin-bottom: 20px;
         }
         
-        .debug-info {
-            background: #e8f5e8;
-            border: 1px solid #4caf50;
+        .status {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
             border-radius: 5px;
-            padding: 10px;
-            margin-bottom: 10px;
-            font-family: monospace;
+            padding: 15px;
+            margin-bottom: 15px;
+            color: #155724;
+        }
+        
+        .stats {
+            background: #f8f9fa;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            text-align: center;
+            margin: 5px;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        
+        .btn:hover {
+            background: #0056b3;
+        }
+        
+        .btn.success {
+            background: #28a745;
+        }
+        
+        .btn.success:hover {
+            background: #1e7e34;
+        }
+        
+        .btn.warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .btn.warning:hover {
+            background: #e0a800;
         }
         
         .structure-container {
@@ -36,7 +115,7 @@
             border: 2px solid #ddd;
             border-radius: 10px;
             padding: 20px;
-            min-height: 600px;
+            min-height: 800px;
             overflow: auto;
             width: 100%;
         }
@@ -46,17 +125,43 @@
             background: #fff;
             border: 2px solid #ef4444;
             border-radius: 8px;
-            padding: 10px 15px;
+            padding: 12px 16px;
             text-align: center;
-            min-width: 150px;
+            min-width: 160px;
             z-index: 10;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+        }
+        
+        .node:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
         
         .node.active {
             background: linear-gradient(145deg, #8b5cf6, #7c3aed);
             color: white;
             border-color: #7c3aed;
+        }
+        
+        .node.level-0 {
+            background: #e8f5e8;
+            border-color: #28a745;
+        }
+        
+        .node.level-1 {
+            background: #fff3cd;
+            border-color: #ffc107;
+        }
+        
+        .node.level-2 {
+            background: #d1ecf1;
+            border-color: #17a2b8;
+        }
+        
+        .node.level-3 {
+            background: #f8d7da;
+            border-color: #dc3545;
         }
         
         .node-name {
@@ -77,70 +182,70 @@
         .connection-line {
             position: absolute;
             stroke: #3b82f6;
-            stroke-width: 3;
+            stroke-width: 2;
             fill: none;
             z-index: 5;
             pointer-events: none;
         }
         
-        .stats {
-            background: #f8f9fa;
+        .debug-info {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
             border-radius: 5px;
             padding: 10px;
             margin-bottom: 10px;
-        }
-        
-        .controls {
-            margin-bottom: 10px;
-        }
-        
-        .btn {
-            background: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 8px 16px;
-            margin-right: 10px;
-            cursor: pointer;
-        }
-        
-        .btn:hover {
-            background: #0056b3;
-        }
-        
-        .status {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            border-radius: 5px;
-            padding: 10px;
-            margin-bottom: 10px;
-            color: #155724;
+            font-family: monospace;
+            font-size: 12px;
         }
     </style>
 </head>
 <body>
-    <div class="debug-container">
-        <h2>🔧 MLM СТРУКТУРА - ИСПРАВЛЕНО</h2>
-        
+    <div class="header">
+        <h1>🌐 MLM СТРУКТУРА - ФИНАЛЬНАЯ ВЕРСИЯ</h1>
+    </div>
+    
+    <div class="status-container">
         <div class="status">
-            ✅ <strong>Статус:</strong> Сервер запущен, статические файлы исправлены
-        </div>
-        
-        <div class="debug-info" id="debugInfo">
-            🔍 Инициализация исправленной версии...
+            ✅ <strong>Статус:</strong> Сервер запущен, статические файлы исправлены, полная MLM структура готова
         </div>
         
         <div class="stats">
-            <strong>Статистика:</strong>
-            <span id="nodeCount">Узлов: 0</span> | 
-            <span id="connectionCount">Связей: 0</span>
+            <div class="stat-item">
+                <div class="stat-number" id="totalNodes">0</div>
+                <div class="stat-label">Всего узлов</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="totalConnections">0</div>
+                <div class="stat-label">Всего связей</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="level0Count">0</div>
+                <div class="stat-label">Участники (0-й)</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="level1Count">0</div>
+                <div class="stat-label">Партнеры (1-й)</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="level2Count">0</div>
+                <div class="stat-label">Партнеры (2-й)</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="level3Count">0</div>
+                <div class="stat-label">Партнеры (3-й)</div>
+            </div>
         </div>
         
         <div class="controls">
             <button class="btn" onclick="renderStructure()">🔄 Перерисовать</button>
-            <button class="btn" onclick="clearStructure()">🗑️ Очистить</button>
+            <button class="btn warning" onclick="clearStructure()">🗑️ Очистить</button>
+            <button class="btn success" onclick="addLevel0()">➕ Добавить 0-й уровень</button>
             <button class="btn" onclick="testConnections()">🔗 Тест связей</button>
-            <button class="btn" onclick="addLevel0()">➕ Добавить 0-й уровень</button>
+            <button class="btn" onclick="showFullStructure()">🌐 Полная структура</button>
+        </div>
+        
+        <div class="debug-info" id="debugInfo">
+            🔍 Инициализация финальной версии...
         </div>
     </div>
     
@@ -149,7 +254,7 @@
     </div>
 
     <script>
-        console.log('🚀 MLM Debug Loading - FIXED VERSION...');
+        console.log('🚀 MLM Final Version Loading...');
         
         function updateDebugInfo(message) {
             const debugInfo = document.getElementById('debugInfo');
@@ -159,19 +264,52 @@
             }
         }
         
-        // ИСПРАВЛЕННАЯ СТРУКТУРА
+        function updateStats() {
+            const stats = {
+                total: 0,
+                connections: 0,
+                level0: 0,
+                level1: 0,
+                level2: 0,
+                level3: 0
+            };
+            
+            function countNodes(node) {
+                stats.total++;
+                if (node.level === 0) stats.level0++;
+                else if (node.level === 1) stats.level1++;
+                else if (node.level === 2) stats.level2++;
+                else if (node.level === 3) stats.level3++;
+                
+                if (node.children) {
+                    stats.connections += node.children.length;
+                    node.children.forEach(child => countNodes(child));
+                }
+            }
+            
+            countNodes(structure);
+            
+            document.getElementById('totalNodes').textContent = stats.total;
+            document.getElementById('totalConnections').textContent = stats.connections;
+            document.getElementById('level0Count').textContent = stats.level0;
+            document.getElementById('level1Count').textContent = stats.level1;
+            document.getElementById('level2Count').textContent = stats.level2;
+            document.getElementById('level3Count').textContent = stats.level3;
+        }
+        
+        // ПОЛНАЯ MLM СТРУКТУРА
         let structure = {
             id: 'plazma',
             name: 'PLAZMA',
             level: 4,
-            x: 300,
+            x: 400,
             y: 50,
             children: [
                 {
                     id: '3-1',
                     name: '3*/1',
                     level: 3,
-                    x: 150,
+                    x: 200,
                     y: 200,
                     children: [
                         {
@@ -195,6 +333,17 @@
                                 { id: '1-3', name: '1*/3', level: 1, x: 150, y: 500 },
                                 { id: '1-4', name: '1*/4', level: 1, x: 250, y: 500 }
                             ]
+                        },
+                        {
+                            id: '2-3',
+                            name: '2*/3',
+                            level: 2,
+                            x: 300,
+                            y: 350,
+                            children: [
+                                { id: '1-5', name: '1*/5', level: 1, x: 250, y: 500 },
+                                { id: '1-6', name: '1*/6', level: 1, x: 350, y: 500 }
+                            ]
                         }
                     ]
                 },
@@ -202,29 +351,82 @@
                     id: '3-2',
                     name: '3*/2',
                     level: 3,
-                    x: 450,
+                    x: 400,
                     y: 200,
                     children: [
-                        {
-                            id: '2-3',
-                            name: '2*/3',
-                            level: 2,
-                            x: 400,
-                            y: 350,
-                            children: [
-                                { id: '1-5', name: '1*/5', level: 1, x: 350, y: 500 },
-                                { id: '1-6', name: '1*/6', level: 1, x: 450, y: 500 }
-                            ]
-                        },
                         {
                             id: '2-4',
                             name: '2*/4',
                             level: 2,
+                            x: 300,
+                            y: 350,
+                            children: [
+                                { id: '1-7', name: '1*/7', level: 1, x: 250, y: 500 },
+                                { id: '1-8', name: '1*/8', level: 1, x: 350, y: 500 }
+                            ]
+                        },
+                        {
+                            id: '2-5',
+                            name: '2*/5',
+                            level: 2,
+                            x: 400,
+                            y: 350,
+                            children: [
+                                { id: '1-9', name: '1*/9', level: 1, x: 350, y: 500 },
+                                { id: '1-10', name: '1*/10', level: 1, x: 450, y: 500 }
+                            ]
+                        },
+                        {
+                            id: '2-6',
+                            name: '2*/6',
+                            level: 2,
                             x: 500,
                             y: 350,
                             children: [
-                                { id: '1-7', name: '1*/7', level: 1, x: 450, y: 500 },
-                                { id: '1-8', name: '1*/8', level: 1, x: 550, y: 500 }
+                                { id: '1-11', name: '1*/11', level: 1, x: 450, y: 500 },
+                                { id: '1-12', name: '1*/12', level: 1, x: 550, y: 500 }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: '3-3',
+                    name: '3*/3',
+                    level: 3,
+                    x: 600,
+                    y: 200,
+                    children: [
+                        {
+                            id: '2-7',
+                            name: '2*/7',
+                            level: 2,
+                            x: 500,
+                            y: 350,
+                            children: [
+                                { id: '1-13', name: '1*/13', level: 1, x: 450, y: 500 },
+                                { id: '1-14', name: '1*/14', level: 1, x: 550, y: 500 }
+                            ]
+                        },
+                        {
+                            id: '2-8',
+                            name: '2*/8',
+                            level: 2,
+                            x: 600,
+                            y: 350,
+                            children: [
+                                { id: '1-15', name: '1*/15', level: 1, x: 550, y: 500 },
+                                { id: '1-16', name: '1*/16', level: 1, x: 650, y: 500 }
+                            ]
+                        },
+                        {
+                            id: '2-9',
+                            name: '2*/9',
+                            level: 2,
+                            x: 700,
+                            y: 350,
+                            children: [
+                                { id: '1-17', name: '1*/17', level: 1, x: 650, y: 500 },
+                                { id: '1-18', name: '1*/18', level: 1, x: 750, y: 500 }
                             ]
                         }
                     ]
@@ -232,15 +434,11 @@
             ]
         };
         
-        let nodeCount = 0;
-        let connectionCount = 0;
-        
         function renderNode(node) {
             console.log('🎯 Rendering node:', node.name, 'at', node.x, node.y);
-            updateDebugInfo(`Рендеринг узла: ${node.name} в позиции (${node.x}, ${node.y})`);
             
             const nodeElement = document.createElement('div');
-            nodeElement.className = `node ${node.level === 4 ? 'active' : ''}`;
+            nodeElement.className = `node ${node.level === 4 ? 'active' : `level-${node.level}`}`;
             nodeElement.id = `node-${node.id}`;
             nodeElement.style.left = `${node.x}px`;
             nodeElement.style.top = `${node.y}px`;
@@ -252,11 +450,9 @@
             const container = document.getElementById('structureContainer');
             if (container) {
                 container.appendChild(nodeElement);
-                nodeCount++;
                 console.log('✅ Node added to container');
             } else {
                 console.error('❌ Container not found!');
-                updateDebugInfo('❌ Ошибка: контейнер не найден!');
             }
         }
         
@@ -271,14 +467,14 @@
             
             console.log(`🔗 Connecting ${parentId} to ${childId}`);
             
-            const pX = parent.x + 75; // Центр узла
-            const pY = parent.y + 40; // Низ узла
-            const cX = child.x + 75;  // Центр узла
-            const cY = child.y;       // Верх узла
+            const pX = parent.x + 80;
+            const pY = parent.y + 40;
+            const cX = child.x + 80;
+            const cY = child.y;
             
             const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             path.setAttribute('stroke', '#3b82f6');
-            path.setAttribute('stroke-width', '3');
+            path.setAttribute('stroke-width', '2');
             path.setAttribute('fill', 'none');
             path.setAttribute('class', 'connection-line');
             path.setAttribute('d', `M ${pX} ${pY} L ${cX} ${cY}`);
@@ -298,7 +494,6 @@
             }
             
             svg.appendChild(path);
-            connectionCount++;
             console.log('✅ Connection line added');
         }
         
@@ -323,12 +518,8 @@
                 return;
             }
             
-            // Очищаем контейнер
             container.innerHTML = '';
-            nodeCount = 0;
-            connectionCount = 0;
             
-            // Создаем SVG для связей
             const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
             svg.setAttribute('id', 'connection-svg');
             svg.style.position = 'absolute';
@@ -340,7 +531,6 @@
             svg.style.zIndex = '1';
             container.appendChild(svg);
             
-            // Рендерим узлы рекурсивно
             function renderNodeRecursive(node) {
                 renderNode(node);
                 if (node.children) {
@@ -348,9 +538,6 @@
                 }
             }
             
-            renderNodeRecursive(structure);
-            
-            // Рендерим связи рекурсивно
             function renderConnectionsRecursive(node) {
                 if (node.children) {
                     node.children.forEach(child => {
@@ -360,40 +547,29 @@
                 }
             }
             
+            renderNodeRecursive(structure);
             renderConnectionsRecursive(structure);
             
-            // Обновляем статистику
-            document.getElementById('nodeCount').textContent = `Узлов: ${nodeCount}`;
-            document.getElementById('connectionCount').textContent = `Связей: ${connectionCount}`;
+            updateStats();
             
-            updateDebugInfo(`✅ Структура готова! Узлов: ${nodeCount}, Связей: ${connectionCount}`);
+            updateDebugInfo(`✅ Структура готова! Узлов: ${document.getElementById('totalNodes').textContent}, Связей: ${document.getElementById('totalConnections').textContent}`);
             console.log('✅ Structure rendered successfully!');
         }
         
         function clearStructure() {
             const container = document.getElementById('structureContainer');
             container.innerHTML = '';
-            nodeCount = 0;
-            connectionCount = 0;
-            document.getElementById('nodeCount').textContent = 'Узлов: 0';
-            document.getElementById('connectionCount').textContent = 'Связей: 0';
+            updateStats();
             updateDebugInfo('🗑️ Структура очищена');
         }
         
         function testConnections() {
             updateDebugInfo('🔗 Тестируем связи...');
-            console.log('🔗 Testing connections...');
             
-            // Тестируем поиск узлов
             const plazma = findNodeById(structure, 'plazma');
             const node3_1 = findNodeById(structure, '3-1');
             const node2_1 = findNodeById(structure, '2-1');
             const node1_1 = findNodeById(structure, '1-1');
-            
-            console.log('PLAZMA found:', plazma);
-            console.log('3-1 found:', node3_1);
-            console.log('2-1 found:', node2_1);
-            console.log('1-1 found:', node1_1);
             
             updateDebugInfo(`🔗 Тест завершен. PLAZMA: ${plazma ? '✅' : '❌'}, 3-1: ${node3_1 ? '✅' : '❌'}, 2-1: ${node2_1 ? '✅' : '❌'}, 1-1: ${node1_1 ? '✅' : '❌'}`);
         }
@@ -401,21 +577,19 @@
         function addLevel0() {
             updateDebugInfo('➕ Добавляем 0-й уровень...');
             
-            // Добавляем 0-й уровень к каждому узлу 1-го уровня
             function addLevel0Recursive(node) {
                 if (node.level === 1) {
                     if (!node.children) {
                         node.children = [];
                     }
                     
-                    // Добавляем 3 узла 0-го уровня
                     for (let i = 1; i <= 3; i++) {
                         const level0Id = `0-${node.id.split('-')[1]}-${i}`;
                         const level0Node = {
                             id: level0Id,
                             name: `0*/${level0Id.split('-')[1]}${i}`,
                             level: 0,
-                            x: node.x + (i - 2) * 50,
+                            x: node.x + (i - 2) * 60,
                             y: node.y + 150
                         };
                         node.children.push(level0Node);
@@ -430,17 +604,45 @@
             updateDebugInfo('✅ 0-й уровень добавлен!');
         }
         
+        function showFullStructure() {
+            updateDebugInfo('🌐 Показываем полную структуру...');
+            
+            // Расширяем структуру до полной MLM
+            function expandToFullMLM(node) {
+                if (node.level === 1 && (!node.children || node.children.length < 3)) {
+                    if (!node.children) node.children = [];
+                    
+                    for (let i = node.children.length + 1; i <= 3; i++) {
+                        const childId = `0-${node.id.split('-')[1]}-${i}`;
+                        const child = {
+                            id: childId,
+                            name: `0*/${node.id.split('-')[1]}${i}`,
+                            level: 0,
+                            x: node.x + (i - 2) * 60,
+                            y: node.y + 150
+                        };
+                        node.children.push(child);
+                    }
+                } else if (node.children) {
+                    node.children.forEach(child => expandToFullMLM(child));
+                }
+            }
+            
+            expandToFullMLM(structure);
+            renderStructure();
+            updateDebugInfo('✅ Полная MLM структура готова!');
+        }
+        
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('📄 DOM Content Loaded - FIXED VERSION');
-            updateDebugInfo('DOM загружен, начинаем инициализацию исправленной версии...');
+            console.log('📄 DOM Content Loaded - FINAL VERSION');
+            updateDebugInfo('DOM загружен, начинаем инициализацию финальной версии...');
             renderStructure();
         });
         
-        // Дополнительная инициализация
         setTimeout(function() {
-            console.log('⏰ Delayed initialization - FIXED');
-            updateDebugInfo('Дополнительная инициализация исправленной версии...');
+            console.log('⏰ Delayed initialization - FINAL');
+            updateDebugInfo('Дополнительная инициализация финальной версии...');
             renderStructure();
         }, 100);
     </script>
