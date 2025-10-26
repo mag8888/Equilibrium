@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌐 MLM СТРУКТУРА - Полная структура 4→3→3</title>
+    <title>🌐 MLM СТРУКТУРА - Исправлены соединения</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -264,7 +264,7 @@
         .connection-line {
             position: absolute;
             stroke: #3b82f6;
-            stroke-width: 2;
+            stroke-width: 3;
             fill: none;
             z-index: 5;
             pointer-events: none;
@@ -272,7 +272,7 @@
 
         .connection-line.incomplete {
             stroke: #ef4444;
-            stroke-width: 3;
+            stroke-width: 4;
             stroke-dasharray: 5,5;
             animation: dash 1s linear infinite;
         }
@@ -457,7 +457,7 @@
 
     <div class="structure-container" id="structureContainer">
         <div class="debug-info" id="debugInfo">
-            🔍 Отладка: Загрузка полной структуры...
+            🔍 Отладка: Исправляем соединения...
         </div>
         
         <div class="logic-stats" id="logicStats">
@@ -523,7 +523,7 @@
         
         updateDebugInfo('🔍 Инициализация элементов...');
         
-        // ПОЛНАЯ СТРУКТУРА: PLAZMA → 3 партнера 3-го уровня → каждый имеет 3 партнера 2-го уровня
+        // ПОЛНАЯ СТРУКТУРА С ПРАВИЛЬНЫМИ ПОЗИЦИЯМИ
         const structure = {
             id: 'plazma', 
             name: 'PLAZMA', 
@@ -582,7 +582,7 @@
             ]
         };
 
-        updateDebugInfo('🔍 Полная структура создана, начинаем рендеринг...');
+        updateDebugInfo('🔍 Структура создана, исправляем соединения...');
 
         // Функция для обновления масштаба
         function updateZoom() {
@@ -639,7 +639,7 @@
                 if (scrollContainer) {
                     scrollContainer.scrollTo(0, 0);
                 }
-                updateDebugInfo('🔍 Reset View clicked');
+                updateDebugInfo('�� Reset View clicked');
             });
         }
 
@@ -692,25 +692,32 @@
             }
         }
 
-        // Функция для рендеринга соединений
+        // Функция для рендеринга соединений С ПРАВИЛЬНЫМИ КООРДИНАТАМИ
         function renderConnection(parentId, childId) {
             const parent = findNodeById(structure, parentId);
             const child = findNodeById(structure, childId);
 
-            if (!parent || !child) return;
+            if (!parent || !child) {
+                console.log('❌ Parent or child not found:', parentId, childId);
+                return;
+            }
 
-            const pX = parent.x + 90;
-            const pY = parent.y + 40;
-            const cX = child.x + 90;
-            const cY = child.y + 40;
+            // ПРАВИЛЬНЫЕ КООРДИНАТЫ ДЛЯ СОЕДИНЕНИЯ
+            const pX = parent.x + 90; // Центр узла по горизонтали
+            const pY = parent.y + 60; // Низ узла
+            const cX = child.x + 90;  // Центр узла по горизонтали
+            const cY = child.y;      // Верх узла
+
+            console.log(`🔗 Connecting ${parentId} (${pX}, ${pY}) to ${childId} (${cX}, ${cY})`);
 
             const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             path.setAttribute('stroke', '#3b82f6');
-            path.setAttribute('stroke-width', '2');
+            path.setAttribute('stroke-width', '3');
             path.setAttribute('fill', 'none');
             path.setAttribute('class', 'connection-line');
             path.setAttribute('id', `conn-${parentId}-${childId}`);
 
+            // Прямая линия от низа родителя к верху ребенка
             let d = `M ${pX} ${pY} L ${cX} ${cY}`;
             path.setAttribute('d', d);
 
@@ -731,6 +738,7 @@
                 }
             }
             connectionSvg.appendChild(path);
+            console.log('✅ Connection line added');
         }
 
         // Функция для поиска узла по ID
@@ -748,7 +756,7 @@
         // Функция для рендеринга структуры
         function renderStructure() {
             console.log('🎨 Rendering structure...');
-            updateDebugInfo('🔍 Начинаем рендеринг полной структуры...');
+            updateDebugInfo('🔍 Начинаем рендеринг с исправленными соединениями...');
             
             const container = document.getElementById('mindmapContainer');
             if (!container) {
@@ -787,7 +795,7 @@
             
             renderNodeRecursive(structure);
             
-            updateDebugInfo('🔍 Рендерим соединения...');
+            updateDebugInfo('🔍 Рендерим соединения с правильными координатами...');
             
             // Рендерим соединения рекурсивно
             function renderConnectionsRecursive(node) {
@@ -803,8 +811,8 @@
             
             updateStats();
             
-            updateDebugInfo('✅ Полная структура отрендерена успешно!');
-            console.log('✅ Full structure rendered successfully!');
+            updateDebugInfo('✅ Структура с исправленными соединениями готова!');
+            console.log('✅ Structure with fixed connections rendered successfully!');
         }
 
         // Обновление статистики
@@ -837,7 +845,7 @@
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
             console.log('📄 DOM Content Loaded');
-            updateDebugInfo('🔍 DOM загружен, начинаем инициализацию...');
+            updateDebugInfo('�� DOM загружен, начинаем инициализацию...');
             renderStructure();
             updateZoom();
         });
