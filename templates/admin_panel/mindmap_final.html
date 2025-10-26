@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌐 MLM СТРУКТУРА - ГОРИЗОНТАЛЬНАЯ МАЙНД-КАРТА v4</title>
+    <title>🌐 MLM СТРУКТУРА - ГОРИЗОНТАЛЬНАЯ МАЙНД-КАРТА FINAL</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -248,7 +248,7 @@
 </head>
 <body>
     <div class="header">
-        <div class="title">🌐 MLM СТРУКТУРА - ГОРИЗОНТАЛЬНАЯ МАЙНД-КАРТА v2</div>
+        <div class="title">🌐 MLM СТРУКТУРА - ГОРИЗОНТАЛЬНАЯ МАЙНД-КАРТА FINAL</div>
         <div class="subtitle">Горизонтальный вид с изогнутыми синими линиями как в примере</div>
     </div>
     
@@ -305,7 +305,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - HORIZONTAL VIEW!');
+        console.log('🌐 MLM Mind Map Loading - FINAL VERSION!');
         
         let mindMapNodes = [];
         let mindMapConnections = [];
@@ -479,7 +479,7 @@
                 node.appendChild(expandCircle);
             }
             
-                   mindMapNodes.push({ id, name, level, x, y });
+            mindMapNodes.push({ id, name, level, x, y });
             return node;
         }
         
@@ -506,7 +506,7 @@
             
             svg.appendChild(path);
             
-                   mindMapConnections.push({ fromId, toId, fromX, fromY, toX, toY });
+            mindMapConnections.push({ fromId, toId, fromX, fromY, toX, toY });
             return path;
         }
         
@@ -517,11 +517,15 @@
             const container = document.getElementById('mindmapContainer');
             const svg = document.getElementById('connectionSvg');
             
-            // Очищаем контейнер
-            container.innerHTML = '';
+            if (!container || !svg) {
+                console.error('Container or SVG not found!');
+                return;
+            }
+            
+            // Очищаем только содержимое SVG, но оставляем сам элемент
             svg.innerHTML = '';
-                   mindMapNodes = [];
-                   mindMapConnections = [];
+            mindMapNodes = [];
+            mindMapConnections = [];
             
             // Рендерим корневой узел
             const rootNode = createNode('plazma', 'PLAZMA', 4, 200, 1000);
@@ -600,10 +604,17 @@
         
         // Функции управления
         function clearMindMap() {
-            document.getElementById('mindmapContainer').innerHTML = '';
-            document.getElementById('connectionSvg').innerHTML = '';
-                   mindMapNodes = [];
-                   mindMapConnections = [];
+            const svg = document.getElementById('connectionSvg');
+            const container = document.getElementById('mindmapContainer');
+            
+            if (svg) svg.innerHTML = '';
+            
+            // Удаляем все узлы кроме SVG
+            const nodes = container.querySelectorAll('.user-card');
+            nodes.forEach(node => node.remove());
+            
+            mindMapNodes = [];
+            mindMapConnections = [];
             updateStats();
         }
         
@@ -629,7 +640,7 @@
         
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('📄 DOM Content Loaded - HORIZONTAL MIND MAP');
+            console.log('📄 DOM Content Loaded - FINAL MIND MAP');
             console.log('🔍 Debug: DOM загружен, начинаем инициализацию горизонтальной майнд-карты...');
             
             setTimeout(() => {
@@ -645,625 +656,6 @@
             if (document.querySelectorAll('.user-card').length === 0) {
                 console.log('🔄 Повторная инициализация майнд-карты...');
                 renderMindMap();
-                setTimeout(() => {
-                    addLevel0();
-                }, 1000);
-            }
-        }, 2000);
-    </script>
-</body>
-</html>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #333;
-            overflow-x: auto;
-            overflow-y: auto;
-            padding: 20px;
-            min-height: 100vh;
-        }
-        
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            color: #333;
-            border-radius: 15px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-        }
-        
-        .title {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .subtitle {
-            font-size: 1.2rem;
-            color: #666;
-        }
-        
-        .status {
-            background: rgba(16, 185, 129, 0.1);
-            border: 2px solid rgba(16, 185, 129, 0.3);
-            border-radius: 10px;
-            padding: 15px;
-            margin: 20px 0;
-            text-align: center;
-        }
-        
-        .status-text {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #059669;
-        }
-        
-        .controls {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 15px;
-            margin: 20px;
-            border-radius: 15px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        
-        .btn {
-            padding: 8px 16px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
-        }
-        
-        .structure-container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-            min-height: 80vh;
-            overflow: auto;
-            position: relative;
-            width: 100%;
-            max-width: 5000px;
-        }
-        
-        .mlm-tree {
-            position: relative;
-            width: 100%;
-            height: 4000px;
-            margin: 0 auto;
-            min-width: 9000px;
-        }
-        
-        .user-card {
-            position: absolute;
-            background: white;
-            border: 2px solid #dc2626;
-            border-radius: 12px;
-            padding: 15px 20px;
-            text-align: center;
-            cursor: move;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.2);
-            min-width: 160px;
-            min-height: 80px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            z-index: 10;
-            user-select: none;
-        }
-        
-        .user-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(220, 38, 38, 0.3);
-        }
-        
-        .user-card.root {
-            background: linear-gradient(135deg, #8B5CF6, #A855F7);
-            color: white;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            transform: scale(1.1);
-        }
-        
-        .user-card.root:hover {
-            transform: scale(1.15);
-        }
-        
-        .user-name {
-            font-weight: 700;
-            font-size: 1rem;
-            margin-bottom: 5px;
-            line-height: 1.2;
-        }
-        
-        .user-id {
-            font-size: 0.85rem;
-            opacity: 0.8;
-            font-weight: 600;
-        }
-        
-        .connection-lines {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 5;
-        }
-        
-        .connection-line {
-            position: absolute;
-            background: #3B82F6;
-            border-radius: 2px;
-            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
-            transition: all 0.3s ease;
-        }
-        
-        .connection-line:hover {
-            background: #2563EB;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.5);
-        }
-        
-        .stats-panel {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 25px;
-            margin-top: 30px;
-            border: 2px solid rgba(102, 126, 234, 0.2);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-        }
-        
-        .stats-title {
-            font-size: 1.8rem;
-            color: #667eea;
-            text-align: center;
-            margin-bottom: 20px;
-            font-weight: 700;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-        }
-        
-        .stat-item {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            border: 2px solid rgba(102, 126, 234, 0.2);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: #667eea;
-            margin-bottom: 8px;
-        }
-        
-        .stat-label {
-            font-size: 1.1rem;
-            color: #666;
-            font-weight: 600;
-        }
-        
-        @media (max-width: 768px) {
-            .title { font-size: 2rem; }
-            .stats-grid { grid-template-columns: 1fr; }
-            .user-card { min-width: 140px; }
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <div class="title">🔧 MLM СТРУКТУРА - РАЗДЕЛЕННЫЕ ВЕТКИ</div>
-        <div class="subtitle">Каждая ветка полностью разделена для предотвращения накладок</div>
-    </div>
-    
-    <div class="status">
-        <div class="status-text">✅ Статус: РАЗДЕЛЕННЫЕ ВЕТКИ! Каждая ветка полностью изолирована</div>
-    </div>
-    
-    <div class="controls">
-        <button class="btn" onclick="renderStructure()">🔄 Перерисовать</button>
-        <button class="btn" onclick="clearStructure()">🗑️ Очистить</button>
-        <button class="btn" onclick="addLevel0()">➕ Добавить 0-й уровень</button>
-        <button class="btn" onclick="testConnections()">🔗 Тест связей</button>
-        <button class="btn" onclick="showFullStructure()">🌐 Полная структура</button>
-    </div>
-    
-    <div class="structure-container">
-        <div class="mlm-tree" id="mlmTree">
-            <!-- Связи будут добавлены динамически -->
-        </div>
-    </div>
-    
-    <div class="stats-panel">
-        <div class="stats-title">📊 Статистика структуры</div>
-        <div class="stats-grid">
-            <div class="stat-item">
-                <div class="stat-number" id="totalNodes">0</div>
-                <div class="stat-label">Всего узлов</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number" id="totalConnections">0</div>
-                <div class="stat-label">Всего связей</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number" id="level0Count">0</div>
-                <div class="stat-label">Участники (0-й)</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number" id="level1Count">0</div>
-                <div class="stat-label">Партнеры (1-й)</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number" id="level2Count">0</div>
-                <div class="stat-label">Партнеры (2-й)</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number" id="level3Count">0</div>
-                <div class="stat-label">Партнеры (3-й)</div>
-            </div>
-        </div>
-        <div style="text-align: center; margin-top: 20px; font-size: 1.2rem; font-weight: 600; color: #059669;">
-            <span id="statusMessage">✅ СТРУКТУРА БЕЗ ПЕРЕСЕЧЕНИЙ готова! Добавлен уровень 0!</span>
-        </div>
-    </div>
-    
-    <script>
-        console.log('🔧 MLM No Intersections + Level 0 Loading - NO OVERLAPS!');
-        
-        // Переменные уже объявлены выше
-        
-        // Структура данных для MLM дерева с МАКСИМАЛЬНЫМИ расстояниями
-        const mlmStructure = {
-            id: 'plazma',
-            name: 'PLAZMA',
-            level: 4,
-            x: 4000,
-            y: 50,
-            children: [
-                {
-                    id: '3-1',
-                    name: '3*/1',
-                    level: 3,
-                    x: 1000,
-                    y: 300,
-                    children: [
-                        {
-                            id: '2-1',
-                            name: '2*/1',
-                            level: 2,
-                            x: 200,
-                            y: 600,
-                            children: [
-                                { id: '1-1', name: '1*/1', level: 1, x: 50, y: 900, children: [] },
-                                { id: '1-2', name: '1*/2', level: 1, x: 200, y: 900, children: [] },
-                                { id: '1-3', name: '1*/3', level: 1, x: 350, y: 900, children: [] }
-                            ]
-                        },
-                        {
-                            id: '2-2',
-                            name: '2*/2',
-                            level: 2,
-                            x: 1000,
-                            y: 600,
-                            children: [
-                                { id: '1-4', name: '1*/4', level: 1, x: 850, y: 900, children: [] },
-                                { id: '1-5', name: '1*/5', level: 1, x: 1000, y: 900, children: [] },
-                                { id: '1-6', name: '1*/6', level: 1, x: 1150, y: 900, children: [] }
-                            ]
-                        },
-                        {
-                            id: '2-3',
-                            name: '2*/3',
-                            level: 2,
-                            x: 1800,
-                            y: 600,
-                            children: [
-                                { id: '1-7', name: '1*/7', level: 1, x: 1650, y: 900, children: [] },
-                                { id: '1-8', name: '1*/8', level: 1, x: 1800, y: 900, children: [] },
-                                { id: '1-9', name: '1*/9', level: 1, x: 1950, y: 900, children: [] }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    id: '3-2',
-                    name: '3*/2',
-                    level: 3,
-                    x: 4000,
-                    y: 300,
-                    children: [
-                        {
-                            id: '2-4',
-                            name: '2*/4',
-                            level: 2,
-                            x: 3200,
-                            y: 600,
-                            children: [
-                                { id: '1-10', name: '1*/10', level: 1, x: 3050, y: 900, children: [] },
-                                { id: '1-11', name: '1*/11', level: 1, x: 3200, y: 900, children: [] },
-                                { id: '1-12', name: '1*/12', level: 1, x: 3350, y: 900, children: [] }
-                            ]
-                        },
-                        {
-                            id: '2-5',
-                            name: '2*/5',
-                            level: 2,
-                            x: 4000,
-                            y: 600,
-                            children: [
-                                { id: '1-13', name: '1*/13', level: 1, x: 3850, y: 900, children: [] },
-                                { id: '1-14', name: '1*/14', level: 1, x: 4000, y: 900, children: [] },
-                                { id: '1-15', name: '1*/15', level: 1, x: 4150, y: 900, children: [] }
-                            ]
-                        },
-                        {
-                            id: '2-6',
-                            name: '2*/6',
-                            level: 2,
-                            x: 4800,
-                            y: 600,
-                            children: [
-                                { id: '1-16', name: '1*/16', level: 1, x: 4650, y: 900, children: [] },
-                                { id: '1-17', name: '1*/17', level: 1, x: 4800, y: 900, children: [] },
-                                { id: '1-18', name: '1*/18', level: 1, x: 4950, y: 900, children: [] }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    id: '3-3',
-                    name: '3*/3',
-                    level: 3,
-                    x: 7000,
-                    y: 300,
-                    children: [
-                        {
-                            id: '2-7',
-                            name: '2*/7',
-                            level: 2,
-                            x: 6200,
-                            y: 600,
-                            children: [
-                                { id: '1-19', name: '1*/19', level: 1, x: 6050, y: 900, children: [] },
-                                { id: '1-20', name: '1*/20', level: 1, x: 6200, y: 900, children: [] },
-                                { id: '1-21', name: '1*/21', level: 1, x: 6350, y: 900, children: [] }
-                            ]
-                        },
-                        {
-                            id: '2-8',
-                            name: '2*/8',
-                            level: 2,
-                            x: 7000,
-                            y: 600,
-                            children: [
-                                { id: '1-22', name: '1*/22', level: 1, x: 6850, y: 900, children: [] },
-                                { id: '1-23', name: '1*/23', level: 1, x: 7000, y: 900, children: [] },
-                                { id: '1-24', name: '1*/24', level: 1, x: 7150, y: 900, children: [] }
-                            ]
-                        },
-                        {
-                            id: '2-9',
-                            name: '2*/9',
-                            level: 2,
-                            x: 7800,
-                            y: 600,
-                            children: [
-                                { id: '1-25', name: '1*/25', level: 1, x: 7650, y: 900, children: [] },
-                                { id: '1-26', name: '1*/26', level: 1, x: 7800, y: 900, children: [] },
-                                { id: '1-27', name: '1*/27', level: 1, x: 7950, y: 900, children: [] }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        };
-        
-        // Функция для добавления уровня 0
-        function addLevel0() {
-            console.log('➕ Добавляем уровень 0 с разделенными ветками...');
-            
-            // Добавляем уровень 0 под каждый узел уровня 1
-            const level1Nodes = document.querySelectorAll('.user-card[data-level="1"]');
-            level1Nodes.forEach((node, index) => {
-                const rect = node.getBoundingClientRect();
-                const containerRect = document.querySelector('.structure-container').getBoundingClientRect();
-                const x = rect.left - containerRect.left + node.offsetWidth / 2;
-                const y = rect.bottom - containerRect.top + 150; // Увеличиваем расстояние
-                
-                // Создаем 3 узла уровня 0 под каждым узлом уровня 1 с разделенными позициями
-                for (let i = 0; i < 3; i++) {
-                    const level0X = x - 300 + i * 300; // Максимальное расстояние между узлами 0-го уровня
-                    const level0Node = createNode(`0-${index * 3 + i + 1}`, `0*/${index * 3 + i + 1}`, 0, level0X, y);
-                    document.getElementById('mlmTree').appendChild(level0Node);
-                    
-                    // Создаем связь от уровня 1 к уровню 0
-                    createConnection(node.id, `0-${index * 3 + i + 1}`, x, rect.bottom - containerRect.top, level0X, y);
-                }
-            });
-            
-            updateStats();
-            console.log('✅ Уровень 0 добавлен с разделенными ветками!');
-        }
-        
-        // Функция создания узла
-        function createNode(id, name, level, x, y) {
-            const node = document.createElement('div');
-            node.className = 'user-card';
-            node.id = id;
-            node.setAttribute('data-level', level);
-            node.style.left = x + 'px';
-            node.style.top = y + 'px';
-            
-            node.innerHTML = `
-                <div class="user-name">${name}</div>
-                <div class="user-id">${level}*/${id.split('-')[1]}</div>
-            `;
-            
-            if (id === 'plazma') {
-                node.classList.add('root');
-            }
-            
-                   mindMapNodes.push({ id, name, level, x, y });
-            return node;
-        }
-        
-        // Функция создания связи
-        function createConnection(fromId, toId, fromX, fromY, toX, toY) {
-            const connection = document.createElement('div');
-            connection.className = 'connection-line';
-            connection.setAttribute('data-from', fromId);
-            connection.setAttribute('data-to', toId);
-            
-            const dx = toX - fromX;
-            const dy = toY - fromY;
-            const length = Math.sqrt(dx * dx + dy * dy);
-            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-            
-            connection.style.left = fromX + 'px';
-            connection.style.top = fromY + 'px';
-            connection.style.width = length + 'px';
-            connection.style.height = '3px';
-            connection.style.transform = `rotate(${angle}deg)`;
-            connection.style.transformOrigin = '0 0';
-            
-                   mindMapConnections.push({ fromId, toId, fromX, fromY, toX, toY });
-            return connection;
-        }
-        
-        // Функция рендеринга структуры
-        function renderStructure() {
-            console.log('🎨 Rendering no intersections structure with level 0...');
-            
-            const container = document.getElementById('mlmTree');
-            container.innerHTML = '';
-                   mindMapNodes = [];
-                   mindMapConnections = [];
-            
-            // Рендерим корневой узел
-            const rootNode = createNode('plazma', 'PLAZMA', 4, 2000, 50);
-            container.appendChild(rootNode);
-            
-            // Рендерим все остальные узлы рекурсивно
-            function renderNode(nodeData, parentId, parentX, parentY) {
-                if (!nodeData.children) return;
-                
-                nodeData.children.forEach(child => {
-                    const childNode = createNode(child.id, child.name, child.level, child.x, child.y);
-                    container.appendChild(childNode);
-                    
-                    // Создаем связь от родителя к ребенку
-                    const connection = createConnection(parentId, child.id, parentX, parentY, child.x, child.y);
-                    container.appendChild(connection);
-                    
-                    // Рекурсивно рендерим детей
-                    renderNode(child, child.id, child.x, child.y);
-                });
-            }
-            
-            // Рендерим детей корневого узла
-            renderNode(mlmStructure, 'plazma', 2000, 50);
-            
-            updateStats();
-            console.log('✅ No intersections structure rendered successfully with level 0!');
-        }
-        
-        // Функция обновления статистики
-        function updateStats() {
-            const level0Count = document.querySelectorAll('.user-card[data-level="0"]').length;
-            const level1Count = document.querySelectorAll('.user-card[data-level="1"]').length;
-            const level2Count = document.querySelectorAll('.user-card[data-level="2"]').length;
-            const level3Count = document.querySelectorAll('.user-card[data-level="3"]').length;
-            const totalNodes = document.querySelectorAll('.user-card').length;
-            const totalConnections = document.querySelectorAll('.connection-line').length;
-            
-            document.getElementById('level0Count').textContent = level0Count;
-            document.getElementById('level1Count').textContent = level1Count;
-            document.getElementById('level2Count').textContent = level2Count;
-            document.getElementById('level3Count').textContent = level3Count;
-            document.getElementById('totalNodes').textContent = totalNodes;
-            document.getElementById('totalConnections').textContent = totalConnections;
-            
-            document.getElementById('statusMessage').textContent = 
-                `✅ СТРУКТУРА БЕЗ ПЕРЕСЕЧЕНИЙ готова! Узлов: ${totalNodes}, Связей: ${totalConnections} - БЕЗ НАЛОЖЕНИЙ!`;
-        }
-        
-        // Функции управления
-        function clearStructure() {
-            document.getElementById('mlmTree').innerHTML = '';
-                   mindMapNodes = [];
-                   mindMapConnections = [];
-            updateStats();
-        }
-        
-        function testConnections() {
-            console.log('🔗 Тестируем связи...');
-            const connectionLines = document.querySelectorAll('.connection-line');
-            connectionLines.forEach((line, index) => {
-                setTimeout(() => {
-                    line.style.background = '#EF4444';
-                    setTimeout(() => {
-                        line.style.background = '#3B82F6';
-                    }, 200);
-                }, index * 100);
-            });
-        }
-        
-        function showFullStructure() {
-            renderStructure();
-            setTimeout(() => {
-                addLevel0();
-            }, 500);
-        }
-        
-        // Инициализация
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('📄 DOM Content Loaded - NO INTERSECTIONS + LEVEL 0');
-            console.log('🔍 Debug: DOM загружен, начинаем инициализацию структуры БЕЗ ПЕРЕСЕЧЕНИЙ + УРОВЕНЬ 0...');
-            
-            setTimeout(() => {
-                renderStructure();
-                setTimeout(() => {
-                    addLevel0();
-                }, 1000);
-            }, 500);
-        });
-        
-        // Дополнительная инициализация для гарантии
-        setTimeout(() => {
-            if (document.querySelectorAll('.user-card').length === 0) {
-                console.log('🔄 Повторная инициализация...');
-                renderStructure();
                 setTimeout(() => {
                     addLevel0();
                 }, 1000);
