@@ -96,7 +96,7 @@ def admin_demo_structure(request):
         'is_demo': True,
     }
     
-    return render(request, 'admin_panel/structure_symmetric_logic.html', context)
+    return render(request, 'admin_panel/structure_full_symmetric.html', context)
 
 
 def structure_viewer(request):
@@ -139,7 +139,7 @@ def structure_viewer(request):
         'is_demo': True,
     }
     
-    return render(request, 'admin_panel/structure_symmetric_logic.html', context)
+    return render(request, 'admin_panel/structure_full_symmetric.html', context)
 
 
 def build_structure_tree(user, level=0):
