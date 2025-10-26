@@ -8,5 +8,5 @@ urlpatterns = [
     path('', demo_views.admin_demo_dashboard, name='dashboard'),
     path('users/', demo_views.admin_demo_users, name='users_list'),
     path('structure/', demo_views.admin_demo_structure_v6, name='structure_view'),  # Новая горизонтальная майнд-карта
-    path('mindmap-v6/', demo_views.admin_demo_structure_v6, name='mindmap_v6_view'),  # Альтернативный URL для майнд-карты v6
+    path('structure-v3/', demo_views.admin_demo_structure_v3, name='structure_v3_view'),
 ]

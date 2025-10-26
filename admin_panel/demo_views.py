@@ -180,6 +180,25 @@ def structure_viewer(request):
     return render(request, 'admin_panel/mindmap_final.html', context)
 
 
+def admin_demo_structure_v3(request):
+    """Демо-версия структуры - СИММЕТРИЧНАЯ МАЙНД-КАРТА v3"""
+    
+    root_users = []
+    
+    try:
+        from users.models import User
+        root_users = list(User.objects.filter(invited_by__isnull=True).order_by('-date_joined')[:20])
+    except:
+        pass
+    
+    context = {
+        'root_users': root_users,
+        'is_demo': True,
+    }
+    
+    return render(request, 'admin_panel/mindmap_symmetric_v3.html', context)
+
+
 def admin_demo_structure_v6(request):
     """Демо-версия структуры MLM с горизонтальной майнд-картой v6"""
     context = {
