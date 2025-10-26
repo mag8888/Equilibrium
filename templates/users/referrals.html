@@ -1,90 +1,673 @@
 {% extends 'base/base.html' %}
 
-{% block title %}Мои рефералы - TRINARY{% endblock %}
+{% block title %}Реферальная программа - TRINARY{% endblock %}
+
+{% block extra_css %}
+<style>
+    .referral-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2.5rem 1.5rem 4rem;
+    }
+    .page-head {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        font-size: 0.75rem;
+        color: rgba(15, 23, 42, 0.6);
+        margin-bottom: 0.25rem;
+    }
+    .page-head h1 {
+        font-size: clamp(1.8rem, 3vw, 2.4rem);
+        margin: 0;
+    }
+    .head-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        align-items: center;
+    }
+    .ghost-btn, .primary-btn {
+        border-radius: 999px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: 1px solid transparent;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    .ghost-btn {
+        border-color: rgba(15, 23, 42, 0.15);
+        color: rgba(15, 23, 42, 0.7);
+        background: transparent;
+    }
+    .ghost-btn:hover {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+    }
+    .primary-btn {
+        background: var(--primary-color);
+        color: #fff;
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.35);
+        border: none;
+    }
+    .primary-btn:hover {
+        transform: translateY(-1px);
+        color: #fff;
+    }
+    .referral-hero {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-radius: 24px;
+        color: #fff;
+        padding: 2rem;
+        display: flex;
+        gap: 2rem;
+        flex-wrap: wrap;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 2rem;
+        box-shadow: 0 30px 60px rgba(102, 126, 234, 0.35);
+    }
+    .referral-hero::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at top right, rgba(255,255,255,0.4), transparent 55%);
+        pointer-events: none;
+    }
+    .referral-hero > * {
+        position: relative;
+        z-index: 2;
+        flex: 1;
+        min-width: 260px;
+    }
+    .hero-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.4rem 0.9rem;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.15);
+        font-size: 0.85rem;
+        margin-bottom: 0.8rem;
+    }
+    .hero-title {
+        font-size: 2.1rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    .hero-description {
+        margin-bottom: 1.2rem;
+        opacity: 0.9;
+    }
+    .hero-mini-stats {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+    }
+    .hero-mini-stats span {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        opacity: 0.75;
+    }
+    .hero-mini-stats strong {
+        display: block;
+        font-size: 1.6rem;
+    }
+    .link-control {
+        display: flex;
+        gap: 0.75rem;
+        margin: 0.75rem 0 0.5rem;
+        flex-wrap: wrap;
+    }
+    .link-control input {
+        flex: 1;
+        border: none;
+        border-radius: 16px;
+        padding: 0.9rem 1rem;
+        font-weight: 600;
+        background: rgba(255, 255, 255, 0.12);
+        color: #fff;
+        min-width: 200px;
+    }
+    .link-control input::selection {
+        background: rgba(255,255,255,0.3);
+    }
+    .link-control button {
+        border-radius: 16px;
+        border: none;
+        padding: 0.9rem 1.2rem;
+        font-weight: 600;
+        cursor: pointer;
+        background: #fff;
+        color: #111;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        box-shadow: 0 15px 30px rgba(17, 17, 17, 0.15);
+    }
+    .referral-code {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.4rem 0.9rem;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.15);
+        font-weight: 600;
+    }
+    .referral-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .glow-card {
+        background: #fff;
+        border-radius: 24px;
+        padding: 1.8rem;
+        box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+        border: 1px solid rgba(15, 23, 42, 0.06);
+    }
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .stat-card {
+        border-radius: 20px;
+        padding: 1.5rem;
+        position: relative;
+        overflow: hidden;
+        color: #fff;
+        background: #0f172a;
+    }
+    .stat-card.light {
+        background: #fff;
+        color: #0f172a;
+        border: 1px solid rgba(15,23,42,0.08);
+    }
+    .stat-label {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        opacity: 0.65;
+        margin-bottom: 0.4rem;
+    }
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+    }
+    .stat-meta {
+        font-size: 0.85rem;
+        opacity: 0.8;
+    }
+    .score-circle {
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        background: radial-gradient(circle at top, rgba(102,126,234,0.3), rgba(118,75,162,0.3));
+        border: 5px solid rgba(102,126,234,0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        margin: 0 auto 1rem;
+    }
+    .score-circle strong {
+        font-size: 2.2rem;
+        line-height: 1;
+    }
+    .progress-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .progress-label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.9rem;
+        color: rgba(15, 23, 42, 0.7);
+        margin-bottom: 0.25rem;
+    }
+    .progress-bar {
+        background: rgba(15, 23, 42, 0.08);
+        border-radius: 999px;
+        height: 12px;
+        overflow: hidden;
+    }
+    .progress-bar span {
+        display: block;
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+    }
+    .share-card .share-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin: 1rem 0;
+    }
+    .share-buttons button {
+        flex: 1;
+        min-width: 140px;
+        border-radius: 16px;
+        border: none;
+        padding: 0.85rem 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        cursor: pointer;
+        color: #fff;
+        transition: transform 0.2s ease;
+    }
+    .share-buttons button:hover {
+        transform: translateY(-2px);
+    }
+    .share-telegram { background: #2AABEE; }
+    .share-whatsapp { background: #25D366; }
+    .share-copy { background: #0f172a; }
+    .share-perks {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 0.75rem;
+        font-size: 0.9rem;
+    }
+    .share-perks span {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        color: rgba(15, 23, 42, 0.7);
+    }
+    .milestone-card {
+        border-radius: 20px;
+        padding: 1.25rem;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        margin-bottom: 1rem;
+    }
+    .milestone-card.completed {
+        border-color: rgba(37, 201, 133, 0.5);
+        background: rgba(37, 201, 133, 0.08);
+    }
+    .milestone-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    .top-referrals-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .top-referral {
+        display: flex;
+        gap: 0.9rem;
+        align-items: center;
+        padding: 0.8rem 1rem;
+        border-radius: 16px;
+        background: rgba(15, 23, 42, 0.04);
+    }
+    .avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #764ba2, #667eea);
+        color: #fff;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .timeline {
+        position: relative;
+        padding-left: 1.5rem;
+        margin-top: 1rem;
+    }
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 0.5rem;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: rgba(15, 23, 42, 0.1);
+    }
+    .timeline-item {
+        position: relative;
+        padding: 0.5rem 0 0.5rem 1rem;
+    }
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -0.1rem;
+        top: 0.9rem;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+    }
+    .timeline-item h4 {
+        margin: 0;
+        font-size: 1rem;
+    }
+    .timeline-item small {
+        color: rgba(15, 23, 42, 0.6);
+    }
+    .table-card {
+        margin-top: 2rem;
+        padding: 0;
+        overflow: hidden;
+    }
+    .table-card h3 {
+        padding: 1.5rem;
+        margin: 0;
+    }
+    .referral-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .referral-table thead {
+        background: rgba(15, 23, 42, 0.03);
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.08em;
+    }
+    .referral-table th,
+    .referral-table td {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+    }
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        border-radius: 999px;
+        padding: 0.35rem 0.9rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    .status-pill .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+    .pill-partner { background: rgba(34, 197, 94, 0.15); color: #15803d; }
+    .pill-participant { background: rgba(251, 191, 36, 0.15); color: #b45309; }
+    .pill-inactive { background: rgba(248, 113, 113, 0.15); color: #b91c1c; }
+    .empty-state {
+        text-align: center;
+        padding: 4rem 1rem;
+    }
+    .empty-state i {
+        font-size: 3rem;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+    }
+    @media (max-width: 768px) {
+        .referral-page {
+            padding: 1.5rem 1rem 3rem;
+        }
+        .referral-hero {
+            border-radius: 20px;
+            padding: 1.5rem;
+        }
+        .link-control {
+            flex-direction: column;
+        }
+        .link-control button {
+            width: 100%;
+            justify-content: center;
+        }
+        .referral-grid {
+            grid-template-columns: 1fr;
+        }
+        .referral-table th,
+        .referral-table td {
+            padding: 0.75rem 1rem;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3 mb-0">
-        <i class="fas fa-users text-primary"></i> Мои рефералы
-    </h1>
-    <div>
-        <a href="{% url 'users:dashboard' %}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-2"></i> Назад
-        </a>
+<div class="referral-page">
+    <div class="page-head">
+        <div>
+            <div class="eyebrow">реферальная программа</div>
+            <h1>Создавайте команду и зарабатывайте вместе</h1>
+            <p style="color: rgba(15, 23, 42, 0.65); margin: 0.5rem 0 0;">
+                Делитесь ссылкой, наблюдайте за динамикой и открывайте бонусы за активных партнёров.
+            </p>
+        </div>
+        <div class="head-actions">
+            <a href="{% url 'users:dashboard' %}" class="ghost-btn">
+                <i class="fas fa-arrow-left"></i> В дашборд
+            </a>
+            <a href="{% url 'users:structure' %}" class="primary-btn">
+                <i class="fas fa-sitemap"></i> Посмотреть структуру
+            </a>
+        </div>
     </div>
-</div>
 
-<!-- Статистика рефералов -->
-<div class="row mb-4">
-    <div class="col-md-3 mb-3">
-        <div class="card stats-card">
-            <div class="card-body text-center">
-                <i class="fas fa-users fa-2x mb-2"></i>
-                <h4>{{ stats.total }}</h4>
-                <p class="mb-0">Всего рефералов</p>
+    <section class="referral-hero">
+        <div>
+            <span class="hero-pill"><i class="fas fa-bolt"></i> Программа уровня PRO</span>
+            <div class="hero-title">Подключайте друзей — растите статус</div>
+            <p class="hero-description">
+                Каждый реферал закрепляется за вами навсегда. Поддерживайте их активность и открывайте новые уровни вознаграждений.
+            </p>
+            <div class="hero-mini-stats">
+                <div>
+                    <span>Всего</span>
+                    <strong>{{ stats.total }}</strong>
+                </div>
+                <div>
+                    <span>Партнёров</span>
+                    <strong>{{ stats.partners }}</strong>
+                </div>
+                <div>
+                    <span>Конверсия</span>
+                    <strong>{{ stats.activation_rate }}%</strong>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="col-md-3 mb-3">
-        <div class="card stats-card">
-            <div class="card-body text-center">
-                <i class="fas fa-handshake fa-2x mb-2"></i>
-                <h4>{{ stats.partners }}</h4>
-                <p class="mb-0">Партнеров</p>
+        <div>
+            <p style="margin: 0; font-weight: 600;">Ваша реферальная ссылка</p>
+            <small style="opacity: 0.8;">Поделитесь ссылкой — система отслеживает регистрации автоматически.</small>
+            <div class="link-control">
+                <input id="referral-link" value="{{ referral_link }}" readonly>
+                <button type="button" onclick="copyReferralLink(this)">
+                    <i class="fas fa-copy"></i> Скопировать
+                </button>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center;">
+                <span class="referral-code">
+                    <i class="fas fa-key"></i> Код: {{ user.referral_code }}
+                </span>
+                <button type="button" class="ghost-btn" style="border-color: rgba(255,255,255,0.35); color: #fff;" onclick="shareReferral('default', this)">
+                    <i class="fas fa-share-alt"></i> Поделиться
+                </button>
             </div>
         </div>
-    </div>
-    <div class="col-md-3 mb-3">
-        <div class="card stats-card">
-            <div class="card-body text-center">
-                <i class="fas fa-user-clock fa-2x mb-2"></i>
-                <h4>{{ stats.participants }}</h4>
-                <p class="mb-0">Участников</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 mb-3">
-        <div class="card stats-card">
-            <div class="card-body text-center">
-                <i class="fas fa-user-times fa-2x mb-2"></i>
-                <h4>{{ stats.inactive }}</h4>
-                <p class="mb-0">Неактивных</p>
-            </div>
-        </div>
-    </div>
-</div>
+    </section>
 
-<!-- Реферальная ссылка -->
-<div class="card mb-4">
-    <div class="card-body">
-        <h5 class="card-title">
-            <i class="fas fa-share-alt text-primary"></i> Ваша реферальная ссылка
-        </h5>
-        <div class="input-group">
-            <input type="text" class="form-control" id="referral-link" value="{{ referral_link }}" readonly>
-            <button class="btn btn-outline-primary" type="button" onclick="copyReferralLink()">
-                <i class="fas fa-copy"></i> Копировать
-            </button>
+    <section class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">Всего рефералов</div>
+            <div class="stat-value">{{ stats.total }}</div>
+            <div class="stat-meta">+{{ performance.today_new }} сегодня · +{{ performance.week_new }} за 7 дней</div>
         </div>
-        <div class="mt-2">
-            <small class="text-muted">
-                Поделитесь этой ссылкой с друзьями. Каждый, кто зарегистрируется по вашей ссылке, станет вашим рефералом.
-            </small>
+        <div class="stat-card light">
+            <div class="stat-label">Партнёры</div>
+            <div class="stat-value">{{ stats.partners }}</div>
+            <div class="stat-meta">Конверсия {{ performance.conversion_rate }}%</div>
         </div>
-    </div>
-</div>
+        <div class="stat-card light">
+            <div class="stat-label">Средний баланс</div>
+            <div class="stat-value">${{ stats.avg_balance|floatformat:2 }}</div>
+            <div class="stat-meta">Сумма командой ${{ stats.total_earned|floatformat:2 }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Неактивных</div>
+            <div class="stat-value">{{ stats.inactive }}</div>
+            <div class="stat-meta">Последний реферал {% if performance.days_since_last is not None %}{{ performance.days_since_last }} дн. назад{% else %}—{% endif %}</div>
+        </div>
+    </section>
 
-<!-- Список рефералов -->
-<div class="card">
-    <div class="card-header">
-        <h5 class="mb-0">
-            <i class="fas fa-list"></i> Список рефералов
-        </h5>
-    </div>
-    <div class="card-body">
+    <section class="referral-grid">
+        <div class="glow-card performance-card">
+            <h3 style="margin-top: 0;">Пульс программы</h3>
+            <p style="color: rgba(15,23,42,0.65); margin-bottom: 1rem;">
+                Отслеживайте вовлечённость и скорость роста первой линии.
+            </p>
+            <div style="display: flex; gap: 1.5rem; flex-wrap: wrap; align-items: center;">
+                <div class="score-circle">
+                    <small style="opacity: 0.7;">Активность</small>
+                    <strong>{{ performance.engagement_score }}</strong>
+                    <span style="font-size: 0.85rem; opacity: 0.75;">из 100</span>
+                </div>
+                <div class="progress-stack" style="flex: 1; min-width: 220px;">
+                    <div>
+                        <div class="progress-label">
+                            <span>Конверсия</span>
+                            <span>{{ performance.conversion_rate }}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <span style="width: {{ performance.conversion_rate }}%;"></span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="progress-label">
+                            <span>Рост за неделю</span>
+                            <span>{{ performance.week_new }} новых</span>
+                        </div>
+                        <div class="progress-bar">
+                            <span style="width: {{ performance.week_progress }}%;"></span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="progress-label">
+                            <span>Активные партнёры</span>
+                            <span>{{ stats.partners }}/{{ stats.total }}</span>
+                        </div>
+                        <div class="progress-bar">
+                            <span style="width: {{ stats.activation_rate }}%;"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glow-card share-card">
+            <h3 style="margin-top: 0;">Поделитесь в один клик</h3>
+            <p style="color: rgba(15,23,42,0.65);">Используйте любимые каналы, текст подставится автоматически.</p>
+            <div class="share-buttons">
+                <button type="button" class="share-telegram" onclick="shareReferral('telegram', this)">
+                    <i class="fab fa-telegram-plane"></i> Telegram
+                </button>
+                <button type="button" class="share-whatsapp" onclick="shareReferral('whatsapp', this)">
+                    <i class="fab fa-whatsapp"></i> WhatsApp
+                </button>
+                <button type="button" class="share-copy" onclick="copyReferralLink(this)">
+                    <i class="fas fa-link"></i> Копировать
+                </button>
+            </div>
+            <div class="share-perks">
+                <span><i class="fas fa-check-circle" style="color:#16a34a;"></i> Авто-трекинг регистраций</span>
+                <span><i class="fas fa-check-circle" style="color:#16a34a;"></i> Прозрачные бонусы</span>
+                <span><i class="fas fa-check-circle" style="color:#16a34a;"></i> Уведомления о новых партнёрах</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="referral-grid">
+        <div class="glow-card">
+            <h3 style="margin-top: 0;">Майлстоуны роста</h3>
+            <p style="color: rgba(15,23,42,0.65);">Соберите нужное количество первой линии и заберите награды.</p>
+            <div class="milestone-list">
+                {% for milestone in milestones %}
+                    <div class="milestone-card {% if milestone.completed %}completed{% endif %}">
+                        <div class="milestone-header">
+                            <strong>{{ milestone.label }}</strong>
+                            <span>{{ milestone.progress_percent }}%</span>
+                        </div>
+                        <p style="margin: 0.2rem 0 0.6rem; color: rgba(15,23,42,0.65);">
+                            {{ milestone.reward }}
+                        </p>
+                        <div class="progress-bar">
+                            <span style="width: {{ milestone.progress_percent }}%;"></span>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="glow-card">
+            <h3 style="margin-top: 0;">Лидеры первой линии</h3>
+            {% if top_referrals %}
+                <div class="top-referrals-list">
+                    {% for referral in top_referrals %}
+                        <div class="top-referral">
+                            <div class="avatar">{{ referral.username|first|upper }}</div>
+                            <div style="flex: 1;">
+                                <strong>{{ referral.username }}</strong>
+                                <div style="font-size: 0.85rem; color: rgba(15,23,42,0.65);">
+                                    {{ referral.get_status_display }} · {{ referral.get_rank_display }}
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <small style="display:block; color: rgba(15,23,42,0.6);">Баланс</small>
+                                <strong>${{ referral.balance|floatformat:2 }}</strong>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p style="color: rgba(15,23,42,0.6);">Подключите первых партнёров, чтобы увидеть лидеров.</p>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="glow-card">
+        <h3 style="margin-top: 0;">Недавние подключения</h3>
+        {% if recent_referrals %}
+            <div class="timeline">
+                {% for referral in recent_referrals %}
+                    <div class="timeline-item">
+                        <h4>{{ referral.username }}</h4>
+                        <small>{{ referral.email }} · {{ referral.date_joined|date:"d.m.Y H:i" }}</small>
+                        <div style="margin-top: 0.25rem;">
+                            <span class="status-pill pill-{{ referral.status }}">
+                                <span class="dot"></span>
+                                {{ referral.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="color: rgba(15,23,42,0.6);">Новые подключения появятся здесь после первой регистрации.</p>
+        {% endif %}
+    </section>
+
+    <section class="glow-card table-card">
+        <h3><i class="fas fa-list me-2"></i> Полный список рефералов</h3>
         {% if referrals %}
             <div class="table-responsive">
-                <table class="table table-hover">
+                <table class="referral-table">
                     <thead>
                         <tr>
                             <th>Пользователь</th>
@@ -93,46 +676,50 @@
                             <th>Ранг</th>
                             <th>Баланс</th>
                             <th>Дата регистрации</th>
-                            <th>Действия</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for referral in referrals %}
                             <tr>
                                 <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
-                                            <i class="fas fa-user text-white"></i>
+                                    <div style="display:flex; align-items:center; gap:0.9rem;">
+                                        <div class="avatar" style="width:42px; height:42px; border-radius:12px;">
+                                            {{ referral.username|first|upper }}
                                         </div>
                                         <div>
                                             <strong>{{ referral.username }}</strong>
                                             {% if referral.first_name or referral.last_name %}
-                                                <br>
-                                                <small class="text-muted">{{ referral.first_name }} {{ referral.last_name }}</small>
+                                                <div style="font-size:0.85rem; color:rgba(15,23,42,0.6);">
+                                                    {{ referral.first_name }} {{ referral.last_name }}
+                                                </div>
                                             {% endif %}
                                         </div>
                                     </div>
                                 </td>
                                 <td>{{ referral.email }}</td>
                                 <td>
-                                    <span class="badge bg-{% if referral.status == 'partner' %}success{% elif referral.status == 'participant' %}warning{% else %}danger{% endif %}">
+                                    <span class="status-pill pill-{{ referral.status }}">
+                                        <span class="dot"></span>
                                         {{ referral.get_status_display }}
                                     </span>
                                 </td>
                                 <td>
-                                    <span class="badge bg-primary">{{ referral.get_rank_display }}</span>
+                                    <span class="status-pill" style="background: rgba(102,126,234,0.15); color:#4c1d95;">
+                                        {{ referral.get_rank_display }}
+                                    </span>
                                 </td>
                                 <td>
-                                    <strong class="text-success">${{ referral.balance }}</strong>
+                                    <strong style="color:#15803d;">${{ referral.balance|floatformat:2 }}</strong>
                                 </td>
                                 <td>{{ referral.date_joined|date:"d.m.Y H:i" }}</td>
                                 <td>
-                                    <div class="btn-group" role="group">
-                                        <a href="{% url 'admin_panel:user_detail' referral.id %}" class="btn btn-sm btn-outline-primary">
+                                    <div style="display:flex; gap:0.5rem; justify-content:flex-end;">
+                                        <a href="{% url 'admin_panel:user_detail' referral.id %}" class="ghost-btn" style="padding:0.4rem 0.9rem; border-radius:12px;">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a href="{% url 'admin_panel:user_structure' referral.id %}" class="btn btn-sm btn-outline-success">
-                                            <i class="fas fa-sitemap"></i>
+                                        <a href="{% url 'admin_panel:user_structure' referral.id %}" class="ghost-btn" style="padding:0.4rem 0.9rem; border-radius:12px;">
+                                            <i class="fas fa-diagram-project"></i>
                                         </a>
                                     </div>
                                 </td>
@@ -142,41 +729,86 @@
                 </table>
             </div>
         {% else %}
-            <div class="text-center text-muted p-5">
-                <i class="fas fa-users fa-3x mb-3"></i>
-                <br>
-                <h5>У вас пока нет рефералов</h5>
-                <p>Поделитесь своей реферальной ссылкой с друзьями, чтобы привлечь новых участников!</p>
-                <button class="btn btn-primary" onclick="copyReferralLink()">
-                    <i class="fas fa-share-alt me-2"></i> Скопировать реферальную ссылку
+            <div class="empty-state">
+                <i class="fas fa-users"></i>
+                <h4 style="margin-bottom: 0.5rem;">Ещё нет первой линии</h4>
+                <p style="color: rgba(15,23,42,0.65);">Поделитесь ссылкой и приглашайте партнёров, чтобы открыть подарочные бонусы.</p>
+                <button type="button" class="primary-btn" onclick="copyReferralLink(this)">
+                    <i class="fas fa-share-alt"></i> Скопировать ссылку
                 </button>
             </div>
         {% endif %}
-    </div>
+    </section>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
-function copyReferralLink() {
-    const referralLink = document.getElementById('referral-link');
-    referralLink.select();
-    referralLink.setSelectionRange(0, 99999);
-    document.execCommand('copy');
-    
-    // Показываем уведомление
-    const button = event.target.closest('button');
-    if (button) {
-        const originalHTML = button.innerHTML;
-        button.innerHTML = '<i class="fas fa-check"></i> Скопировано!';
-        button.classList.remove('btn-outline-primary', 'btn-primary');
-        button.classList.add('btn-success');
-        
-        setTimeout(() => {
-            button.innerHTML = originalHTML;
-            button.classList.remove('btn-success');
-            button.classList.add('btn-outline-primary');
-        }, 2000);
+const referralLink = "{{ referral_link|escapejs }}";
+
+function setButtonState(button, text, iconClass) {
+    if (!button) {
+        return;
+    }
+    if (!button.dataset.original) {
+        button.dataset.original = button.innerHTML;
+    }
+    button.innerHTML = `<i class="${iconClass}"></i> ${text}`;
+    button.disabled = true;
+    setTimeout(() => {
+        button.innerHTML = button.dataset.original;
+        button.disabled = false;
+    }, 2000);
+}
+
+function copyReferralLink(button) {
+    const linkInput = document.getElementById('referral-link');
+    const value = linkInput ? linkInput.value : referralLink;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(value).then(() => {
+            setButtonState(button, 'Скопировано', 'fas fa-check');
+        }).catch(() => {
+            fallbackCopy(value, button);
+        });
     } else {
-        alert('Реферальная ссылка скопирована в буфер обмена!');
+        fallbackCopy(value, button);
+    }
+}
+
+function fallbackCopy(value, button) {
+    const temp = document.createElement('textarea');
+    temp.value = value;
+    temp.style.position = 'fixed';
+    temp.style.top = '-1000px';
+    document.body.appendChild(temp);
+    temp.select();
+    try {
+        document.execCommand('copy');
+        setButtonState(button, 'Скопировано', 'fas fa-check');
+    } catch (err) {
+        console.error('Copy failed', err);
+    }
+    document.body.removeChild(temp);
+}
+
+function shareReferral(channel, button) {
+    const text = encodeURIComponent('Подключайся в мою команду TRINARY и получай бонусы вместе со мной.');
+    const encodedLink = encodeURIComponent(referralLink);
+    let url = referralLink;
+
+    if (channel === 'telegram') {
+        url = `https://t.me/share/url?url=${encodedLink}&text=${text}`;
+    } else if (channel === 'whatsapp') {
+        url = `https://api.whatsapp.com/send?text=${text}%20${encodedLink}`;
+    } else {
+        copyReferralLink(button);
+        return;
+    }
+
+    window.open(url, '_blank', 'noopener');
+    if (button) {
+        setButtonState(button, 'Открыто', 'fas fa-paper-plane');
     }
 }
 </script>

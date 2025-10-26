@@ -1,14 +1,21 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate
-from django.contrib.auth.decorators import login_required
+from datetime import timedelta
+
 from django.contrib import messages
-from django.http import JsonResponse, HttpResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.crypto import get_random_string
+from django.contrib.auth import authenticate
+from django.contrib.auth import login
 from django.contrib.auth.forms import AuthenticationForm
-from .models import User, UserProfile
-from mlm.models import MLMStructure, MLMSettings
+from django.db.models import Avg, Sum
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import redirect, render
+from django.urls import reverse
+from django.utils import timezone
+from django.utils.crypto import get_random_string
+from django.views.decorators.csrf import csrf_exempt
+
+from mlm.models import MLMSettings, MLMStructure
 from mlm.services import place_user_in_structure
+
+from .models import User, UserProfile
 import json
 
 
@@ -518,7 +525,98 @@ def referrals(request):
     if not request.user.is_authenticated:
         return redirect('users:login')
     
-    return render(request, 'users/referrals.html')
+    user = request.user
+    referrals_qs = (
+        user.referrals.select_related('profile')
+        .order_by('-date_joined')
+    )
+
+    # Базовые статусы
+    stats = {
+        'total': referrals_qs.count(),
+        'partners': referrals_qs.filter(status='partner').count(),
+        'participants': referrals_qs.filter(status='participant').count(),
+        'inactive': referrals_qs.filter(status='inactive').count(),
+    }
+
+    now = timezone.now()
+    today_new = referrals_qs.filter(date_joined__date=now.date()).count()
+    week_new = referrals_qs.filter(date_joined__gte=now - timedelta(days=7)).count()
+
+    aggregated = referrals_qs.aggregate(
+        total_earned=Sum('total_earned'),
+        avg_balance=Avg('balance')
+    )
+
+    stats['total_earned'] = aggregated['total_earned'] or 0
+    stats['avg_balance'] = aggregated['avg_balance'] or 0
+    stats['activation_rate'] = int(round(
+        (stats['partners'] / stats['total']) * 100
+    )) if stats['total'] else 0
+
+    engagement_score = min(
+        100,
+        stats['activation_rate'] +
+        min(40, week_new * 8) +
+        min(25, today_new * 12)
+    )
+
+    last_referral = referrals_qs.first()
+    days_since_last = (
+        (now - last_referral.date_joined).days
+        if last_referral else None
+    )
+
+    performance = {
+        'today_new': today_new,
+        'week_new': week_new,
+        'engagement_score': engagement_score,
+        'conversion_rate': stats['activation_rate'],
+        'days_since_last': days_since_last,
+        'week_progress': min(100, week_new * 10),
+    }
+
+    milestone_targets = [
+        {'label': '5 друзей', 'target': 5, 'reward': 'Разблокируйте быстрый бонус'},
+        {'label': '15 друзей', 'target': 15, 'reward': 'Получите статус наставника'},
+        {'label': '30 друзей', 'target': 30, 'reward': 'Откройте доступ к лидерам'},
+    ]
+
+    milestones = []
+    for milestone in milestone_targets:
+        progress = min(stats['total'], milestone['target'])
+        milestones.append({
+            **milestone,
+            'progress_percent': int(round(
+                (progress / milestone['target']) * 100
+            )),
+            'completed': stats['total'] >= milestone['target'],
+        })
+
+    top_referrals = referrals_qs.order_by('-balance')[:3]
+    recent_referrals = referrals_qs[:5]
+
+    # Убедимся, что у пользователя есть реферальный код
+    if not user.referral_code:
+        user.referral_code = user.generate_referral_code()
+        user.save(update_fields=['referral_code'])
+
+    referral_link = "{base}{path}?ref={code}".format(
+        base=request.build_absolute_uri('/').rstrip('/'),
+        path=reverse('users:register'),
+        code=user.referral_code,
+    )
+
+    context = {
+        'stats': stats,
+        'performance': performance,
+        'milestones': milestones,
+        'referrals': referrals_qs,
+        'top_referrals': top_referrals,
+        'recent_referrals': recent_referrals,
+        'referral_link': referral_link,
+    }
+    return render(request, 'users/referrals.html', context)
 
 
 def structure(request):
@@ -554,3 +652,4 @@ def get_referral_link(request):
         'referral_code': referral_code,
         'referral_link': referral_link
     })
+
