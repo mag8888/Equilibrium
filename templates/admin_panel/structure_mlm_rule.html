@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔧 MLM ОТЛАДКА</title>
+    <title>🔧 MLM ОТЛАДКА - ИСПРАВЛЕНО</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -22,8 +22,8 @@
         }
         
         .debug-info {
-            background: #e3f2fd;
-            border: 1px solid #2196f3;
+            background: #e8f5e8;
+            border: 1px solid #4caf50;
             border-radius: 5px;
             padding: 10px;
             margin-bottom: 10px;
@@ -38,6 +38,7 @@
             padding: 20px;
             min-height: 600px;
             overflow: auto;
+            width: 100%;
         }
         
         .node {
@@ -76,7 +77,7 @@
         .connection-line {
             position: absolute;
             stroke: #3b82f6;
-            stroke-width: 2;
+            stroke-width: 3;
             fill: none;
             z-index: 5;
             pointer-events: none;
@@ -106,14 +107,27 @@
         .btn:hover {
             background: #0056b3;
         }
+        
+        .status {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            color: #155724;
+        }
     </style>
 </head>
 <body>
     <div class="debug-container">
-        <h2>🔧 MLM СТРУКТУРА - ОТЛАДКА</h2>
+        <h2>🔧 MLM СТРУКТУРА - ИСПРАВЛЕНО</h2>
+        
+        <div class="status">
+            ✅ <strong>Статус:</strong> Сервер запущен, статические файлы исправлены
+        </div>
         
         <div class="debug-info" id="debugInfo">
-            🔍 Инициализация...
+            🔍 Инициализация исправленной версии...
         </div>
         
         <div class="stats">
@@ -126,6 +140,7 @@
             <button class="btn" onclick="renderStructure()">🔄 Перерисовать</button>
             <button class="btn" onclick="clearStructure()">🗑️ Очистить</button>
             <button class="btn" onclick="testConnections()">🔗 Тест связей</button>
+            <button class="btn" onclick="addLevel0()">➕ Добавить 0-й уровень</button>
         </div>
     </div>
     
@@ -134,7 +149,7 @@
     </div>
 
     <script>
-        console.log('🚀 MLM Debug Loading...');
+        console.log('🚀 MLM Debug Loading - FIXED VERSION...');
         
         function updateDebugInfo(message) {
             const debugInfo = document.getElementById('debugInfo');
@@ -144,8 +159,8 @@
             }
         }
         
-        // ПРОСТАЯ СТРУКТУРА ДЛЯ ОТЛАДКИ
-        const structure = {
+        // ИСПРАВЛЕННАЯ СТРУКТУРА
+        let structure = {
             id: 'plazma',
             name: 'PLAZMA',
             level: 4,
@@ -263,7 +278,7 @@
             
             const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             path.setAttribute('stroke', '#3b82f6');
-            path.setAttribute('stroke-width', '2');
+            path.setAttribute('stroke-width', '3');
             path.setAttribute('fill', 'none');
             path.setAttribute('class', 'connection-line');
             path.setAttribute('d', `M ${pX} ${pY} L ${cX} ${cY}`);
@@ -383,17 +398,49 @@
             updateDebugInfo(`🔗 Тест завершен. PLAZMA: ${plazma ? '✅' : '❌'}, 3-1: ${node3_1 ? '✅' : '❌'}, 2-1: ${node2_1 ? '✅' : '❌'}, 1-1: ${node1_1 ? '✅' : '❌'}`);
         }
         
+        function addLevel0() {
+            updateDebugInfo('➕ Добавляем 0-й уровень...');
+            
+            // Добавляем 0-й уровень к каждому узлу 1-го уровня
+            function addLevel0Recursive(node) {
+                if (node.level === 1) {
+                    if (!node.children) {
+                        node.children = [];
+                    }
+                    
+                    // Добавляем 3 узла 0-го уровня
+                    for (let i = 1; i <= 3; i++) {
+                        const level0Id = `0-${node.id.split('-')[1]}-${i}`;
+                        const level0Node = {
+                            id: level0Id,
+                            name: `0*/${level0Id.split('-')[1]}${i}`,
+                            level: 0,
+                            x: node.x + (i - 2) * 50,
+                            y: node.y + 150
+                        };
+                        node.children.push(level0Node);
+                    }
+                } else if (node.children) {
+                    node.children.forEach(child => addLevel0Recursive(child));
+                }
+            }
+            
+            addLevel0Recursive(structure);
+            renderStructure();
+            updateDebugInfo('✅ 0-й уровень добавлен!');
+        }
+        
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('📄 DOM Content Loaded');
-            updateDebugInfo('DOM загружен, начинаем инициализацию...');
+            console.log('📄 DOM Content Loaded - FIXED VERSION');
+            updateDebugInfo('DOM загружен, начинаем инициализацию исправленной версии...');
             renderStructure();
         });
         
         // Дополнительная инициализация
         setTimeout(function() {
-            console.log('⏰ Delayed initialization');
-            updateDebugInfo('Дополнительная инициализация...');
+            console.log('⏰ Delayed initialization - FIXED');
+            updateDebugInfo('Дополнительная инициализация исправленной версии...');
             renderStructure();
         }, 100);
     </script>
