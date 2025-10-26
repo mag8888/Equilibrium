@@ -520,45 +520,35 @@
     </div>
 
     <script>
-        const verticalFlow = document.getElementById('verticalFlow');
+        // Упрощенная версия с гарантированным отображением
+        console.log('🚀 MLM Structure Loading...');
+        
         const mindmapContainer = document.getElementById('mindmapContainer');
-        const verticalBtn = document.getElementById('verticalBtn');
-        const mindmapBtn = document.getElementById('mindmapBtn');
-        const expandBtn = document.getElementById('expandBtn');
-        const resetBtn = document.getElementById('resetBtn');
-        const centerBtn = document.getElementById('centerBtn');
         const completeCount = document.getElementById('completeCount');
         const incompleteCount = document.getElementById('incompleteCount');
         const plazmaLevel = document.getElementById('plazmaLevel');
-        const zoomContainer = document.getElementById('zoomContainer');
-        const scrollContainer = document.getElementById('scrollContainer');
-        const zoomInBtn = document.getElementById('zoomInBtn');
-        const zoomOutBtn = document.getElementById('zoomOutBtn');
-        const zoomLevel = document.getElementById('zoomLevel');
+        
+        if (!mindmapContainer) {
+            console.error('❌ mindmapContainer not found!');
+        } else {
+            console.log('✅ mindmapContainer found');
+        }
 
-        let currentView = 'mindmap';
-        let nodes = {};
-        let connections = {};
-        let nodeData = {};
-        let currentZoom = 1;
-        let isDragging = false;
-        let dragStart = { x: 0, y: 0 };
-        let scrollStart = { x: 0, y: 0 };
-
-        // ПРАВИЛЬНАЯ MLM СТРУКТУРА: для перехода на новый уровень нужно 3 партнера предыдущего уровня
-        const mindmapStructure = {
-            id: 'plazma', name: 'PLAZMA', level: 4, expanded: true, hasChat: true, complete: true,
+        // Простая структура для тестирования
+        const testStructure = {
+            id: 'plazma', 
+            name: 'PLAZMA', 
+            level: 4, 
+            expanded: true, 
+            hasChat: true, 
+            complete: true,
             children: [
-                // Уровень 3: под PLAZMA (4й уровень) - 3 партнера
                 { id: '3-1', name: '3*/1 юзернейм', level: 3, expanded: true, complete: true,
                     children: [
-                        // Уровень 2: под 3м уровнем - РОВНО 3 ПАРТНЕРА (для перехода на уровень 2 нужно 3 партнера уровня 1)
                         { id: '2-1', name: '2*/1 юзернейм', level: 2, expanded: true, complete: true,
                             children: [
-                                // Уровень 1: под 2м уровнем - РОВНО 3 ПАРТНЕРА (для перехода на уровень 1 нужно 3 партнера уровня 0)
                                 { id: '1-1', name: '1*/1 юзернейм', level: 1, expanded: true, complete: true,
                                     children: [
-                                        // Уровень 0: самый низкий уровень - РОВНО 3 ПАРТНЕРА (для перехода на уровень 0 нужно 3 партнера)
                                         { id: '0-1', name: '0*/1 юзернейм', level: 0, expanded: false, children: [], complete: true },
                                         { id: '0-2', name: '0*/2 юзернейм', level: 0, expanded: false, children: [], complete: true },
                                         { id: '0-3', name: '0*/3 юзернейм', level: 0, expanded: false, children: [], complete: false }
@@ -580,7 +570,6 @@
                 },
                 { id: '3-2', name: '3*/2 юзернейм', level: 3, expanded: true, complete: true,
                     children: [
-                        // Уровень 2: под 3м уровнем - РОВНО 3 ПАРТНЕРА
                         { id: '2-4', name: '2*/4 юзернейм', level: 2, expanded: true, complete: true,
                             children: [
                                 { id: '1-7', name: '1*/7 юзернейм', level: 1, expanded: false, children: [], complete: false },
@@ -600,7 +589,6 @@
                 },
                 { id: '3-3', name: '3*/3 юзернейм', level: 3, expanded: true, complete: true,
                     children: [
-                        // Уровень 2: под 3м уровнем - РОВНО 3 ПАРТНЕРА
                         { id: '2-7', name: '2*/7 юзернейм', level: 2, expanded: true, complete: true,
                             children: [
                                 { id: '1-13', name: '1*/13 юзернейм', level: 1, expanded: false, children: [], complete: false },
@@ -621,58 +609,13 @@
             ]
         };
 
-        // Функция для расчета уровня PLAZMA на основе партнеров
-        function calculatePlazmaLevel() {
-            // PLAZMA теперь сам 4й уровень
-            return 4;
-        }
-
-        // Обновление статистики
-        function updateStats() {
-            let complete = 0;
-            let incomplete = 0;
-            
-            function countNodes(node) {
-                if (node.complete) {
-                    complete++;
-                } else {
-                    incomplete++;
-                }
-                if (node.children) {
-                    node.children.forEach(child => countNodes(child));
-                }
-            }
-            
-            countNodes(mindmapStructure);
-            
-            completeCount.textContent = complete;
-            incompleteCount.textContent = incomplete;
-            plazmaLevel.textContent = calculatePlazmaLevel();
-        }
-
-        // Переключение между видами
-        verticalBtn.addEventListener('click', () => {
-            currentView = 'vertical';
-            verticalBtn.classList.add('active');
-            mindmapBtn.classList.remove('active');
-            // Вертикальный вид пока не реализован для полной сетки
-        });
-
-        mindmapBtn.addEventListener('click', () => {
-            currentView = 'mindmap';
-            mindmapBtn.classList.add('active');
-            verticalBtn.classList.remove('active');
-            renderMindmapStructure();
-            updateStats();
-        });
-
-        // Рендеринг майнд-карты с правильным позиционированием (правило 3 партнера для уровня)
+        // Функция для расчета позиций узлов
         function calculateNodePositions(node, level = 0, xOffset = 0, yOffset = 0, parentX = 0, parentY = 0, branchIndex = 0, totalBranches = 1) {
             const nodeWidth = 180;
             const nodeHeight = 80;
-            const horizontalSpacing = 400; // Расстояние между узлами
-            const verticalSpacing = 200; // Расстояние между уровнями
-            const containerPadding = 300; // Отступ от краев
+            const horizontalSpacing = 400;
+            const verticalSpacing = 200;
+            const containerPadding = 300;
 
             let currentX = xOffset;
             let currentY = yOffset + level * verticalSpacing;
@@ -693,7 +636,6 @@
 
             node.x = currentX;
             node.y = currentY;
-            nodeData[node.id] = { ...node, x: currentX, y: currentY };
 
             if (node.children && node.children.length > 0 && node.expanded) {
                 node.children.forEach((child, i) => {
@@ -702,7 +644,10 @@
             }
         }
 
+        // Функция для рендеринга узла
         function renderNode(node) {
+            console.log('🎯 Rendering node:', node.name, 'at', node.x, node.y);
+            
             const nodeElement = document.createElement('div');
             nodeElement.className = `node ${node.level === 4 && node.id === 'plazma' ? 'active' : ''} ${!node.complete ? 'incomplete' : ''}`;
             nodeElement.id = `node-${node.id}`;
@@ -721,7 +666,6 @@
             }
             
             mindmapContainer.appendChild(nodeElement);
-            nodes[node.id] = nodeElement;
 
             if (node.children && node.children.length > 0) {
                 const expandCircle = document.createElement('div');
@@ -742,24 +686,17 @@
             });
         }
 
+        // Функция для рендеринга соединений
         function renderConnection(parentId, childId) {
-            const parent = nodeData[parentId];
-            const child = nodeData[childId];
+            const parent = findNodeById(testStructure, parentId);
+            const child = findNodeById(testStructure, childId);
 
             if (!parent || !child) return;
 
-            const parentEl = nodes[parentId];
-            const childEl = nodes[childId];
-
-            if (!parentEl || !childEl) return;
-
-            const parentRect = parentEl.getBoundingClientRect();
-            const childRect = childEl.getBoundingClientRect();
-
-            const pX = parent.x + parentRect.width / 2;
-            const pY = parent.y + parentRect.height;
-            const cX = child.x + childRect.width / 2;
-            const cY = child.y;
+            const pX = parent.x + 90; // центр узла
+            const pY = parent.y + 40;
+            const cX = child.x + 90;
+            const cY = child.y + 40;
 
             const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             path.setAttribute('stroke', '#3b82f6');
@@ -768,7 +705,6 @@
             path.setAttribute('class', 'connection-line');
             path.setAttribute('id', `conn-${parentId}-${childId}`);
 
-            // Красная пунктирная линия для незавершенных соединений
             if (!child.complete) {
                 path.classList.add('incomplete');
             }
@@ -796,38 +732,9 @@
                 mindmapContainer.appendChild(svg);
             }
             svg.appendChild(path);
-            connections[`${parentId}-${childId}`] = path;
         }
 
-        function updateConnections() {
-            const svg = document.getElementById('connection-svg');
-            if (svg) {
-                svg.innerHTML = '';
-            }
-            connections = {};
-
-            function traverseAndConnect(node) {
-                if (node.children && node.expanded) {
-                    node.children.forEach(child => {
-                        if (child.expanded || node.expanded) {
-                            renderConnection(node.id, child.id);
-                        }
-                        traverseAndConnect(child);
-                    });
-                }
-            }
-            traverseAndConnect(mindmapStructure);
-        }
-
-        function toggleNodeExpansion(nodeId) {
-            const node = findNodeById(mindmapStructure, nodeId);
-            if (node) {
-                node.expanded = !node.expanded;
-                renderMindmapStructure();
-                updateStats();
-            }
-        }
-
+        // Функция для поиска узла по ID
         function findNodeById(root, id) {
             if (root.id === id) return root;
             if (root.children) {
@@ -839,6 +746,17 @@
             return null;
         }
 
+        // Функция для переключения расширения узла
+        function toggleNodeExpansion(nodeId) {
+            const node = findNodeById(testStructure, nodeId);
+            if (node) {
+                node.expanded = !node.expanded;
+                renderMindmapStructure();
+                updateStats();
+            }
+        }
+
+        // Функция для рендеринга структуры
         function renderStructure(node) {
             if (node.expanded) {
                 renderNode(node);
@@ -848,83 +766,76 @@
             }
         }
 
+        // Функция для обновления соединений
+        function updateConnections() {
+            const svg = document.getElementById('connection-svg');
+            if (svg) {
+                svg.innerHTML = '';
+            }
+
+            function traverseAndConnect(node) {
+                if (node.children && node.expanded) {
+                    node.children.forEach(child => {
+                        if (child.expanded || node.expanded) {
+                            renderConnection(node.id, child.id);
+                        }
+                        traverseAndConnect(child);
+                    });
+                }
+            }
+            traverseAndConnect(testStructure);
+        }
+
+        // Функция для обновления статистики
+        function updateStats() {
+            let complete = 0;
+            let incomplete = 0;
+            
+            function countNodes(node) {
+                if (node.complete) {
+                    complete++;
+                } else {
+                    incomplete++;
+                }
+                if (node.children) {
+                    node.children.forEach(child => countNodes(child));
+                }
+            }
+            
+            countNodes(testStructure);
+            
+            completeCount.textContent = complete;
+            incompleteCount.textContent = incomplete;
+            plazmaLevel.textContent = 4;
+        }
+
+        // Основная функция рендеринга
         function renderMindmapStructure() {
+            console.log('🎨 Rendering mindmap structure...');
+            
             mindmapContainer.innerHTML = '';
             const svg = document.getElementById('connection-svg');
             if (svg) svg.remove();
 
-            nodes = {};
-            connections = {};
-
-            calculateNodePositions(mindmapStructure);
-            renderStructure(mindmapStructure);
+            calculateNodePositions(testStructure);
+            renderStructure(testStructure);
             updateConnections();
-        }
-
-        // Управление масштабированием
-        function updateZoom() {
-            zoomContainer.style.transform = `scale(${currentZoom})`;
-            zoomLevel.textContent = `${Math.round(currentZoom * 100)}%`;
-        }
-
-        zoomInBtn.addEventListener('click', () => {
-            currentZoom = Math.min(currentZoom * 1.2, 3);
-            updateZoom();
-        });
-
-        zoomOutBtn.addEventListener('click', () => {
-            currentZoom = Math.max(currentZoom / 1.2, 0.3);
-            updateZoom();
-        });
-
-        // Управление скроллом
-        scrollContainer.addEventListener('wheel', (e) => {
-            if (e.ctrlKey) {
-                e.preventDefault();
-                if (e.deltaY < 0) {
-                    currentZoom = Math.min(currentZoom * 1.1, 3);
-                } else {
-                    currentZoom = Math.max(currentZoom / 1.1, 0.3);
-                }
-                updateZoom();
-            }
-        });
-
-        // Кнопки управления
-        expandBtn.addEventListener('click', () => {
-            function expandAll(node) {
-                node.expanded = true;
-                if (node.children) {
-                    node.children.forEach(child => expandAll(child));
-                }
-            }
-            expandAll(mindmapStructure);
-            renderMindmapStructure();
             updateStats();
-        });
-
-        resetBtn.addEventListener('click', () => {
-            currentZoom = 1;
-            updateZoom();
-            scrollContainer.scrollTo(0, 0);
-        });
-
-        centerBtn.addEventListener('click', () => {
-            const containerWidth = scrollContainer.clientWidth;
-            const containerHeight = scrollContainer.clientHeight;
-            const contentWidth = mindmapContainer.scrollWidth;
-            const contentHeight = mindmapContainer.scrollHeight;
             
-            const scrollX = (contentWidth - containerWidth) / 2;
-            const scrollY = (contentHeight - containerHeight) / 2;
-            
-            scrollContainer.scrollTo(scrollX, scrollY);
+            console.log('✅ Mindmap structure rendered successfully!');
+        }
+
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📄 DOM Content Loaded');
+            renderMindmapStructure();
         });
 
-        // Начальный рендеринг
-        renderMindmapStructure();
-        updateStats();
-        updateZoom();
+        // Дополнительная инициализация через небольшую задержку
+        setTimeout(function() {
+            console.log('⏰ Delayed initialization');
+            renderMindmapStructure();
+        }, 100);
     </script>
 </body>
 </html>
