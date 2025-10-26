@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌐 MLM СТРУКТУРА - ГОРИЗОНТАЛЬНАЯ МАЙНД-КАРТА FINAL</title>
+    <title>🌐 MLM СТРУКТУРА - ГОРИЗОНТАЛЬНАЯ МАЙНД-КАРТА FINAL v2</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -262,6 +262,7 @@
         <button class="btn" onclick="addLevel0()">➕ Добавить 0-й уровень</button>
         <button class="btn" onclick="testConnections()">🔗 Тест связей</button>
         <button class="btn" onclick="showFullStructure()">🌐 Полная структура</button>
+        <button class="btn" onclick="centerView()">🎯 Центрировать</button>
     </div>
     
     <div class="structure-container">
@@ -636,6 +637,13 @@
             setTimeout(() => {
                 addLevel0();
             }, 500);
+        }
+        
+        function centerView() {
+            const container = document.querySelector('.structure-container');
+            container.scrollLeft = 0;
+            container.scrollTop = 0;
+            console.log('🎯 Вид центрирован на PLAZMA');
         }
         
         // Инициализация
