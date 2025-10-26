@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌐 MLM СТРУКТУРА - ГОРИЗОНТАЛЬНАЯ МАЙНД-КАРТА WORKING v2</title>
+    <title>🌐 MLM СТРУКТУРА - ГОРИЗОНТАЛЬНАЯ МАЙНД-КАРТА WORKING v3</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -485,10 +485,22 @@
         
         // Функция создания изогнутой связи
         function createCurvedConnection(fromId, toId, fromX, fromY, toX, toY) {
-            const svg = document.getElementById('connectionSvg');
+            let svg = document.getElementById('connectionSvg');
+            
+            // Если SVG не найден, создаем его
             if (!svg) {
-                console.error('SVG element not found!');
-                return null;
+                const container = document.getElementById('mindmapContainer');
+                svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.className = 'connection-svg';
+                svg.id = 'connectionSvg';
+                svg.style.position = 'absolute';
+                svg.style.top = '0';
+                svg.style.left = '0';
+                svg.style.width = '100%';
+                svg.style.height = '100%';
+                svg.style.pointerEvents = 'none';
+                svg.style.zIndex = '5';
+                container.appendChild(svg);
             }
             
             // Создаем путь для изогнутой линии
