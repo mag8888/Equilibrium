@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌐 MLM СТРУКТУРА - ГОРИЗОНТАЛЬНАЯ МАЙНД-КАРТА v2</title>
+    <title>🌐 MLM СТРУКТУРА - ГОРИЗОНТАЛЬНАЯ МАЙНД-КАРТА v4</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -307,8 +307,8 @@
     <script>
         console.log('🌐 MLM Mind Map Loading - HORIZONTAL VIEW!');
         
-        let nodes = [];
-        let connections = [];
+        let mindMapNodes = [];
+        let mindMapConnections = [];
         
         // Структура данных для горизонтальной майнд-карты
         const mindMapStructure = {
@@ -479,7 +479,7 @@
                 node.appendChild(expandCircle);
             }
             
-            nodes.push({ id, name, level, x, y });
+                   mindMapNodes.push({ id, name, level, x, y });
             return node;
         }
         
@@ -506,7 +506,7 @@
             
             svg.appendChild(path);
             
-            connections.push({ fromId, toId, fromX, fromY, toX, toY });
+                   mindMapConnections.push({ fromId, toId, fromX, fromY, toX, toY });
             return path;
         }
         
@@ -520,8 +520,8 @@
             // Очищаем контейнер
             container.innerHTML = '';
             svg.innerHTML = '';
-            nodes = [];
-            connections = [];
+                   mindMapNodes = [];
+                   mindMapConnections = [];
             
             // Рендерим корневой узел
             const rootNode = createNode('plazma', 'PLAZMA', 4, 200, 1000);
@@ -602,8 +602,8 @@
         function clearMindMap() {
             document.getElementById('mindmapContainer').innerHTML = '';
             document.getElementById('connectionSvg').innerHTML = '';
-            nodes = [];
-            connections = [];
+                   mindMapNodes = [];
+                   mindMapConnections = [];
             updateStats();
         }
         
@@ -941,8 +941,7 @@
     <script>
         console.log('🔧 MLM No Intersections + Level 0 Loading - NO OVERLAPS!');
         
-        let nodes = [];
-        let connections = [];
+        // Переменные уже объявлены выше
         
         // Структура данных для MLM дерева с МАКСИМАЛЬНЫМИ расстояниями
         const mlmStructure = {
@@ -1135,7 +1134,7 @@
                 node.classList.add('root');
             }
             
-            nodes.push({ id, name, level, x, y });
+                   mindMapNodes.push({ id, name, level, x, y });
             return node;
         }
         
@@ -1158,7 +1157,7 @@
             connection.style.transform = `rotate(${angle}deg)`;
             connection.style.transformOrigin = '0 0';
             
-            connections.push({ fromId, toId, fromX, fromY, toX, toY });
+                   mindMapConnections.push({ fromId, toId, fromX, fromY, toX, toY });
             return connection;
         }
         
@@ -1168,8 +1167,8 @@
             
             const container = document.getElementById('mlmTree');
             container.innerHTML = '';
-            nodes = [];
-            connections = [];
+                   mindMapNodes = [];
+                   mindMapConnections = [];
             
             // Рендерим корневой узел
             const rootNode = createNode('plazma', 'PLAZMA', 4, 2000, 50);
@@ -1222,8 +1221,8 @@
         // Функции управления
         function clearStructure() {
             document.getElementById('mlmTree').innerHTML = '';
-            nodes = [];
-            connections = [];
+                   mindMapNodes = [];
+                   mindMapConnections = [];
             updateStats();
         }
         
