@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌐 MLM СТРУКТУРА - С взаимосвязями</title>
+    <title>🌐 MLM СТРУКТУРА - Полные взаимосвязи + Drag&Drop</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -36,6 +36,35 @@
             opacity: 0.9;
         }
         
+        .controls {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            margin: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+        }
+        
         .structure-container {
             background: white;
             border-radius: 15px;
@@ -50,14 +79,15 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 80px;
+            gap: 100px;
             min-width: fit-content;
             position: relative;
+            min-height: 2000px;
         }
         
         .level {
             display: flex;
-            gap: 40px;
+            gap: 50px;
             align-items: center;
             justify-content: center;
             flex-wrap: wrap;
@@ -70,9 +100,9 @@
             border-radius: 12px;
             padding: 15px 20px;
             text-align: center;
-            cursor: pointer;
+            cursor: move;
             transition: all 0.3s ease;
-            position: relative;
+            position: absolute;
             box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
             min-width: 160px;
             min-height: 80px;
@@ -81,11 +111,18 @@
             justify-content: center;
             border: 2px solid rgba(255, 255, 255, 0.2);
             z-index: 10;
+            user-select: none;
         }
         
         .user-card:hover {
             transform: translateY(-3px);
             box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+        }
+        
+        .user-card.dragging {
+            opacity: 0.7;
+            transform: rotate(5deg);
+            z-index: 1000;
         }
         
         .user-card.root {
@@ -133,136 +170,145 @@
             background: #DC2626;
             border-radius: 2px;
             box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .connection-line:hover {
+            background: #EF4444;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.5);
         }
         
         .vertical-line {
             width: 4px;
-            height: 80px;
         }
         
         .horizontal-line {
             height: 4px;
-            width: 40px;
         }
         
-        /* Специфичные позиции для связей */
+        .diagonal-line {
+            width: 4px;
+            transform-origin: top left;
+        }
+        
+        /* Позиции для связей */
         .line-root-to-l1-1 {
-            top: 80px;
+            top: 100px;
             left: 50%;
             transform: translateX(-50%);
-            height: 80px;
+            height: 100px;
             width: 4px;
         }
         
         .line-root-to-l1-2 {
-            top: 80px;
+            top: 100px;
             left: 50%;
             transform: translateX(-50%);
-            height: 80px;
+            height: 100px;
             width: 4px;
         }
         
         .line-root-to-l1-3 {
-            top: 80px;
+            top: 100px;
             left: 50%;
             transform: translateX(-50%);
-            height: 80px;
+            height: 100px;
             width: 4px;
         }
         
         .line-l1-1-to-l2-1 {
-            top: 160px;
+            top: 200px;
             left: 50%;
             transform: translateX(-50%);
-            height: 80px;
+            height: 100px;
             width: 4px;
         }
         
         .line-l1-1-to-l2-2 {
-            top: 160px;
+            top: 200px;
             left: 50%;
             transform: translateX(-50%);
-            height: 80px;
+            height: 100px;
             width: 4px;
         }
         
         .line-l1-1-to-l2-3 {
-            top: 160px;
+            top: 200px;
             left: 50%;
             transform: translateX(-50%);
-            height: 80px;
+            height: 100px;
             width: 4px;
         }
         
         .line-l1-2-to-l2-4 {
-            top: 160px;
+            top: 200px;
             left: 50%;
             transform: translateX(-50%);
-            height: 80px;
+            height: 100px;
             width: 4px;
         }
         
         .line-l1-3-to-l2-5 {
-            top: 160px;
+            top: 200px;
             left: 50%;
             transform: translateX(-50%);
-            height: 80px;
+            height: 100px;
             width: 4px;
         }
         
         .line-l1-3-to-l2-6 {
-            top: 160px;
+            top: 200px;
             left: 50%;
             transform: translateX(-50%);
-            height: 80px;
+            height: 100px;
             width: 4px;
         }
         
         .line-l2-1-to-l3-1 {
-            top: 240px;
+            top: 300px;
             left: 50%;
             transform: translateX(-50%);
-            height: 80px;
+            height: 100px;
             width: 4px;
         }
         
         .line-l2-1-to-l3-2 {
-            top: 240px;
+            top: 300px;
             left: 50%;
             transform: translateX(-50%);
-            height: 80px;
+            height: 100px;
             width: 4px;
         }
         
         .line-l2-3-to-l3-3 {
-            top: 240px;
+            top: 300px;
             left: 50%;
             transform: translateX(-50%);
-            height: 80px;
+            height: 100px;
             width: 4px;
         }
         
         .line-l2-3-to-l3-4 {
-            top: 240px;
+            top: 300px;
             left: 50%;
             transform: translateX(-50%);
-            height: 80px;
+            height: 100px;
             width: 4px;
         }
         
         .line-l2-5-to-l3-5 {
-            top: 240px;
+            top: 300px;
             left: 50%;
             transform: translateX(-50%);
-            height: 80px;
+            height: 100px;
             width: 4px;
         }
         
         .line-l2-5-to-l3-6 {
-            top: 240px;
+            top: 300px;
             left: 50%;
             transform: translateX(-50%);
-            height: 80px;
+            height: 100px;
             width: 4px;
         }
         
@@ -315,14 +361,21 @@
             .level { flex-direction: column; gap: 20px; }
             .stats-grid { grid-template-columns: 1fr; }
             .user-card { min-width: 140px; }
-            .mlm-tree { gap: 60px; }
+            .mlm-tree { gap: 80px; }
         }
     </style>
 </head>
 <body>
     <div class="header">
         <div class="title">🌐 MLM СТРУКТУРА</div>
-        <div class="subtitle">С визуальными взаимосвязями</div>
+        <div class="subtitle">Полные взаимосвязи + Drag & Drop</div>
+    </div>
+    
+    <div class="controls">
+        <button class="btn" onclick="resetPositions()">🔄 Сбросить позиции</button>
+        <button class="btn" onclick="showAllConnections()">🔗 Показать все связи</button>
+        <button class="btn" onclick="hideAllConnections()">👁️ Скрыть связи</button>
+        <button class="btn" onclick="toggleDragMode()">✋ Режим перетаскивания</button>
     </div>
     
     <div class="structure-container">
@@ -353,7 +406,7 @@
             
             <!-- Уровень 0 - Корень -->
             <div class="level">
-                <div class="user-card root">
+                <div class="user-card root" id="root" style="top: 0px; left: 50%; transform: translateX(-50%);">
                     <div class="user-icon">👤</div>
                     <div class="user-name">1 idudin</div>
                     <div class="user-id">ID403</div>
@@ -362,17 +415,17 @@
             
             <!-- Уровень 1 -->
             <div class="level">
-                <div class="user-card">
+                <div class="user-card" id="l1-1" style="top: 200px; left: 25%; transform: translateX(-50%);">
                     <div class="user-icon">👤</div>
                     <div class="user-name">ruslan_investments</div>
                     <div class="user-id">ID407</div>
                 </div>
-                <div class="user-card">
+                <div class="user-card" id="l1-2" style="top: 200px; left: 50%; transform: translateX(-50%);">
                     <div class="user-icon">👤</div>
                     <div class="user-name">ggguuqq</div>
                     <div class="user-id">ID448</div>
                 </div>
-                <div class="user-card">
+                <div class="user-card" id="l1-3" style="top: 200px; left: 75%; transform: translateX(-50%);">
                     <div class="user-icon">👤</div>
                     <div class="user-name">Paninoleg</div>
                     <div class="user-id">ID435</div>
@@ -381,32 +434,32 @@
             
             <!-- Уровень 2 -->
             <div class="level">
-                <div class="user-card">
+                <div class="user-card" id="l2-1" style="top: 400px; left: 15%; transform: translateX(-50%);">
                     <div class="user-icon">👤</div>
                     <div class="user-name">ValensiyaApatity</div>
                     <div class="user-id">ID432</div>
                 </div>
-                <div class="user-card">
+                <div class="user-card" id="l2-2" style="top: 400px; left: 30%; transform: translateX(-50%);">
                     <div class="user-icon">👤</div>
                     <div class="user-name">dcdoc123456</div>
                     <div class="user-id">ID449</div>
                 </div>
-                <div class="user-card">
+                <div class="user-card" id="l2-3" style="top: 400px; left: 45%; transform: translateX(-50%);">
                     <div class="user-icon">👤</div>
                     <div class="user-name">Ambassador8783</div>
                     <div class="user-id">ID613</div>
                 </div>
-                <div class="user-card">
+                <div class="user-card" id="l2-4" style="top: 400px; left: 60%; transform: translateX(-50%);">
                     <div class="user-icon">👤</div>
                     <div class="user-name">TatianaPost55</div>
                     <div class="user-id">ID420</div>
                 </div>
-                <div class="user-card">
+                <div class="user-card" id="l2-5" style="top: 400px; left: 75%; transform: translateX(-50%);">
                     <div class="user-icon">👤</div>
                     <div class="user-name">vyacheslavlyu</div>
                     <div class="user-id">ID470</div>
                 </div>
-                <div class="user-card">
+                <div class="user-card" id="l2-6" style="top: 400px; left: 90%; transform: translateX(-50%);">
                     <div class="user-icon">👤</div>
                     <div class="user-name">milgold8</div>
                     <div class="user-id">ID528</div>
@@ -415,34 +468,34 @@
             
             <!-- Уровень 3 -->
             <div class="level">
-                <div class="user-card">
+                <div class="user-card" id="l3-1" style="top: 600px; left: 10%; transform: translateX(-50%);">
                     <div class="user-icon">👤</div>
                     <div class="user-name">klidiya42</div>
                     <div class="user-id">ID471</div>
                 </div>
-                <div class="user-card">
+                <div class="user-card" id="l3-2" style="top: 600px; left: 25%; transform: translateX(-50%);">
                     <div class="user-icon">👤</div>
                     <div class="user-name">Millionerya</div>
                     <div class="user-id">ID529</div>
                 </div>
-                <div class="user-card">
+                <div class="user-card" id="l3-3" style="top: 600px; left: 40%; transform: translateX(-50%);">
                     <div class="user-icon">👤</div>
                     <div class="user-name">Magicmount</div>
                     <div class="user-id">ID451</div>
                 </div>
-                <div class="user-card">
+                <div class="user-card" id="l3-4" style="top: 600px; left: 55%; transform: translateX(-50%);">
                     <div class="user-icon">👤</div>
                     <div class="user-name">RomarioDeLaVega</div>
                     <div class="user-id">ID465</div>
                 </div>
-                <div class="user-card">
+                <div class="user-card" id="l3-5" style="top: 600px; left: 70%; transform: translateX(-50%);">
                     <div class="user-icon">👤</div>
                     <div class="user-name">ZviozdnayaMa</div>
                     <div class="user-id">ID488</div>
                 </div>
-                <div class="user-card">
+                <div class="user-card" id="l3-6" style="top: 600px; left: 85%; transform: translateX(-50%);">
                     <div class="user-icon">👤</div>
-                    <div class="user-name">ISOBILIKA</div>
+                    <div class="user-id">ISOBILIKA</div>
                     <div class="user-id">ID438</div>
                 </div>
             </div>
@@ -450,7 +503,7 @@
     </div>
     
     <div class="stats-panel">
-        <div class="stats-title">📊 Статистика с взаимосвязями</div>
+        <div class="stats-title">📊 Статистика с полными взаимосвязями</div>
         <div class="stats-grid">
             <div class="stat-item">
                 <div class="stat-number">16</div>
@@ -472,69 +525,171 @@
     </div>
     
     <script>
-        // Добавляем клик по карточкам
-        document.querySelectorAll('.user-card').forEach(card => {
-            card.addEventListener('click', function() {
-                const userName = this.querySelector('.user-name').textContent;
-                const userId = this.querySelector('.user-id').textContent;
-                
-                // Создаем модальное окно
-                const modal = document.createElement('div');
-                modal.style.cssText = `
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(0,0,0,0.5);
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    z-index: 1000;
-                `;
-                
-                const modalContent = document.createElement('div');
-                modalContent.style.cssText = `
-                    background: white;
-                    padding: 30px;
-                    border-radius: 15px;
-                    text-align: center;
-                    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                    max-width: 400px;
-                    width: 90%;
-                `;
-                
-                modalContent.innerHTML = `
-                    <h3 style="color: #667eea; margin-bottom: 15px;">👤 Информация о пользователе</h3>
-                    <p style="font-size: 1.2rem; margin-bottom: 10px;"><strong>${userName}</strong></p>
-                    <p style="color: #666; margin-bottom: 20px;">${userId}</p>
-                    <div style="background: #f0f4ff; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                        <p style="color: #667eea; font-weight: 600;">�� Связи:</p>
-                        <p style="font-size: 0.9rem; color: #666;">Показаны красными линиями</p>
-                    </div>
-                    <button onclick="this.closest('.modal').remove()" style="
-                        background: linear-gradient(135deg, #667eea, #764ba2);
-                        color: white;
-                        border: none;
-                        padding: 10px 20px;
-                        border-radius: 8px;
-                        cursor: pointer;
-                        font-weight: 600;
-                    ">Закрыть</button>
-                `;
-                
-                modal.className = 'modal';
-                modal.appendChild(modalContent);
-                document.body.appendChild(modal);
-                
-                // Закрытие по клику вне модального окна
-                modal.addEventListener('click', function(e) {
-                    if (e.target === modal) {
-                        modal.remove();
-                    }
-                });
+        let isDragMode = false;
+        let draggedElement = null;
+        let dragOffset = { x: 0, y: 0 };
+        
+        // Инициализация drag and drop
+        function initDragAndDrop() {
+            document.querySelectorAll('.user-card').forEach(card => {
+                card.addEventListener('mousedown', startDrag);
+                card.addEventListener('click', showUserInfo);
             });
-        });
+            
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', endDrag);
+        }
+        
+        function startDrag(e) {
+            if (!isDragMode) return;
+            
+            draggedElement = e.target.closest('.user-card');
+            if (!draggedElement) return;
+            
+            draggedElement.classList.add('dragging');
+            
+            const rect = draggedElement.getBoundingClientRect();
+            const containerRect = document.querySelector('.structure-container').getBoundingClientRect();
+            
+            dragOffset.x = e.clientX - rect.left;
+            dragOffset.y = e.clientY - rect.top;
+            
+            e.preventDefault();
+        }
+        
+        function drag(e) {
+            if (!draggedElement || !isDragMode) return;
+            
+            const containerRect = document.querySelector('.structure-container').getBoundingClientRect();
+            const x = e.clientX - containerRect.left - dragOffset.x;
+            const y = e.clientY - containerRect.top - dragOffset.y;
+            
+            draggedElement.style.left = x + 'px';
+            draggedElement.style.top = y + 'px';
+            draggedElement.style.transform = 'none';
+        }
+        
+        function endDrag() {
+            if (draggedElement) {
+                draggedElement.classList.remove('dragging');
+                draggedElement = null;
+            }
+        }
+        
+        function showUserInfo(e) {
+            if (isDragMode) return;
+            
+            const card = e.target.closest('.user-card');
+            const userName = card.querySelector('.user-name').textContent;
+            const userId = card.querySelector('.user-id').textContent;
+            
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+            `;
+            
+            const modalContent = document.createElement('div');
+            modalContent.style.cssText = `
+                background: white;
+                padding: 30px;
+                border-radius: 15px;
+                text-align: center;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                max-width: 400px;
+                width: 90%;
+            `;
+            
+            modalContent.innerHTML = `
+                <h3 style="color: #667eea; margin-bottom: 15px;">👤 Информация о пользователе</h3>
+                <p style="font-size: 1.2rem; margin-bottom: 10px;"><strong>${userName}</strong></p>
+                <p style="color: #666; margin-bottom: 20px;">${userId}</p>
+                <div style="background: #f0f4ff; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <p style="color: #667eea; font-weight: 600;">�� Связи:</p>
+                    <p style="font-size: 0.9rem; color: #666;">Показаны красными линиями</p>
+                </div>
+                <button onclick="this.closest('.modal').remove()" style="
+                    background: linear-gradient(135deg, #667eea, #764ba2);
+                    color: white;
+                    border: none;
+                    padding: 10px 20px;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    font-weight: 600;
+                ">Закрыть</button>
+            `;
+            
+            modal.className = 'modal';
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+            
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+        }
+        
+        function resetPositions() {
+            document.querySelectorAll('.user-card').forEach(card => {
+                const id = card.id;
+                switch(id) {
+                    case 'root':
+                        card.style.left = '50%';
+                        card.style.top = '0px';
+                        card.style.transform = 'translateX(-50%)';
+                        break;
+                    case 'l1-1':
+                        card.style.left = '25%';
+                        card.style.top = '200px';
+                        card.style.transform = 'translateX(-50%)';
+                        break;
+                    case 'l1-2':
+                        card.style.left = '50%';
+                        card.style.top = '200px';
+                        card.style.transform = 'translateX(-50%)';
+                        break;
+                    case 'l1-3':
+                        card.style.left = '75%';
+                        card.style.top = '200px';
+                        card.style.transform = 'translateX(-50%)';
+                        break;
+                    // Добавить остальные позиции...
+                }
+            });
+        }
+        
+        function showAllConnections() {
+            document.querySelectorAll('.connection-line').forEach(line => {
+                line.style.opacity = '1';
+            });
+        }
+        
+        function hideAllConnections() {
+            document.querySelectorAll('.connection-line').forEach(line => {
+                line.style.opacity = '0';
+            });
+        }
+        
+        function toggleDragMode() {
+            isDragMode = !isDragMode;
+            const btn = event.target;
+            if (isDragMode) {
+                btn.textContent = '✋ Режим перетаскивания (ВКЛ)';
+                btn.style.background = 'linear-gradient(135deg, #10B981, #059669)';
+            } else {
+                btn.textContent = '✋ Режим перетаскивания';
+                btn.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
+            }
+        }
         
         // Анимация появления связей
         setTimeout(() => {
@@ -552,6 +707,9 @@
             line.style.transform = 'scaleY(0)';
             line.style.transition = 'all 0.5s ease';
         });
+        
+        // Инициализация
+        initDragAndDrop();
     </script>
 </body>
 </html>
