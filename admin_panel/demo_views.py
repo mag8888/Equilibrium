@@ -96,7 +96,7 @@ def admin_demo_structure(request):
         'is_demo': True,
     }
     
-    return render(request, 'admin_panel/mindmap_symmetric.html', context)
+    return render(request, 'admin_panel/mindmap_symmetric_v3.html', context)
 
 
 def admin_demo_structure_old(request):
