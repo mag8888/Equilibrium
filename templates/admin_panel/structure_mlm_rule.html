@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌐 MLM СТРУКТУРА - Исправлена ошибка SVG</title>
+    <title>🌐 MLM СТРУКТУРА - Полная структура 4→3→3</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -156,8 +156,8 @@
             position: relative;
             transform-origin: top left;
             transition: transform 0.3s ease;
-            min-width: 4000px;
-            min-height: 2000px;
+            min-width: 5000px;
+            min-height: 3000px;
         }
 
         .mindmap-container {
@@ -457,7 +457,7 @@
 
     <div class="structure-container" id="structureContainer">
         <div class="debug-info" id="debugInfo">
-            🔍 Отладка: Загрузка структуры...
+            🔍 Отладка: Загрузка полной структуры...
         </div>
         
         <div class="logic-stats" id="logicStats">
@@ -523,7 +523,7 @@
         
         updateDebugInfo('🔍 Инициализация элементов...');
         
-        // ПРОСТАЯ СТРУКТУРА ДЛЯ ОТЛАДКИ
+        // ПОЛНАЯ СТРУКТУРА: PLAZMA → 3 партнера 3-го уровня → каждый имеет 3 партнера 2-го уровня
         const structure = {
             id: 'plazma', 
             name: 'PLAZMA', 
@@ -531,16 +531,58 @@
             expanded: true, 
             hasChat: true, 
             complete: true,
-            x: 1000,
+            x: 2000,
             y: 100,
             children: [
-                { id: '3-1', name: '3*/1 юзернейм', level: 3, expanded: true, complete: true, x: 800, y: 300 },
-                { id: '3-2', name: '3*/2 юзернейм', level: 3, expanded: true, complete: true, x: 1000, y: 300 },
-                { id: '3-3', name: '3*/3 юзернейм', level: 3, expanded: true, complete: true, x: 1200, y: 300 }
+                // Первый партнер 3-го уровня
+                { 
+                    id: '3-1', 
+                    name: '3*/1 юзернейм', 
+                    level: 3, 
+                    expanded: true, 
+                    complete: true, 
+                    x: 1200, 
+                    y: 400,
+                    children: [
+                        { id: '2-1', name: '2*/1 юзернейм', level: 2, expanded: true, complete: true, x: 800, y: 700 },
+                        { id: '2-2', name: '2*/2 юзернейм', level: 2, expanded: true, complete: true, x: 1200, y: 700 },
+                        { id: '2-3', name: '2*/3 юзернейм', level: 2, expanded: true, complete: true, x: 1600, y: 700 }
+                    ]
+                },
+                // Второй партнер 3-го уровня
+                { 
+                    id: '3-2', 
+                    name: '3*/2 юзернейм', 
+                    level: 3, 
+                    expanded: true, 
+                    complete: true, 
+                    x: 2000, 
+                    y: 400,
+                    children: [
+                        { id: '2-4', name: '2*/4 юзернейм', level: 2, expanded: true, complete: true, x: 1600, y: 700 },
+                        { id: '2-5', name: '2*/5 юзернейм', level: 2, expanded: true, complete: true, x: 2000, y: 700 },
+                        { id: '2-6', name: '2*/6 юзернейм', level: 2, expanded: true, complete: true, x: 2400, y: 700 }
+                    ]
+                },
+                // Третий партнер 3-го уровня
+                { 
+                    id: '3-3', 
+                    name: '3*/3 юзернейм', 
+                    level: 3, 
+                    expanded: true, 
+                    complete: true, 
+                    x: 2800, 
+                    y: 400,
+                    children: [
+                        { id: '2-7', name: '2*/7 юзернейм', level: 2, expanded: true, complete: true, x: 2400, y: 700 },
+                        { id: '2-8', name: '2*/8 юзернейм', level: 2, expanded: true, complete: true, x: 2800, y: 700 },
+                        { id: '2-9', name: '2*/9 юзернейм', level: 2, expanded: true, complete: true, x: 3200, y: 700 }
+                    ]
+                }
             ]
         };
 
-        updateDebugInfo('🔍 Структура создана, начинаем рендеринг...');
+        updateDebugInfo('🔍 Полная структура создана, начинаем рендеринг...');
 
         // Функция для обновления масштаба
         function updateZoom() {
@@ -706,7 +748,7 @@
         // Функция для рендеринга структуры
         function renderStructure() {
             console.log('🎨 Rendering structure...');
-            updateDebugInfo('🔍 Начинаем рендеринг структуры...');
+            updateDebugInfo('🔍 Начинаем рендеринг полной структуры...');
             
             const container = document.getElementById('mindmapContainer');
             if (!container) {
@@ -735,25 +777,34 @@
             
             updateDebugInfo('🔍 Рендерим узлы...');
             
-            // Рендерим узлы
-            renderNode(structure);
-            if (structure.children) {
-                structure.children.forEach(child => renderNode(child));
+            // Рендерим узлы рекурсивно
+            function renderNodeRecursive(node) {
+                renderNode(node);
+                if (node.children) {
+                    node.children.forEach(child => renderNodeRecursive(child));
+                }
             }
+            
+            renderNodeRecursive(structure);
             
             updateDebugInfo('🔍 Рендерим соединения...');
             
-            // Рендерим соединения
-            if (structure.children) {
-                structure.children.forEach(child => {
-                    renderConnection(structure.id, child.id);
-                });
+            // Рендерим соединения рекурсивно
+            function renderConnectionsRecursive(node) {
+                if (node.children) {
+                    node.children.forEach(child => {
+                        renderConnection(node.id, child.id);
+                        renderConnectionsRecursive(child);
+                    });
+                }
             }
+            
+            renderConnectionsRecursive(structure);
             
             updateStats();
             
-            updateDebugInfo('✅ Структура отрендерена успешно!');
-            console.log('✅ Structure rendered successfully!');
+            updateDebugInfo('✅ Полная структура отрендерена успешно!');
+            console.log('✅ Full structure rendered successfully!');
         }
 
         // Обновление статистики
