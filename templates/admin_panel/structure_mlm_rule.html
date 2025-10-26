@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌐 MLM СТРУКТУРА - Без наложений</title>
+    <title>🌐 MLM СТРУКТУРА - Отладка</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -156,8 +156,8 @@
             position: relative;
             transform-origin: top left;
             transition: transform 0.3s ease;
-            min-width: 6000px;
-            min-height: 3000px;
+            min-width: 4000px;
+            min-height: 2000px;
         }
 
         .mindmap-container {
@@ -165,6 +165,7 @@
             width: 100%;
             height: 100%;
             min-height: 500px;
+            background: #f8fafc;
         }
 
         /* ЕДИНЫЙ СТИЛЬ ДЛЯ ВСЕХ УЗЛОВ */
@@ -406,6 +407,20 @@
         .logic-stats .stat-dot.incomplete {
             background: #ef4444;
         }
+
+        .debug-info {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            padding: 10px 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            font-size: 0.9rem;
+            z-index: 20;
+            color: #374151;
+        }
     </style>
 </head>
 <body>
@@ -441,6 +456,10 @@
     </div>
 
     <div class="structure-container" id="structureContainer">
+        <div class="debug-info" id="debugInfo">
+            �� Отладка: Загрузка структуры...
+        </div>
+        
         <div class="logic-stats" id="logicStats">
             <div class="stat-item">
                 <div class="stat-dot complete"></div>
@@ -480,11 +499,17 @@
     <script>
         console.log('🚀 MLM Structure Loading...');
         
+        // Функция для обновления отладочной информации
+        function updateDebugInfo(message) {
+            const debugInfo = document.getElementById('debugInfo');
+            if (debugInfo) {
+                debugInfo.textContent = message;
+                console.log('🔍 Debug:', message);
+            }
+        }
+        
         // Переменные для масштабирования и скролла
         let currentZoom = 1;
-        let isDragging = false;
-        let dragStart = { x: 0, y: 0 };
-        let scrollStart = { x: 0, y: 0 };
         
         // Элементы
         const scrollContainer = document.getElementById('scrollContainer');
@@ -496,7 +521,9 @@
         const resetBtn = document.getElementById('resetBtn');
         const centerBtn = document.getElementById('centerBtn');
         
-        // ПРАВИЛЬНАЯ MLM СТРУКТУРА БЕЗ НАЛОЖЕНИЙ
+        updateDebugInfo('🔍 Инициализация элементов...');
+        
+        // ПРОСТАЯ СТРУКТУРА ДЛЯ ОТЛАДКИ
         const structure = {
             id: 'plazma', 
             name: 'PLAZMA', 
@@ -504,96 +531,16 @@
             expanded: true, 
             hasChat: true, 
             complete: true,
+            x: 1000,
+            y: 100,
             children: [
-                // Уровень 3: под PLAZMA (4й уровень) - РОВНО 3 ПАРТНЕРА
-                { id: '3-1', name: '3*/1 юзернейм', level: 3, expanded: true, complete: true,
-                    children: [
-                        // Уровень 2: под 3м уровнем - РОВНО 3 ПАРТНЕРА
-                        { id: '2-1', name: '2*/1 юзернейм', level: 2, expanded: true, complete: true,
-                            children: [
-                                // Уровень 1: под 2м уровнем - РОВНО 3 ПАРТНЕРА
-                                { id: '1-1', name: '1*/1 юзернейм', level: 1, expanded: true, complete: true,
-                                    children: [
-                                        // Уровень 0: самый низкий уровень - РОВНО 3 ПАРТНЕРА
-                                        { id: '0-1', name: '0*/1 юзернейм', level: 0, expanded: false, children: [], complete: true },
-                                        { id: '0-2', name: '0*/2 юзернейм', level: 0, expanded: false, children: [], complete: true },
-                                        { id: '0-3', name: '0*/3 юзернейм', level: 0, expanded: false, children: [], complete: false }
-                                    ]
-                                },
-                                { id: '1-2', name: '1*/2 юзернейм', level: 1, expanded: false, children: [], complete: false },
-                                { id: '1-3', name: '1*/3 юзернейм', level: 1, expanded: false, children: [], complete: false }
-                            ]
-                        },
-                        { id: '2-2', name: '2*/2 юзернейм', level: 2, expanded: true, complete: true,
-                            children: [
-                                { id: '1-4', name: '1*/4 юзернейм', level: 1, expanded: false, children: [], complete: false },
-                                { id: '1-5', name: '1*/5 юзернейм', level: 1, expanded: false, children: [], complete: false },
-                                { id: '1-6', name: '1*/6 юзернейм', level: 1, expanded: false, children: [], complete: false }
-                            ]
-                        },
-                        { id: '2-3', name: '2*/3 юзернейм', level: 2, expanded: true, complete: true,
-                            children: [
-                                { id: '1-7', name: '1*/7 юзернейм', level: 1, expanded: false, children: [], complete: false },
-                                { id: '1-8', name: '1*/8 юзернейм', level: 1, expanded: false, children: [], complete: false },
-                                { id: '1-9', name: '1*/9 юзернейм', level: 1, expanded: false, children: [], complete: false }
-                            ]
-                        }
-                    ]
-                },
-                { id: '3-2', name: '3*/2 юзернейм', level: 3, expanded: true, complete: true,
-                    children: [
-                        // Уровень 2: под 3м уровнем - РОВНО 3 ПАРТНЕРА
-                        { id: '2-4', name: '2*/4 юзернейм', level: 2, expanded: true, complete: true,
-                            children: [
-                                { id: '1-10', name: '1*/10 юзернейм', level: 1, expanded: false, children: [], complete: false },
-                                { id: '1-11', name: '1*/11 юзернейм', level: 1, expanded: false, children: [], complete: false },
-                                { id: '1-12', name: '1*/12 юзернейм', level: 1, expanded: false, children: [], complete: false }
-                            ]
-                        },
-                        { id: '2-5', name: '2*/5 юзернейм', level: 2, expanded: true, complete: true,
-                            children: [
-                                { id: '1-13', name: '1*/13 юзернейм', level: 1, expanded: false, children: [], complete: false },
-                                { id: '1-14', name: '1*/14 юзернейм', level: 1, expanded: false, children: [], complete: false },
-                                { id: '1-15', name: '1*/15 юзернейм', level: 1, expanded: false, children: [], complete: false }
-                            ]
-                        },
-                        { id: '2-6', name: '2*/6 юзернейм', level: 2, expanded: true, complete: true,
-                            children: [
-                                { id: '1-16', name: '1*/16 юзернейм', level: 1, expanded: false, children: [], complete: false },
-                                { id: '1-17', name: '1*/17 юзернейм', level: 1, expanded: false, children: [], complete: false },
-                                { id: '1-18', name: '1*/18 юзернейм', level: 1, expanded: false, children: [], complete: false }
-                            ]
-                        }
-                    ]
-                },
-                { id: '3-3', name: '3*/3 юзернейм', level: 3, expanded: true, complete: true,
-                    children: [
-                        // Уровень 2: под 3м уровнем - РОВНО 3 ПАРТНЕРА
-                        { id: '2-7', name: '2*/7 юзернейм', level: 2, expanded: true, complete: true,
-                            children: [
-                                { id: '1-19', name: '1*/19 юзернейм', level: 1, expanded: false, children: [], complete: false },
-                                { id: '1-20', name: '1*/20 юзернейм', level: 1, expanded: false, children: [], complete: false },
-                                { id: '1-21', name: '1*/21 юзернейм', level: 1, expanded: false, children: [], complete: false }
-                            ]
-                        },
-                        { id: '2-8', name: '2*/8 юзернейм', level: 2, expanded: true, complete: true,
-                            children: [
-                                { id: '1-22', name: '1*/22 юзернейм', level: 1, expanded: false, children: [], complete: false },
-                                { id: '1-23', name: '1*/23 юзернейм', level: 1, expanded: false, children: [], complete: false },
-                                { id: '1-24', name: '1*/24 юзернейм', level: 1, expanded: false, children: [], complete: false }
-                            ]
-                        },
-                        { id: '2-9', name: '2*/9 юзернейм', level: 2, expanded: true, complete: true,
-                            children: [
-                                { id: '1-25', name: '1*/25 юзернейм', level: 1, expanded: false, children: [], complete: false },
-                                { id: '1-26', name: '1*/26 юзернейм', level: 1, expanded: false, children: [], complete: false },
-                                { id: '1-27', name: '1*/27 юзернейм', level: 1, expanded: false, children: [], complete: false }
-                            ]
-                        }
-                    ]
-                }
+                { id: '3-1', name: '3*/1 юзернейм', level: 3, expanded: true, complete: true, x: 800, y: 300 },
+                { id: '3-2', name: '3*/2 юзернейм', level: 3, expanded: true, complete: true, x: 1000, y: 300 },
+                { id: '3-3', name: '3*/3 юзернейм', level: 3, expanded: true, complete: true, x: 1200, y: 300 }
             ]
         };
+
+        updateDebugInfo('🔍 Структура создана, начинаем рендеринг...');
 
         // Функция для обновления масштаба
         function updateZoom() {
@@ -638,15 +585,8 @@
         // Обработчики кнопок управления
         if (expandBtn) {
             expandBtn.addEventListener('click', () => {
-                function expandAll(node) {
-                    node.expanded = true;
-                    if (node.children) {
-                        node.children.forEach(child => expandAll(child));
-                    }
-                }
-                expandAll(structure);
+                updateDebugInfo('🔍 Expand All clicked');
                 renderStructure();
-                updateStats();
             });
         }
 
@@ -657,6 +597,7 @@
                 if (scrollContainer) {
                     scrollContainer.scrollTo(0, 0);
                 }
+                updateDebugInfo('🔍 Reset View clicked');
             });
         }
 
@@ -673,45 +614,14 @@
                     
                     scrollContainer.scrollTo(scrollX, scrollY);
                 }
+                updateDebugInfo('🔍 Center clicked');
             });
-        }
-
-        // Функция для расчета позиций С УВЕЛИЧЕННЫМИ РАССТОЯНИЯМИ ДЛЯ ИЗБЕЖАНИЯ НАЛОЖЕНИЙ
-        function calculatePositions(node, level = 0, xOffset = 0, yOffset = 0, parentX = 0, parentY = 0, branchIndex = 0, totalBranches = 1) {
-            const horizontalSpacing = 600; // УВЕЛИЧЕНО для избежания наложений
-            const verticalSpacing = 250; // УВЕЛИЧЕНО для избежания наложений
-            const containerPadding = 500; // УВЕЛИЧЕНО
-
-            let currentX = xOffset;
-            let currentY = yOffset + level * verticalSpacing;
-
-            if (level === 0) {
-                // PLAZMA в центре (4й уровень)
-                currentX = containerPadding + 1500;
-            } else {
-                // Правильное распределение с увеличенными расстояниями
-                const totalWidth = (totalBranches - 1) * horizontalSpacing;
-                const startX = parentX - totalWidth / 2;
-                currentX = startX + branchIndex * horizontalSpacing;
-                
-                if (currentX < containerPadding) {
-                    currentX = containerPadding;
-                }
-            }
-
-            node.x = currentX;
-            node.y = currentY;
-
-            if (node.children && node.children.length > 0 && node.expanded) {
-                node.children.forEach((child, i) => {
-                    calculatePositions(child, level + 1, 0, yOffset, currentX, currentY, i, node.children.length);
-                });
-            }
         }
 
         // Функция для рендеринга узла
         function renderNode(node) {
             console.log('🎯 Rendering node:', node.name, 'at', node.x, node.y);
+            updateDebugInfo(`🔍 Рендеринг узла: ${node.name} в позиции (${node.x}, ${node.y})`);
             
             const nodeElement = document.createElement('div');
             nodeElement.className = `node ${node.level === 4 && node.id === 'plazma' ? 'active' : ''} ${!node.complete ? 'incomplete' : ''}`;
@@ -733,30 +643,14 @@
             const container = document.getElementById('mindmapContainer');
             if (container) {
                 container.appendChild(nodeElement);
+                console.log('✅ Node added to container');
+            } else {
+                console.error('❌ Container not found!');
+                updateDebugInfo('❌ Ошибка: контейнер не найден!');
             }
-
-            if (node.children && node.children.length > 0) {
-                const expandCircle = document.createElement('div');
-                expandCircle.className = `expand-circle ${node.expanded ? '' : 'collapsed'} ${!node.complete ? 'incomplete' : ''}`;
-                expandCircle.style.left = `${node.x + 90}px`;
-                expandCircle.style.top = `${node.y + 40}px`;
-                expandCircle.onclick = (e) => {
-                    e.stopPropagation();
-                    toggleExpansion(node.id);
-                };
-                if (container) {
-                    container.appendChild(expandCircle);
-                }
-            }
-
-            nodeElement.addEventListener('click', (e) => {
-                if (node.children && node.children.length > 0) {
-                    toggleExpansion(node.id);
-                }
-            });
         }
 
-        // Функция для рендеринга соединений БЕЗ НАЛОЖЕНИЙ - линии РИСУЮТСЯ РАНЬШЕ узлов
+        // Функция для рендеринга соединений
         function renderConnection(parentId, childId) {
             const parent = findNodeById(structure, parentId);
             const child = findNodeById(structure, childId);
@@ -775,11 +669,6 @@
             path.setAttribute('class', 'connection-line');
             path.setAttribute('id', `conn-${parentId}-${childId}`);
 
-            if (!child.complete) {
-                path.classList.add('incomplete');
-            }
-
-            // Прямые линии
             let d = `M ${pX} ${pY} L ${cX} ${cY}`;
             path.setAttribute('d', d);
 
@@ -793,10 +682,10 @@
                 svg.style.width = '100%';
                 svg.style.height = '100%';
                 svg.style.pointerEvents = 'none';
-                svg.style.zIndex = '1'; // SVG рисуется ПЕРВЫМ (ниже узлов)
+                svg.style.zIndex = '1';
                 const container = document.getElementById('mindmapContainer');
                 if (container) {
-                    container.insertBefore(svg, container.firstChild); // ВСТАВЛЯЕМ ПЕРВЫМ
+                    container.appendChild(svg);
                 }
             }
             svg.appendChild(path);
@@ -814,23 +703,15 @@
             return null;
         }
 
-        // Функция для переключения расширения
-        function toggleExpansion(nodeId) {
-            const node = findNodeById(structure, nodeId);
-            if (node) {
-                node.expanded = !node.expanded;
-                renderStructure();
-                updateStats();
-            }
-        }
-
         // Функция для рендеринга структуры
         function renderStructure() {
             console.log('🎨 Rendering structure...');
+            updateDebugInfo('🔍 Начинаем рендеринг структуры...');
             
             const container = document.getElementById('mindmapContainer');
             if (!container) {
                 console.error('❌ Container not found!');
+                updateDebugInfo('❌ Ошибка: контейнер не найден!');
                 return;
             }
             
@@ -838,9 +719,9 @@
             const svg = document.getElementById('connection-svg');
             if (svg) svg.remove();
 
-            calculatePositions(structure);
+            updateDebugInfo('🔍 Создаем SVG для соединений...');
             
-            // СНАЧАЛА рисуем соединения (SVG)
+            // Создаем SVG
             const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
             svg.setAttribute('id', 'connection-svg');
             svg.style.position = 'absolute';
@@ -852,37 +733,27 @@
             svg.style.zIndex = '1';
             container.appendChild(svg);
             
-            // ПОТОМ рисуем узлы
-            renderStructureRecursive(structure);
-            updateConnections();
+            updateDebugInfo('🔍 Рендерим узлы...');
+            
+            // Рендерим узлы
+            renderNode(structure);
+            if (structure.children) {
+                structure.children.forEach(child => renderNode(child));
+            }
+            
+            updateDebugInfo('🔍 Рендерим соединения...');
+            
+            // Рендерим соединения
+            if (structure.children) {
+                structure.children.forEach(child => {
+                    renderConnection(structure.id, child.id);
+                });
+            }
+            
             updateStats();
             
+            updateDebugInfo('✅ Структура отрендерена успешно!');
             console.log('✅ Structure rendered successfully!');
-        }
-
-        // Рекурсивный рендеринг
-        function renderStructureRecursive(node) {
-            if (node.expanded) {
-                renderNode(node);
-                if (node.children) {
-                    node.children.forEach(child => renderStructureRecursive(child));
-                }
-            }
-        }
-
-        // Обновление соединений
-        function updateConnections() {
-            function traverseAndConnect(node) {
-                if (node.children && node.expanded) {
-                    node.children.forEach(child => {
-                        if (child.expanded || node.expanded) {
-                            renderConnection(node.id, child.id);
-                        }
-                        traverseAndConnect(child);
-                    });
-                }
-            }
-            traverseAndConnect(structure);
         }
 
         // Обновление статистики
@@ -915,6 +786,7 @@
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
             console.log('📄 DOM Content Loaded');
+            updateDebugInfo('🔍 DOM загружен, начинаем инициализацию...');
             renderStructure();
             updateZoom();
         });
@@ -922,9 +794,18 @@
         // Дополнительная инициализация
         setTimeout(function() {
             console.log('⏰ Delayed initialization');
+            updateDebugInfo('🔍 Дополнительная инициализация...');
             renderStructure();
             updateZoom();
         }, 100);
+
+        // Еще одна попытка через 500ms
+        setTimeout(function() {
+            console.log('⏰ Final initialization');
+            updateDebugInfo('🔍 Финальная инициализация...');
+            renderStructure();
+            updateZoom();
+        }, 500);
     </script>
 </body>
 </html>
