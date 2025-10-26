@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌐 MLM СТРУКТУРА - Правильная структура 3→3→3→3</title>
+    <title>🌐 MLM СТРУКТУРА - Без наложений</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -156,8 +156,8 @@
             position: relative;
             transform-origin: top left;
             transition: transform 0.3s ease;
-            min-width: 4000px;
-            min-height: 2000px;
+            min-width: 6000px;
+            min-height: 3000px;
         }
 
         .mindmap-container {
@@ -266,6 +266,7 @@
             stroke-width: 2;
             fill: none;
             z-index: 5;
+            pointer-events: none;
         }
 
         .connection-line.incomplete {
@@ -495,7 +496,7 @@
         const resetBtn = document.getElementById('resetBtn');
         const centerBtn = document.getElementById('centerBtn');
         
-        // ПРАВИЛЬНАЯ MLM СТРУКТУРА: каждый уровень имеет ровно 3 партнера
+        // ПРАВИЛЬНАЯ MLM СТРУКТУРА БЕЗ НАЛОЖЕНИЙ
         const structure = {
             id: 'plazma', 
             name: 'PLAZMA', 
@@ -675,20 +676,20 @@
             });
         }
 
-        // Функция для расчета позиций БЕЗ ПЕРЕСЕЧЕНИЙ - каждый уровень имеет ровно 3 партнера
+        // Функция для расчета позиций С УВЕЛИЧЕННЫМИ РАССТОЯНИЯМИ ДЛЯ ИЗБЕЖАНИЯ НАЛОЖЕНИЙ
         function calculatePositions(node, level = 0, xOffset = 0, yOffset = 0, parentX = 0, parentY = 0, branchIndex = 0, totalBranches = 1) {
-            const horizontalSpacing = 400; // Расстояние между ветками
-            const verticalSpacing = 200; // Расстояние между уровнями
-            const containerPadding = 300; // Отступ
+            const horizontalSpacing = 600; // УВЕЛИЧЕНО для избежания наложений
+            const verticalSpacing = 250; // УВЕЛИЧЕНО для избежания наложений
+            const containerPadding = 500; // УВЕЛИЧЕНО
 
             let currentX = xOffset;
             let currentY = yOffset + level * verticalSpacing;
 
             if (level === 0) {
                 // PLAZMA в центре (4й уровень)
-                currentX = containerPadding + 1000;
+                currentX = containerPadding + 1500;
             } else {
-                // Правильное распределение для всех уровней - каждый уровень имеет ровно 3 партнера
+                // Правильное распределение с увеличенными расстояниями
                 const totalWidth = (totalBranches - 1) * horizontalSpacing;
                 const startX = parentX - totalWidth / 2;
                 currentX = startX + branchIndex * horizontalSpacing;
@@ -755,7 +756,7 @@
             });
         }
 
-        // Функция для рендеринга соединений БЕЗ ПЕРЕСЕЧЕНИЙ - каждый уровень имеет ровно 3 партнера
+        // Функция для рендеринга соединений БЕЗ НАЛОЖЕНИЙ - линии РИСУЮТСЯ РАНЬШЕ узлов
         function renderConnection(parentId, childId) {
             const parent = findNodeById(structure, parentId);
             const child = findNodeById(structure, childId);
@@ -778,7 +779,7 @@
                 path.classList.add('incomplete');
             }
 
-            // Прямые линии для избежания пересечений
+            // Прямые линии
             let d = `M ${pX} ${pY} L ${cX} ${cY}`;
             path.setAttribute('d', d);
 
@@ -792,9 +793,10 @@
                 svg.style.width = '100%';
                 svg.style.height = '100%';
                 svg.style.pointerEvents = 'none';
+                svg.style.zIndex = '1'; // SVG рисуется ПЕРВЫМ (ниже узлов)
                 const container = document.getElementById('mindmapContainer');
                 if (container) {
-                    container.appendChild(svg);
+                    container.insertBefore(svg, container.firstChild); // ВСТАВЛЯЕМ ПЕРВЫМ
                 }
             }
             svg.appendChild(path);
@@ -837,6 +839,20 @@
             if (svg) svg.remove();
 
             calculatePositions(structure);
+            
+            // СНАЧАЛА рисуем соединения (SVG)
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('id', 'connection-svg');
+            svg.style.position = 'absolute';
+            svg.style.top = '0';
+            svg.style.left = '0';
+            svg.style.width = '100%';
+            svg.style.height = '100%';
+            svg.style.pointerEvents = 'none';
+            svg.style.zIndex = '1';
+            container.appendChild(svg);
+            
+            // ПОТОМ рисуем узлы
             renderStructureRecursive(structure);
             updateConnections();
             updateStats();
@@ -854,17 +870,11 @@
             }
         }
 
-        // Обновление соединений БЕЗ ПЕРЕСЕЧЕНИЙ - каждый уровень имеет ровно 3 партнера
+        // Обновление соединений
         function updateConnections() {
-            const svg = document.getElementById('connection-svg');
-            if (svg) {
-                svg.innerHTML = '';
-            }
-
             function traverseAndConnect(node) {
                 if (node.children && node.expanded) {
                     node.children.forEach(child => {
-                        // Соединяем ТОЛЬКО если ребенок тоже расширен или родитель расширен
                         if (child.expanded || node.expanded) {
                             renderConnection(node.id, child.id);
                         }
