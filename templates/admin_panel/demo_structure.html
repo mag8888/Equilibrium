@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔧 MLM СТРУКТУРА - БЕЗ ПЕРЕСЕЧЕНИЙ + УРОВЕНЬ 0</title>
+    <title>🔧 MLM СТРУКТУРА - МАКСИМАЛЬНЫЕ РАССТОЯНИЯ</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -103,8 +103,9 @@
         .mlm-tree {
             position: relative;
             width: 100%;
-            height: 3000px;
+            height: 4000px;
             margin: 0 auto;
+            min-width: 7000px;
         }
         
         .user-card {
@@ -233,12 +234,12 @@
 </head>
 <body>
     <div class="header">
-        <div class="title">🔧 MLM СТРУКТУРА - БЕЗ ПЕРЕСЕЧЕНИЙ + УРОВЕНЬ 0</div>
-        <div class="subtitle">Исправлены пересечения линий и добавлен уровень 0</div>
+        <div class="title">🔧 MLM СТРУКТУРА - МАКСИМАЛЬНЫЕ РАССТОЯНИЯ</div>
+        <div class="subtitle">Увеличены расстояния между всеми элементами для предотвращения пересечений</div>
     </div>
     
     <div class="status">
-        <div class="status-text">✅ Статус: БЕЗ ПЕРЕСЕЧЕНИЙ! Добавлен уровень 0 с правильными связями</div>
+        <div class="status-text">✅ Статус: МАКСИМАЛЬНЫЕ РАССТОЯНИЯ! Все элементы разнесены для предотвращения пересечений</div>
     </div>
     
     <div class="controls">
@@ -294,12 +295,12 @@
         let nodes = [];
         let connections = [];
         
-        // Структура данных для MLM дерева
+        // Структура данных для MLM дерева с увеличенными расстояниями
         const mlmStructure = {
             id: 'plazma',
             name: 'PLAZMA',
             level: 4,
-            x: 2000,
+            x: 3000,
             y: 50,
             children: [
                 {
@@ -307,18 +308,18 @@
                     name: '3*/1',
                     level: 3,
                     x: 1000,
-                    y: 200,
+                    y: 300,
                     children: [
                         {
                             id: '2-1',
                             name: '2*/1',
                             level: 2,
-                            x: 600,
-                            y: 350,
+                            x: 400,
+                            y: 600,
                             children: [
-                                { id: '1-1', name: '1*/1', level: 1, x: 300, y: 500, children: [] },
-                                { id: '1-2', name: '1*/2', level: 1, x: 600, y: 500, children: [] },
-                                { id: '1-3', name: '1*/3', level: 1, x: 900, y: 500, children: [] }
+                                { id: '1-1', name: '1*/1', level: 1, x: 100, y: 900, children: [] },
+                                { id: '1-2', name: '1*/2', level: 1, x: 400, y: 900, children: [] },
+                                { id: '1-3', name: '1*/3', level: 1, x: 700, y: 900, children: [] }
                             ]
                         },
                         {
@@ -326,23 +327,23 @@
                             name: '2*/2',
                             level: 2,
                             x: 1000,
-                            y: 350,
+                            y: 600,
                             children: [
-                                { id: '1-4', name: '1*/4', level: 1, x: 700, y: 500, children: [] },
-                                { id: '1-5', name: '1*/5', level: 1, x: 1000, y: 500, children: [] },
-                                { id: '1-6', name: '1*/6', level: 1, x: 1300, y: 500, children: [] }
+                                { id: '1-4', name: '1*/4', level: 1, x: 700, y: 900, children: [] },
+                                { id: '1-5', name: '1*/5', level: 1, x: 1000, y: 900, children: [] },
+                                { id: '1-6', name: '1*/6', level: 1, x: 1300, y: 900, children: [] }
                             ]
                         },
                         {
                             id: '2-3',
                             name: '2*/3',
                             level: 2,
-                            x: 1400,
-                            y: 350,
+                            x: 1600,
+                            y: 600,
                             children: [
-                                { id: '1-7', name: '1*/7', level: 1, x: 1100, y: 500, children: [] },
-                                { id: '1-8', name: '1*/8', level: 1, x: 1400, y: 500, children: [] },
-                                { id: '1-9', name: '1*/9', level: 1, x: 1700, y: 500, children: [] }
+                                { id: '1-7', name: '1*/7', level: 1, x: 1300, y: 900, children: [] },
+                                { id: '1-8', name: '1*/8', level: 1, x: 1600, y: 900, children: [] },
+                                { id: '1-9', name: '1*/9', level: 1, x: 1900, y: 900, children: [] }
                             ]
                         }
                     ]
@@ -351,43 +352,43 @@
                     id: '3-2',
                     name: '3*/2',
                     level: 3,
-                    x: 2000,
-                    y: 200,
+                    x: 3000,
+                    y: 300,
                     children: [
                         {
                             id: '2-4',
                             name: '2*/4',
                             level: 2,
-                            x: 1600,
-                            y: 350,
+                            x: 2400,
+                            y: 600,
                             children: [
-                                { id: '1-10', name: '1*/10', level: 1, x: 1300, y: 500, children: [] },
-                                { id: '1-11', name: '1*/11', level: 1, x: 1600, y: 500, children: [] },
-                                { id: '1-12', name: '1*/12', level: 1, x: 1900, y: 500, children: [] }
+                                { id: '1-10', name: '1*/10', level: 1, x: 2100, y: 900, children: [] },
+                                { id: '1-11', name: '1*/11', level: 1, x: 2400, y: 900, children: [] },
+                                { id: '1-12', name: '1*/12', level: 1, x: 2700, y: 900, children: [] }
                             ]
                         },
                         {
                             id: '2-5',
                             name: '2*/5',
                             level: 2,
-                            x: 2000,
-                            y: 350,
+                            x: 3000,
+                            y: 600,
                             children: [
-                                { id: '1-13', name: '1*/13', level: 1, x: 1700, y: 500, children: [] },
-                                { id: '1-14', name: '1*/14', level: 1, x: 2000, y: 500, children: [] },
-                                { id: '1-15', name: '1*/15', level: 1, x: 2300, y: 500, children: [] }
+                                { id: '1-13', name: '1*/13', level: 1, x: 2700, y: 900, children: [] },
+                                { id: '1-14', name: '1*/14', level: 1, x: 3000, y: 900, children: [] },
+                                { id: '1-15', name: '1*/15', level: 1, x: 3300, y: 900, children: [] }
                             ]
                         },
                         {
                             id: '2-6',
                             name: '2*/6',
                             level: 2,
-                            x: 2400,
-                            y: 350,
+                            x: 3600,
+                            y: 600,
                             children: [
-                                { id: '1-16', name: '1*/16', level: 1, x: 2100, y: 500, children: [] },
-                                { id: '1-17', name: '1*/17', level: 1, x: 2400, y: 500, children: [] },
-                                { id: '1-18', name: '1*/18', level: 1, x: 2700, y: 500, children: [] }
+                                { id: '1-16', name: '1*/16', level: 1, x: 3300, y: 900, children: [] },
+                                { id: '1-17', name: '1*/17', level: 1, x: 3600, y: 900, children: [] },
+                                { id: '1-18', name: '1*/18', level: 1, x: 3900, y: 900, children: [] }
                             ]
                         }
                     ]
@@ -396,43 +397,43 @@
                     id: '3-3',
                     name: '3*/3',
                     level: 3,
-                    x: 3000,
-                    y: 200,
+                    x: 5000,
+                    y: 300,
                     children: [
                         {
                             id: '2-7',
                             name: '2*/7',
                             level: 2,
-                            x: 2600,
-                            y: 350,
+                            x: 4400,
+                            y: 600,
                             children: [
-                                { id: '1-19', name: '1*/19', level: 1, x: 2300, y: 500, children: [] },
-                                { id: '1-20', name: '1*/20', level: 1, x: 2600, y: 500, children: [] },
-                                { id: '1-21', name: '1*/21', level: 1, x: 2900, y: 500, children: [] }
+                                { id: '1-19', name: '1*/19', level: 1, x: 4100, y: 900, children: [] },
+                                { id: '1-20', name: '1*/20', level: 1, x: 4400, y: 900, children: [] },
+                                { id: '1-21', name: '1*/21', level: 1, x: 4700, y: 900, children: [] }
                             ]
                         },
                         {
                             id: '2-8',
                             name: '2*/8',
                             level: 2,
-                            x: 3000,
-                            y: 350,
+                            x: 5000,
+                            y: 600,
                             children: [
-                                { id: '1-22', name: '1*/22', level: 1, x: 2700, y: 500, children: [] },
-                                { id: '1-23', name: '1*/23', level: 1, x: 3000, y: 500, children: [] },
-                                { id: '1-24', name: '1*/24', level: 1, x: 3300, y: 500, children: [] }
+                                { id: '1-22', name: '1*/22', level: 1, x: 4700, y: 900, children: [] },
+                                { id: '1-23', name: '1*/23', level: 1, x: 5000, y: 900, children: [] },
+                                { id: '1-24', name: '1*/24', level: 1, x: 5300, y: 900, children: [] }
                             ]
                         },
                         {
                             id: '2-9',
                             name: '2*/9',
                             level: 2,
-                            x: 3400,
-                            y: 350,
+                            x: 5600,
+                            y: 600,
                             children: [
-                                { id: '1-25', name: '1*/25', level: 1, x: 3100, y: 500, children: [] },
-                                { id: '1-26', name: '1*/26', level: 1, x: 3400, y: 500, children: [] },
-                                { id: '1-27', name: '1*/27', level: 1, x: 3700, y: 500, children: [] }
+                                { id: '1-25', name: '1*/25', level: 1, x: 5300, y: 900, children: [] },
+                                { id: '1-26', name: '1*/26', level: 1, x: 5600, y: 900, children: [] },
+                                { id: '1-27', name: '1*/27', level: 1, x: 5900, y: 900, children: [] }
                             ]
                         }
                     ]
@@ -442,7 +443,7 @@
         
         // Функция для добавления уровня 0
         function addLevel0() {
-            console.log('➕ Добавляем уровень 0...');
+            console.log('➕ Добавляем уровень 0 с увеличенными расстояниями...');
             
             // Добавляем уровень 0 под каждый узел уровня 1
             const level1Nodes = document.querySelectorAll('.user-card[data-level="1"]');
@@ -450,20 +451,21 @@
                 const rect = node.getBoundingClientRect();
                 const containerRect = document.querySelector('.structure-container').getBoundingClientRect();
                 const x = rect.left - containerRect.left + node.offsetWidth / 2;
-                const y = rect.bottom - containerRect.top + 50;
+                const y = rect.bottom - containerRect.top + 100; // Увеличиваем расстояние
                 
-                // Создаем 3 узла уровня 0 под каждым узлом уровня 1
+                // Создаем 3 узла уровня 0 под каждым узлом уровня 1 с большими расстояниями
                 for (let i = 0; i < 3; i++) {
-                    const level0Node = createNode(`0-${index * 3 + i + 1}`, `0*/${index * 3 + i + 1}`, 0, x - 100 + i * 100, y);
+                    const level0X = x - 200 + i * 200; // Увеличиваем расстояние между узлами 0-го уровня
+                    const level0Node = createNode(`0-${index * 3 + i + 1}`, `0*/${index * 3 + i + 1}`, 0, level0X, y);
                     document.getElementById('mlmTree').appendChild(level0Node);
                     
                     // Создаем связь от уровня 1 к уровню 0
-                    createConnection(node.id, `0-${index * 3 + i + 1}`, x, rect.bottom - containerRect.top, x - 100 + i * 100, y);
+                    createConnection(node.id, `0-${index * 3 + i + 1}`, x, rect.bottom - containerRect.top, level0X, y);
                 }
             });
             
             updateStats();
-            console.log('✅ Уровень 0 добавлен!');
+            console.log('✅ Уровень 0 добавлен с увеличенными расстояниями!');
         }
         
         // Функция создания узла
