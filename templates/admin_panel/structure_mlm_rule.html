@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌐 MLM СТРУКТУРА - Исправлены соединения</title>
+    <title>🌐 MLM СТРУКТУРА - Исправлено позиционирование</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -156,8 +156,8 @@
             position: relative;
             transform-origin: top left;
             transition: transform 0.3s ease;
-            min-width: 5000px;
-            min-height: 3000px;
+            min-width: 6000px;
+            min-height: 4000px;
         }
 
         .mindmap-container {
@@ -457,7 +457,7 @@
 
     <div class="structure-container" id="structureContainer">
         <div class="debug-info" id="debugInfo">
-            🔍 Отладка: Исправляем соединения...
+            🔍 Отладка: Исправляем позиционирование...
         </div>
         
         <div class="logic-stats" id="logicStats">
@@ -521,9 +521,9 @@
         const resetBtn = document.getElementById('resetBtn');
         const centerBtn = document.getElementById('centerBtn');
         
-        updateDebugInfo('🔍 Инициализация элементов...');
+        updateDebugInfo('�� Инициализация элементов...');
         
-        // ПОЛНАЯ СТРУКТУРА С ПРАВИЛЬНЫМИ ПОЗИЦИЯМИ
+        // ПОЛНАЯ СТРУКТУРА С ПРАВИЛЬНЫМ ПОЗИЦИОНИРОВАНИЕМ - УЗЛЫ РЯДОМ, А НЕ ОДИН ПОД ДРУГИМ
         const structure = {
             id: 'plazma', 
             name: 'PLAZMA', 
@@ -531,58 +531,58 @@
             expanded: true, 
             hasChat: true, 
             complete: true,
-            x: 2000,
-            y: 100,
+            x: 2500,
+            y: 200,
             children: [
-                // Первый партнер 3-го уровня
+                // Первый партнер 3-го уровня - ЛЕВЫЙ
                 { 
                     id: '3-1', 
                     name: '3*/1 юзернейм', 
                     level: 3, 
                     expanded: true, 
                     complete: true, 
-                    x: 1200, 
-                    y: 400,
+                    x: 1500, 
+                    y: 500,
                     children: [
-                        { id: '2-1', name: '2*/1 юзернейм', level: 2, expanded: true, complete: true, x: 800, y: 700 },
-                        { id: '2-2', name: '2*/2 юзернейм', level: 2, expanded: true, complete: true, x: 1200, y: 700 },
-                        { id: '2-3', name: '2*/3 юзернейм', level: 2, expanded: true, complete: true, x: 1600, y: 700 }
+                        { id: '2-1', name: '2*/1 юзернейм', level: 2, expanded: true, complete: true, x: 1000, y: 800 },
+                        { id: '2-2', name: '2*/2 юзернейм', level: 2, expanded: true, complete: true, x: 1500, y: 800 },
+                        { id: '2-3', name: '2*/3 юзернейм', level: 2, expanded: true, complete: true, x: 2000, y: 800 }
                     ]
                 },
-                // Второй партнер 3-го уровня
+                // Второй партнер 3-го уровня - ЦЕНТР
                 { 
                     id: '3-2', 
                     name: '3*/2 юзернейм', 
                     level: 3, 
                     expanded: true, 
                     complete: true, 
-                    x: 2000, 
-                    y: 400,
+                    x: 2500, 
+                    y: 500,
                     children: [
-                        { id: '2-4', name: '2*/4 юзернейм', level: 2, expanded: true, complete: true, x: 1600, y: 700 },
-                        { id: '2-5', name: '2*/5 юзернейм', level: 2, expanded: true, complete: true, x: 2000, y: 700 },
-                        { id: '2-6', name: '2*/6 юзернейм', level: 2, expanded: true, complete: true, x: 2400, y: 700 }
+                        { id: '2-4', name: '2*/4 юзернейм', level: 2, expanded: true, complete: true, x: 2000, y: 800 },
+                        { id: '2-5', name: '2*/5 юзернейм', level: 2, expanded: true, complete: true, x: 2500, y: 800 },
+                        { id: '2-6', name: '2*/6 юзернейм', level: 2, expanded: true, complete: true, x: 3000, y: 800 }
                     ]
                 },
-                // Третий партнер 3-го уровня
+                // Третий партнер 3-го уровня - ПРАВЫЙ
                 { 
                     id: '3-3', 
                     name: '3*/3 юзернейм', 
                     level: 3, 
                     expanded: true, 
                     complete: true, 
-                    x: 2800, 
-                    y: 400,
+                    x: 3500, 
+                    y: 500,
                     children: [
-                        { id: '2-7', name: '2*/7 юзернейм', level: 2, expanded: true, complete: true, x: 2400, y: 700 },
-                        { id: '2-8', name: '2*/8 юзернейм', level: 2, expanded: true, complete: true, x: 2800, y: 700 },
-                        { id: '2-9', name: '2*/9 юзернейм', level: 2, expanded: true, complete: true, x: 3200, y: 700 }
+                        { id: '2-7', name: '2*/7 юзернейм', level: 2, expanded: true, complete: true, x: 3000, y: 800 },
+                        { id: '2-8', name: '2*/8 юзернейм', level: 2, expanded: true, complete: true, x: 3500, y: 800 },
+                        { id: '2-9', name: '2*/9 юзернейм', level: 2, expanded: true, complete: true, x: 4000, y: 800 }
                     ]
                 }
             ]
         };
 
-        updateDebugInfo('🔍 Структура создана, исправляем соединения...');
+        updateDebugInfo('🔍 Структура с правильным позиционированием создана...');
 
         // Функция для обновления масштаба
         function updateZoom() {
@@ -639,7 +639,7 @@
                 if (scrollContainer) {
                     scrollContainer.scrollTo(0, 0);
                 }
-                updateDebugInfo('�� Reset View clicked');
+                updateDebugInfo('🔍 Reset View clicked');
             });
         }
 
@@ -692,7 +692,7 @@
             }
         }
 
-        // Функция для рендеринга соединений С ПРАВИЛЬНЫМИ КООРДИНАТАМИ
+        // Функция для рендеринга соединений
         function renderConnection(parentId, childId) {
             const parent = findNodeById(structure, parentId);
             const child = findNodeById(structure, childId);
@@ -706,7 +706,7 @@
             const pX = parent.x + 90; // Центр узла по горизонтали
             const pY = parent.y + 60; // Низ узла
             const cX = child.x + 90;  // Центр узла по горизонтали
-            const cY = child.y;      // Верх узла
+            const cY = child.y;       // Верх узла
 
             console.log(`🔗 Connecting ${parentId} (${pX}, ${pY}) to ${childId} (${cX}, ${cY})`);
 
@@ -756,7 +756,7 @@
         // Функция для рендеринга структуры
         function renderStructure() {
             console.log('🎨 Rendering structure...');
-            updateDebugInfo('🔍 Начинаем рендеринг с исправленными соединениями...');
+            updateDebugInfo('🔍 Начинаем рендеринг с правильным позиционированием...');
             
             const container = document.getElementById('mindmapContainer');
             if (!container) {
@@ -783,7 +783,7 @@
             newSvg.style.zIndex = '1';
             container.appendChild(newSvg);
             
-            updateDebugInfo('🔍 Рендерим узлы...');
+            updateDebugInfo('🔍 Рендерим узлы с правильным позиционированием...');
             
             // Рендерим узлы рекурсивно
             function renderNodeRecursive(node) {
@@ -795,7 +795,7 @@
             
             renderNodeRecursive(structure);
             
-            updateDebugInfo('🔍 Рендерим соединения с правильными координатами...');
+            updateDebugInfo('🔍 Рендерим соединения...');
             
             // Рендерим соединения рекурсивно
             function renderConnectionsRecursive(node) {
@@ -811,8 +811,8 @@
             
             updateStats();
             
-            updateDebugInfo('✅ Структура с исправленными соединениями готова!');
-            console.log('✅ Structure with fixed connections rendered successfully!');
+            updateDebugInfo('✅ Структура с правильным позиционированием готова!');
+            console.log('✅ Structure with correct positioning rendered successfully!');
         }
 
         // Обновление статистики
@@ -845,7 +845,7 @@
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
             console.log('📄 DOM Content Loaded');
-            updateDebugInfo('�� DOM загружен, начинаем инициализацию...');
+            updateDebugInfo('🔍 DOM загружен, начинаем инициализацию...');
             renderStructure();
             updateZoom();
         });
