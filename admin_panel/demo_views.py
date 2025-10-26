@@ -96,7 +96,7 @@ def admin_demo_structure(request):
         'is_demo': True,
     }
     
-    return render(request, 'admin_panel/structure_mlm_rule.html', context)
+    return render(request, 'admin_panel/demo_structure.html', context)
 
 
 def structure_viewer(request):
