@@ -7,6 +7,6 @@ urlpatterns = [
     # Демо-версия админки (без требования аутентификации)
     path('', demo_views.admin_demo_dashboard, name='dashboard'),
     path('users/', demo_views.admin_demo_users, name='users_list'),
-    path('structure/', demo_views.admin_demo_structure_new, name='structure_view'),  # Новая горизонтальная майнд-карта
+    path('structure/', demo_views.admin_demo_structure_v6, name='structure_view'),  # Новая горизонтальная майнд-карта
     path('mindmap/', demo_views.admin_demo_structure_new, name='mindmap_view'),  # Альтернативный URL для майнд-карты
 ]

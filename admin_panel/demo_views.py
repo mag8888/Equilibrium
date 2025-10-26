@@ -180,6 +180,15 @@ def structure_viewer(request):
     return render(request, 'admin_panel/mindmap_v6.html', context)
 
 
+def admin_demo_structure_v6(request):
+    """Демо-версия структуры MLM с горизонтальной майнд-картой v6"""
+    context = {
+        'title': 'MLM Структура - Горизонтальная Майнд-карта v6',
+        'description': 'Горизонтальный вид с изогнутыми синими линиями как в примере'
+    }
+    return render(request, 'admin_panel/mindmap_v6.html', context)
+
+
 def build_structure_tree(user, level=0):
     """Рекурсивно строит дерево структуры"""
     
