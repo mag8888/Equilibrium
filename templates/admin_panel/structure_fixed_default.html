@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌐 MLM СТРУКТУРА - Правильная 3^n логика</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #ffffff;
+            color: #1a202c;
+            overflow-x: auto;
+            overflow-y: auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo {
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 8px 12px;
+            gap: 8px;
+        }
+        
+        .search-icon {
+            width: 16px;
+            height: 16px;
+            opacity: 0.8;
+        }
+        
+        .search-input {
+            background: none;
+            border: none;
+            color: white;
+            outline: none;
+            width: 200px;
+        }
+        
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .upgrade-btn {
+            background: #fbbf24;
+            color: #1a202c;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+        
+        .upgrade-btn:hover {
+            background: #f59e0b;
+            transform: translateY(-1px);
+        }
+
+        .view-toggle {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        .toggle-btn {
+            padding: 10px 20px;
+            border: 2px solid #8b5cf6;
+            background: white;
+            color: #8b5cf6;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-btn.active {
+            background: #8b5cf6;
+            color: white;
+        }
+
+        .toggle-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        .structure-container {
+            position: relative;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 50px;
+            overflow: auto;
+            min-height: 600px;
+            min-width: 1600px;
+        }
+
+        /* Вертикальная структура */
+        .vertical-flow {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 20px 0;
+        }
+
+        .vertical-connector {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: repeating-linear-gradient(
+                to bottom,
+                #3b82f6 0px,
+                #3b82f6 8px,
+                transparent 8px,
+                transparent 16px
+            );
+            z-index: 5;
+            transform: translateX(-50%);
+        }
+
+        /* Майнд-карта структура */
+        .mindmap-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            min-height: 500px;
+        }
+
+        .node {
+            position: absolute;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 15px 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 180px;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .node:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            border-color: #3b82f6;
+        }
+        
+        .node.active {
+            background: linear-gradient(145deg, #8b5cf6, #7c3aed);
+            color: white;
+            border-color: #7c3aed;
+            font-weight: bold;
+        }
+        
+        .node.active:hover {
+            transform: scale(1.05);
+        }
+
+        /* Красные контуры для незавершенных узлов */
+        .node.incomplete {
+            border: 3px solid #ef4444;
+            background: #fef2f2;
+            position: relative;
+        }
+
+        .node.incomplete::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            border: 2px solid #ef4444;
+            border-radius: 12px;
+            background: transparent;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .node-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #1a202c;
+            margin-bottom: 5px;
+        }
+        
+        .node.active .node-name {
+            color: white;
+        }
+        
+        .node-level {
+            font-size: 0.9rem;
+            color: #64748b;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .node.active .node-level {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Синие точки рядом с юзернейм */
+        .blue-dot {
+            width: 8px;
+            height: 8px;
+            background: #3b82f6;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* Изогнутые связи для майнд-карты */
+        .connection-line {
+            position: absolute;
+            stroke: #3b82f6;
+            stroke-width: 2;
+            fill: none;
+            z-index: 5;
+            opacity: 0;
+            animation: fadeInLine 0.8s forwards;
+        }
+
+        /* Красные связи для незавершенных соединений */
+        .connection-line.incomplete {
+            stroke: #ef4444;
+            stroke-width: 3;
+            stroke-dasharray: 5,5;
+            animation: dash 1s linear infinite;
+        }
+
+        @keyframes dash {
+            to { stroke-dashoffset: -10; }
+        }
+
+        @keyframes fadeInLine {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Синие кружки для майнд-карты */
+        .expand-circle {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #3b82f6;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 15;
+            transition: all 0.3s ease;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .expand-circle:hover {
+            background: #2563eb;
+            transform: scale(1.2);
+        }
+
+        .expand-circle.incomplete {
+            background: #ef4444;
+            border-color: #fef2f2;
+        }
+
+        /* Chat bubble */
+        .chat-bubble {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 24px;
+            height: 24px;
+            background: #10b981;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: white;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .expand-btn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: #374151;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .expand-btn:hover {
+            background: #1f2937;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Скрытие элементов */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Статистика логики */
+        .logic-stats {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            padding: 10px 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            font-size: 0.9rem;
+        }
+
+        .logic-stats .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 5px;
+        }
+
+        .logic-stats .stat-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .logic-stats .stat-dot.complete {
+            background: #10b981;
+        }
+
+        .logic-stats .stat-dot.incomplete {
+            background: #ef4444;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            .title {
+                font-size: 1.5rem;
+            }
+            .structure-container {
+                padding: 15px;
+                border-radius: 0;
+                min-width: 100%;
+            }
+            .node {
+                min-width: 160px;
+                padding: 12px 16px;
+            }
+            .node-name {
+                font-size: 1rem;
+            }
+            .node-level {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo-section">
+            <div class="logo">P</div>
+            <h1 class="title">PLAZMA</h1>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6,9 12,15 18,9"></polyline>
+            </svg>
+        </div>
+        <div class="header-controls">
+            <div class="search-box">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                </svg>
+                <input type="text" class="search-input" placeholder="Поиск...">
+            </div>
+            <button class="upgrade-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 17L17 7"></path>
+                    <path d="M7 7h10v10"></path>
+                </svg>
+                Upgrade
+            </button>
+        </div>
+    </div>
+
+    <div class="view-toggle">
+        <button class="toggle-btn" id="verticalBtn">📊 Вертикальная</button>
+        <button class="toggle-btn active" id="mindmapBtn">🗺️ Майнд-карта</button>
+    </div>
+
+    <div class="structure-container" id="structureContainer">
+        <div class="logic-stats" id="logicStats">
+            <div class="stat-item">
+                <div class="stat-dot complete"></div>
+                <span>Завершенные узлы: <span id="completeCount">0</span></span>
+            </div>
+            <div class="stat-item">
+                <div class="stat-dot incomplete"></div>
+                <span>Незавершенные узлы: <span id="incompleteCount">0</span></span>
+            </div>
+        </div>
+        
+        <div class="vertical-flow hidden" id="verticalFlow">
+            <!-- Vertical nodes will be rendered here -->
+        </div>
+        <div class="mindmap-container" id="mindmapContainer">
+            <!-- Mindmap nodes will be rendered here -->
+        </div>
+        <button class="expand-btn" id="expandBtn">Expand</button>
+    </div>
+
+    <script>
+        const verticalFlow = document.getElementById('verticalFlow');
+        const mindmapContainer = document.getElementById('mindmapContainer');
+        const verticalBtn = document.getElementById('verticalBtn');
+        const mindmapBtn = document.getElementById('mindmapBtn');
+        const expandBtn = document.getElementById('expandBtn');
+        const completeCount = document.getElementById('completeCount');
+        const incompleteCount = document.getElementById('incompleteCount');
+
+        let currentView = 'mindmap'; // По умолчанию майнд-карта
+        let nodes = {};
+        let connections = {};
+        let nodeData = {};
+
+        // ПРАВИЛЬНАЯ MLM СТРУКТУРА: 3^n логика
+        const verticalStructure = [
+            { id: 'plazma', name: 'PLAZMA', level: 0, active: true, hasChat: true, complete: true },
+            { id: '1-1', name: '1*/1 юзернейм', level: 1, active: false, complete: true },
+            { id: '2-1', name: '2*/1 юзернейм', level: 2, active: false, complete: true },
+            { id: '3-1', name: '3*/1 юзернейм', level: 3, active: false, complete: true },
+            { id: '0-1', name: '0*/1 юзернейм', level: 0, active: false, complete: false }
+        ];
+
+        // ПРАВИЛЬНАЯ МАЙНД-КАРТА С 3^n ЛОГИКОЙ
+        const mindmapStructure = {
+            id: 'plazma', name: 'PLAZMA', level: 0, expanded: true, hasChat: true, complete: true,
+            children: [
+                // Уровень 1: 3 узла
+                { id: '1-1', name: '1*/1 юзернейм', level: 1, expanded: true, complete: true,
+                    children: [
+                        // Уровень 2: 3 узла под каждым
+                        { id: '2-1', name: '2*/1 юзернейм', level: 2, expanded: true, complete: true,
+                            children: [
+                                // Уровень 3: 3 узла под каждым
+                                { id: '3-1', name: '3*/1 юзернейм', level: 3, expanded: true, complete: true,
+                                    children: [
+                                        { id: '0-1', name: '0*/1 юзернейм', level: 0, expanded: false, children: [], complete: true },
+                                        { id: '0-2', name: '0*/2 юзернейм', level: 0, expanded: false, children: [], complete: true },
+                                        { id: '0-3', name: '0*/3 юзернейм', level: 0, expanded: false, children: [], complete: false }
+                                    ]
+                                },
+                                { id: '3-2', name: '3*/2 юзернейм', level: 3, expanded: false, children: [], complete: false },
+                                { id: '3-3', name: '3*/3 юзернейм', level: 3, expanded: false, children: [], complete: false }
+                            ]
+                        },
+                        { id: '2-2', name: '2*/2 юзернейм', level: 2, expanded: false, children: [], complete: false },
+                        { id: '2-3', name: '2*/3 юзернейм', level: 2, expanded: false, children: [], complete: false }
+                    ]
+                },
+                { id: '1-2', name: '1*/2 юзернейм', level: 1, expanded: false, children: [], complete: false },
+                { id: '1-3', name: '1*/3 юзернейм', level: 1, expanded: false, children: [], complete: false }
+            ]
+        };
+
+        // Обновление статистики
+        function updateStats() {
+            let complete = 0;
+            let incomplete = 0;
+            
+            function countNodes(node) {
+                if (node.complete) {
+                    complete++;
+                } else {
+                    incomplete++;
+                }
+                if (node.children) {
+                    node.children.forEach(child => countNodes(child));
+                }
+            }
+            
+            if (currentView === 'vertical') {
+                verticalStructure.forEach(node => {
+                    if (node.complete) complete++;
+                    else incomplete++;
+                });
+            } else {
+                countNodes(mindmapStructure);
+            }
+            
+            completeCount.textContent = complete;
+            incompleteCount.textContent = incomplete;
+        }
+
+        // Переключение между видами
+        verticalBtn.addEventListener('click', () => {
+            currentView = 'vertical';
+            verticalBtn.classList.add('active');
+            mindmapBtn.classList.remove('active');
+            verticalFlow.classList.remove('hidden');
+            mindmapContainer.classList.add('hidden');
+            renderVerticalStructure();
+            updateStats();
+        });
+
+        mindmapBtn.addEventListener('click', () => {
+            currentView = 'mindmap';
+            mindmapBtn.classList.add('active');
+            verticalBtn.classList.remove('active');
+            mindmapContainer.classList.remove('hidden');
+            verticalFlow.classList.add('hidden');
+            renderMindmapStructure();
+            updateStats();
+        });
+
+        // Рендеринг вертикальной структуры
+        function renderVerticalStructure() {
+            verticalFlow.innerHTML = '';
+            
+            verticalStructure.forEach((node, index) => {
+                const nodeElement = document.createElement('div');
+                nodeElement.className = `node ${node.active ? 'active' : ''} ${!node.complete ? 'incomplete' : ''}`;
+                nodeElement.id = `node-${node.id}`;
+                
+                nodeElement.innerHTML = `
+                    <div class="node-name">${node.name}</div>
+                    <div class="node-level">${node.level}*/${node.id.split('-')[1] || '1'} юзернейм <span class="blue-dot"></span></div>
+                `;
+                
+                if (node.hasChat) {
+                    const chatBubble = document.createElement('div');
+                    chatBubble.className = 'chat-bubble';
+                    chatBubble.textContent = '1';
+                    nodeElement.appendChild(chatBubble);
+                }
+                
+                verticalFlow.appendChild(nodeElement);
+                
+                nodeElement.addEventListener('click', () => {
+                    verticalStructure.forEach(n => n.active = false);
+                    node.active = true;
+                    renderVerticalStructure();
+                });
+            });
+            
+            const connector = document.createElement('div');
+            connector.className = 'vertical-connector';
+            verticalFlow.appendChild(connector);
+        }
+
+        // Рендеринг майнд-карты с правильным позиционированием
+        function calculateNodePositions(node, level = 0, xOffset = 0, yOffset = 0, parentX = 0, parentY = 0, branchIndex = 0, totalBranches = 1) {
+            const nodeWidth = 180;
+            const nodeHeight = 80;
+            const horizontalSpacing = 300; // Увеличено для лучшего разделения
+            const verticalSpacing = 180; // Увеличено для лучшего разделения
+            const containerPadding = 200; // Увеличено для лучшего разделения
+
+            let currentX = xOffset;
+            let currentY = yOffset + level * verticalSpacing;
+
+            if (level === 0) {
+                // PLAZMA в центре
+                currentX = containerPadding + 400;
+            } else {
+                // Правильное распределение для 3^n логики
+                const totalWidth = (totalBranches - 1) * horizontalSpacing;
+                const startX = parentX - totalWidth / 2;
+                currentX = startX + branchIndex * horizontalSpacing;
+                
+                if (currentX < containerPadding) {
+                    currentX = containerPadding;
+                }
+            }
+
+            node.x = currentX;
+            node.y = currentY;
+            nodeData[node.id] = { ...node, x: currentX, y: currentY };
+
+            if (node.children && node.children.length > 0 && node.expanded) {
+                node.children.forEach((child, i) => {
+                    calculateNodePositions(child, level + 1, 0, yOffset, currentX, currentY, i, node.children.length);
+                });
+            }
+        }
+
+        function renderNode(node) {
+            const nodeElement = document.createElement('div');
+            nodeElement.className = `node ${node.level === 0 && node.id === 'plazma' ? 'active' : ''} ${!node.complete ? 'incomplete' : ''}`;
+            nodeElement.id = `node-${node.id}`;
+            nodeElement.style.left = `${node.x}px`;
+            nodeElement.style.top = `${node.y}px`;
+            nodeElement.innerHTML = `
+                <div class="node-name">${node.name}</div>
+                <div class="node-level">${node.level}*/${node.id.split('-')[1] || '1'} юзернейм <span class="blue-dot"></span></div>
+            `;
+            
+            if (node.hasChat) {
+                const chatBubble = document.createElement('div');
+                chatBubble.className = 'chat-bubble';
+                chatBubble.textContent = '1';
+                nodeElement.appendChild(chatBubble);
+            }
+            
+            mindmapContainer.appendChild(nodeElement);
+            nodes[node.id] = nodeElement;
+
+            if (node.children && node.children.length > 0) {
+                const expandCircle = document.createElement('div');
+                expandCircle.className = `expand-circle ${node.expanded ? '' : 'collapsed'} ${!node.complete ? 'incomplete' : ''}`;
+                expandCircle.style.left = `${node.x + 90}px`;
+                expandCircle.style.top = `${node.y + 40}px`;
+                expandCircle.onclick = (e) => {
+                    e.stopPropagation();
+                    toggleNodeExpansion(node.id);
+                };
+                mindmapContainer.appendChild(expandCircle);
+            }
+
+            nodeElement.addEventListener('click', (e) => {
+                if (node.children && node.children.length > 0) {
+                    toggleNodeExpansion(node.id);
+                }
+            });
+        }
+
+        function renderConnection(parentId, childId) {
+            const parent = nodeData[parentId];
+            const child = nodeData[childId];
+
+            if (!parent || !child) return;
+
+            const parentEl = nodes[parentId];
+            const childEl = nodes[childId];
+
+            if (!parentEl || !childEl) return;
+
+            const parentRect = parentEl.getBoundingClientRect();
+            const childRect = childEl.getBoundingClientRect();
+
+            const pX = parent.x + parentRect.width / 2;
+            const pY = parent.y + parentRect.height;
+            const cX = child.x + childRect.width / 2;
+            const cY = child.y;
+
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('stroke', '#3b82f6');
+            path.setAttribute('stroke-width', '2');
+            path.setAttribute('fill', 'none');
+            path.setAttribute('class', 'connection-line');
+            path.setAttribute('id', `conn-${parentId}-${childId}`);
+
+            // Красная пунктирная линия для незавершенных соединений
+            if (!child.complete) {
+                path.classList.add('incomplete');
+            }
+
+            const controlPoint1X = pX;
+            const controlPoint1Y = pY + (cY - pY) * 0.3;
+            const controlPoint2X = cX;
+            const controlPoint2Y = cY - (cY - pY) * 0.3;
+
+            let d = `M ${pX} ${pY} `;
+            d += `C ${controlPoint1X} ${controlPoint1Y}, ${controlPoint2X} ${controlPoint2Y}, ${cX} ${cY}`;
+
+            path.setAttribute('d', d);
+
+            let svg = document.getElementById('connection-svg');
+            if (!svg) {
+                svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('id', 'connection-svg');
+                svg.style.position = 'absolute';
+                svg.style.top = '0';
+                svg.style.left = '0';
+                svg.style.width = '100%';
+                svg.style.height = '100%';
+                svg.style.pointerEvents = 'none';
+                mindmapContainer.appendChild(svg);
+            }
+            svg.appendChild(path);
+            connections[`${parentId}-${childId}`] = path;
+        }
+
+        function updateConnections() {
+            const svg = document.getElementById('connection-svg');
+            if (svg) {
+                svg.innerHTML = '';
+            }
+            connections = {};
+
+            function traverseAndConnect(node) {
+                if (node.children && node.expanded) {
+                    node.children.forEach(child => {
+                        if (child.expanded || node.expanded) {
+                            renderConnection(node.id, child.id);
+                        }
+                        traverseAndConnect(child);
+                    });
+                }
+            }
+            traverseAndConnect(mindmapStructure);
+        }
+
+        function toggleNodeExpansion(nodeId) {
+            const node = findNodeById(mindmapStructure, nodeId);
+            if (node) {
+                node.expanded = !node.expanded;
+                renderMindmapStructure();
+            }
+        }
+
+        function findNodeById(root, id) {
+            if (root.id === id) return root;
+            if (root.children) {
+                for (let child of root.children) {
+                    const found = findNodeById(child, id);
+                    if (found) return found;
+                }
+            }
+            return null;
+        }
+
+        function renderStructure(node) {
+            if (node.expanded) {
+                renderNode(node);
+                if (node.children) {
+                    node.children.forEach(child => renderStructure(child));
+                }
+            }
+        }
+
+        function renderMindmapStructure() {
+            mindmapContainer.innerHTML = '';
+            const svg = document.getElementById('connection-svg');
+            if (svg) svg.remove();
+
+            nodes = {};
+            connections = {};
+
+            calculateNodePositions(mindmapStructure);
+            renderStructure(mindmapStructure);
+            updateConnections();
+        }
+
+        // Кнопка Expand
+        expandBtn.addEventListener('click', () => {
+            if (currentView === 'vertical') {
+                verticalFlow.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    verticalFlow.style.transform = 'scale(1)';
+                }, 300);
+            } else {
+                function expandAll(node) {
+                    node.expanded = true;
+                    if (node.children) {
+                        node.children.forEach(child => expandAll(child));
+                    }
+                }
+                expandAll(mindmapStructure);
+                renderMindmapStructure();
+            }
+        });
+
+        // Начальный рендеринг - майнд-карта по умолчанию
+        renderMindmapStructure();
+        updateStats();
+    </script>
+</body>
+</html>
