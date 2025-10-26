@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌐 MLM СТРУКТУРА - Правильная структура 3→3→3→3</title>
+    <title>🌐 MLM СТРУКТУРА - Без пересечений, полное отображение</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -156,8 +156,8 @@
             position: relative;
             transform-origin: top left;
             transition: transform 0.3s ease;
-            min-width: 3000px;
-            min-height: 1500px;
+            min-width: 4000px;
+            min-height: 2000px;
         }
 
         .mindmap-container {
@@ -494,7 +494,7 @@
         const resetBtn = document.getElementById('resetBtn');
         const centerBtn = document.getElementById('centerBtn');
         
-        // ПРАВИЛЬНАЯ MLM СТРУКТУРА: каждый партнер имеет ровно 3 партнера более низкого уровня
+        // ПРАВИЛЬНАЯ MLM СТРУКТУРА БЕЗ ПЕРЕСЕЧЕНИЙ
         const structure = {
             id: 'plazma', 
             name: 'PLAZMA', 
@@ -506,7 +506,7 @@
                 // Уровень 3: под PLAZMA (4й уровень) - 3 партнера
                 { id: '3-1', name: '3*/1 юзернейм', level: 3, expanded: true, complete: true,
                     children: [
-                        // Уровень 2: под 3м уровнем - РОВНО 3 ПАРТНЕРА
+                        // Уровень 2: под 3м уровнем - РОВНО 3 ПАРТНЕРА (левая ветка)
                         { id: '2-1', name: '2*/1 юзернейм', level: 2, expanded: true, complete: true,
                             children: [
                                 // Уровень 1: под 2м уровнем - РОВНО 3 ПАРТНЕРА
@@ -540,7 +540,7 @@
                 },
                 { id: '3-2', name: '3*/2 юзернейм', level: 3, expanded: true, complete: true,
                     children: [
-                        // Уровень 2: под 3м уровнем - РОВНО 3 ПАРТНЕРА
+                        // Уровень 2: под 3м уровнем - РОВНО 3 ПАРТНЕРА (средняя ветка)
                         { id: '2-4', name: '2*/4 юзернейм', level: 2, expanded: true, complete: true,
                             children: [
                                 { id: '1-10', name: '1*/10 юзернейм', level: 1, expanded: false, children: [], complete: false },
@@ -566,7 +566,7 @@
                 },
                 { id: '3-3', name: '3*/3 юзернейм', level: 3, expanded: true, complete: true,
                     children: [
-                        // Уровень 2: под 3м уровнем - РОВНО 3 ПАРТНЕРА
+                        // Уровень 2: под 3м уровнем - РОВНО 3 ПАРТНЕРА (правая ветка)
                         { id: '2-7', name: '2*/7 юзернейм', level: 2, expanded: true, complete: true,
                             children: [
                                 { id: '1-19', name: '1*/19 юзернейм', level: 1, expanded: false, children: [], complete: false },
@@ -674,20 +674,20 @@
             });
         }
 
-        // Функция для расчета позиций с правильным распределением
+        // Функция для расчета позиций БЕЗ ПЕРЕСЕЧЕНИЙ
         function calculatePositions(node, level = 0, xOffset = 0, yOffset = 0, parentX = 0, parentY = 0, branchIndex = 0, totalBranches = 1) {
-            const horizontalSpacing = 500; // Увеличено расстояние между ветками
-            const verticalSpacing = 250; // Увеличено расстояние между уровнями
-            const containerPadding = 400; // Увеличен отступ
+            const horizontalSpacing = 800; // Увеличено расстояние между ветками для избежания пересечений
+            const verticalSpacing = 300; // Увеличено расстояние между уровнями
+            const containerPadding = 600; // Увеличен отступ
 
             let currentX = xOffset;
             let currentY = yOffset + level * verticalSpacing;
 
             if (level === 0) {
                 // PLAZMA в центре (4й уровень)
-                currentX = containerPadding + 1000;
+                currentX = containerPadding + 1200;
             } else {
-                // Правильное распределение для всех уровней
+                // Правильное распределение для всех уровней БЕЗ ПЕРЕСЕЧЕНИЙ
                 const totalWidth = (totalBranches - 1) * horizontalSpacing;
                 const startX = parentX - totalWidth / 2;
                 currentX = startX + branchIndex * horizontalSpacing;
@@ -754,7 +754,7 @@
             });
         }
 
-        // Функция для рендеринга соединений ТОЛЬКО между родителем и детьми
+        // Функция для рендеринга соединений ТОЛЬКО между родителем и детьми (БЕЗ ПЕРЕСЕЧЕНИЙ)
         function renderConnection(parentId, childId) {
             const parent = findNodeById(structure, parentId);
             const child = findNodeById(structure, childId);
@@ -777,14 +777,8 @@
                 path.classList.add('incomplete');
             }
 
-            const controlPoint1X = pX;
-            const controlPoint1Y = pY + (cY - pY) * 0.3;
-            const controlPoint2X = cX;
-            const controlPoint2Y = cY - (cY - pY) * 0.3;
-
-            let d = `M ${pX} ${pY} `;
-            d += `C ${controlPoint1X} ${controlPoint1Y}, ${controlPoint2X} ${controlPoint2Y}, ${cX} ${cY}`;
-
+            // Прямые линии для избежания пересечений
+            let d = `M ${pX} ${pY} L ${cX} ${cY}`;
             path.setAttribute('d', d);
 
             let svg = document.getElementById('connection-svg');
@@ -859,7 +853,7 @@
             }
         }
 
-        // Обновление соединений ТОЛЬКО между родителем и детьми
+        // Обновление соединений ТОЛЬКО между родителем и детьми (БЕЗ ПЕРЕСЕЧЕНИЙ)
         function updateConnections() {
             const svg = document.getElementById('connection-svg');
             if (svg) {
