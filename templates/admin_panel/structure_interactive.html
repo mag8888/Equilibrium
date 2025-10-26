@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌐 MLM СТРУКТУРА - Полные взаимосвязи + Drag&Drop</title>
+    <title>🌐 MLM СТРУКТУРА - Все взаимосвязи</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -47,6 +47,7 @@
             gap: 15px;
             align-items: center;
             flex-wrap: wrap;
+            justify-content: center;
         }
         
         .btn {
@@ -79,7 +80,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 100px;
+            gap: 120px;
             min-width: fit-content;
             position: relative;
             min-height: 2000px;
@@ -87,7 +88,7 @@
         
         .level {
             display: flex;
-            gap: 50px;
+            gap: 60px;
             align-items: center;
             justify-content: center;
             flex-wrap: wrap;
@@ -154,7 +155,7 @@
             font-weight: 600;
         }
         
-        /* Связи между узлами */
+        /* Связи между узлами - ИСПРАВЛЕННЫЕ ПОЗИЦИИ */
         .connection-lines {
             position: absolute;
             top: 0;
@@ -178,23 +179,10 @@
             box-shadow: 0 4px 12px rgba(220, 38, 38, 0.5);
         }
         
-        .vertical-line {
-            width: 4px;
-        }
-        
-        .horizontal-line {
-            height: 4px;
-        }
-        
-        .diagonal-line {
-            width: 4px;
-            transform-origin: top left;
-        }
-        
-        /* Позиции для связей */
+        /* От корня к уровню 1 - ТРИ ЛИНИИ */
         .line-root-to-l1-1 {
             top: 100px;
-            left: 50%;
+            left: 25%;
             transform: translateX(-50%);
             height: 100px;
             width: 4px;
@@ -210,38 +198,39 @@
         
         .line-root-to-l1-3 {
             top: 100px;
-            left: 50%;
+            left: 75%;
             transform: translateX(-50%);
             height: 100px;
             width: 4px;
         }
         
+        /* От уровня 1 к уровню 2 - ШЕСТЬ ЛИНИЙ */
         .line-l1-1-to-l2-1 {
-            top: 200px;
-            left: 50%;
+            top: 220px;
+            left: 15%;
             transform: translateX(-50%);
             height: 100px;
             width: 4px;
         }
         
         .line-l1-1-to-l2-2 {
-            top: 200px;
-            left: 50%;
+            top: 220px;
+            left: 25%;
             transform: translateX(-50%);
             height: 100px;
             width: 4px;
         }
         
         .line-l1-1-to-l2-3 {
-            top: 200px;
-            left: 50%;
+            top: 220px;
+            left: 35%;
             transform: translateX(-50%);
             height: 100px;
             width: 4px;
         }
         
         .line-l1-2-to-l2-4 {
-            top: 200px;
+            top: 220px;
             left: 50%;
             transform: translateX(-50%);
             height: 100px;
@@ -249,64 +238,65 @@
         }
         
         .line-l1-3-to-l2-5 {
-            top: 200px;
-            left: 50%;
+            top: 220px;
+            left: 75%;
             transform: translateX(-50%);
             height: 100px;
             width: 4px;
         }
         
         .line-l1-3-to-l2-6 {
-            top: 200px;
-            left: 50%;
+            top: 220px;
+            left: 85%;
             transform: translateX(-50%);
             height: 100px;
             width: 4px;
         }
         
+        /* От уровня 2 к уровню 3 - ШЕСТЬ ЛИНИЙ */
         .line-l2-1-to-l3-1 {
-            top: 300px;
-            left: 50%;
+            top: 340px;
+            left: 10%;
             transform: translateX(-50%);
             height: 100px;
             width: 4px;
         }
         
         .line-l2-1-to-l3-2 {
-            top: 300px;
-            left: 50%;
+            top: 340px;
+            left: 20%;
             transform: translateX(-50%);
             height: 100px;
             width: 4px;
         }
         
         .line-l2-3-to-l3-3 {
-            top: 300px;
-            left: 50%;
+            top: 340px;
+            left: 30%;
             transform: translateX(-50%);
             height: 100px;
             width: 4px;
         }
         
         .line-l2-3-to-l3-4 {
-            top: 300px;
-            left: 50%;
+            top: 340px;
+            left: 40%;
             transform: translateX(-50%);
             height: 100px;
             width: 4px;
         }
         
         .line-l2-5-to-l3-5 {
-            top: 300px;
-            left: 50%;
+            top: 340px;
+            left: 70%;
             transform: translateX(-50%);
             height: 100px;
             width: 4px;
         }
         
         .line-l2-5-to-l3-6 {
-            top: 300px;
-            left: 50%;
+            top: 340px;
+            left: 80%;
             transform: translateX(-50%);
             height: 100px;
             width: 4px;
@@ -361,14 +351,14 @@
             .level { flex-direction: column; gap: 20px; }
             .stats-grid { grid-template-columns: 1fr; }
             .user-card { min-width: 140px; }
-            .mlm-tree { gap: 80px; }
+            .mlm-tree { gap: 100px; }
         }
     </style>
 </head>
 <body>
     <div class="header">
         <div class="title">🌐 MLM СТРУКТУРА</div>
-        <div class="subtitle">Полные взаимосвязи + Drag & Drop</div>
+        <div class="subtitle">Все взаимосвязи показаны</div>
     </div>
     
     <div class="controls">
@@ -382,12 +372,12 @@
         <div class="mlm-tree">
             <!-- Связи -->
             <div class="connection-lines">
-                <!-- От корня к уровню 1 -->
+                <!-- От корня к уровню 1 - ТРИ ЛИНИИ -->
                 <div class="connection-line line-root-to-l1-1"></div>
                 <div class="connection-line line-root-to-l1-2"></div>
                 <div class="connection-line line-root-to-l1-3"></div>
                 
-                <!-- От уровня 1 к уровню 2 -->
+                <!-- От уровня 1 к уровню 2 - ШЕСТЬ ЛИНИЙ -->
                 <div class="connection-line line-l1-1-to-l2-1"></div>
                 <div class="connection-line line-l1-1-to-l2-2"></div>
                 <div class="connection-line line-l1-1-to-l2-3"></div>
@@ -395,7 +385,7 @@
                 <div class="connection-line line-l1-3-to-l2-5"></div>
                 <div class="connection-line line-l1-3-to-l2-6"></div>
                 
-                <!-- От уровня 2 к уровню 3 -->
+                <!-- От уровня 2 к уровню 3 - ШЕСТЬ ЛИНИЙ -->
                 <div class="connection-line line-l2-1-to-l3-1"></div>
                 <div class="connection-line line-l2-1-to-l3-2"></div>
                 <div class="connection-line line-l2-3-to-l3-3"></div>
@@ -434,32 +424,32 @@
             
             <!-- Уровень 2 -->
             <div class="level">
-                <div class="user-card" id="l2-1" style="top: 400px; left: 15%; transform: translateX(-50%);">
+                <div class="user-card" id="l2-1" style="top: 320px; left: 15%; transform: translateX(-50%);">
                     <div class="user-icon">👤</div>
                     <div class="user-name">ValensiyaApatity</div>
                     <div class="user-id">ID432</div>
                 </div>
-                <div class="user-card" id="l2-2" style="top: 400px; left: 30%; transform: translateX(-50%);">
+                <div class="user-card" id="l2-2" style="top: 320px; left: 25%; transform: translateX(-50%);">
                     <div class="user-icon">👤</div>
                     <div class="user-name">dcdoc123456</div>
                     <div class="user-id">ID449</div>
                 </div>
-                <div class="user-card" id="l2-3" style="top: 400px; left: 45%; transform: translateX(-50%);">
+                <div class="user-card" id="l2-3" style="top: 320px; left: 35%; transform: translateX(-50%);">
                     <div class="user-icon">👤</div>
                     <div class="user-name">Ambassador8783</div>
                     <div class="user-id">ID613</div>
                 </div>
-                <div class="user-card" id="l2-4" style="top: 400px; left: 60%; transform: translateX(-50%);">
+                <div class="user-card" id="l2-4" style="top: 320px; left: 50%; transform: translateX(-50%);">
                     <div class="user-icon">👤</div>
                     <div class="user-name">TatianaPost55</div>
                     <div class="user-id">ID420</div>
                 </div>
-                <div class="user-card" id="l2-5" style="top: 400px; left: 75%; transform: translateX(-50%);">
+                <div class="user-card" id="l2-5" style="top: 320px; left: 75%; transform: translateX(-50%);">
                     <div class="user-icon">👤</div>
                     <div class="user-name">vyacheslavlyu</div>
                     <div class="user-id">ID470</div>
                 </div>
-                <div class="user-card" id="l2-6" style="top: 400px; left: 90%; transform: translateX(-50%);">
+                <div class="user-card" id="l2-6" style="top: 320px; left: 85%; transform: translateX(-50%);">
                     <div class="user-icon">👤</div>
                     <div class="user-name">milgold8</div>
                     <div class="user-id">ID528</div>
@@ -468,34 +458,34 @@
             
             <!-- Уровень 3 -->
             <div class="level">
-                <div class="user-card" id="l3-1" style="top: 600px; left: 10%; transform: translateX(-50%);">
+                <div class="user-card" id="l3-1" style="top: 440px; left: 10%; transform: translateX(-50%);">
                     <div class="user-icon">👤</div>
                     <div class="user-name">klidiya42</div>
                     <div class="user-id">ID471</div>
                 </div>
-                <div class="user-card" id="l3-2" style="top: 600px; left: 25%; transform: translateX(-50%);">
+                <div class="user-card" id="l3-2" style="top: 440px; left: 20%; transform: translateX(-50%);">
                     <div class="user-icon">👤</div>
                     <div class="user-name">Millionerya</div>
                     <div class="user-id">ID529</div>
                 </div>
-                <div class="user-card" id="l3-3" style="top: 600px; left: 40%; transform: translateX(-50%);">
+                <div class="user-card" id="l3-3" style="top: 440px; left: 30%; transform: translateX(-50%);">
                     <div class="user-icon">👤</div>
                     <div class="user-name">Magicmount</div>
                     <div class="user-id">ID451</div>
                 </div>
-                <div class="user-card" id="l3-4" style="top: 600px; left: 55%; transform: translateX(-50%);">
+                <div class="user-card" id="l3-4" style="top: 440px; left: 40%; transform: translateX(-50%);">
                     <div class="user-icon">👤</div>
                     <div class="user-name">RomarioDeLaVega</div>
                     <div class="user-id">ID465</div>
                 </div>
-                <div class="user-card" id="l3-5" style="top: 600px; left: 70%; transform: translateX(-50%);">
+                <div class="user-card" id="l3-5" style="top: 440px; left: 70%; transform: translateX(-50%);">
                     <div class="user-icon">👤</div>
                     <div class="user-name">ZviozdnayaMa</div>
                     <div class="user-id">ID488</div>
                 </div>
-                <div class="user-card" id="l3-6" style="top: 600px; left: 85%; transform: translateX(-50%);">
+                <div class="user-card" id="l3-6" style="top: 440px; left: 80%; transform: translateX(-50%);">
                     <div class="user-icon">👤</div>
-                    <div class="user-id">ISOBILIKA</div>
+                    <div class="user-name">ISOBILIKA</div>
                     <div class="user-id">ID438</div>
                 </div>
             </div>
@@ -613,7 +603,7 @@
                 <p style="font-size: 1.2rem; margin-bottom: 10px;"><strong>${userName}</strong></p>
                 <p style="color: #666; margin-bottom: 20px;">${userId}</p>
                 <div style="background: #f0f4ff; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                    <p style="color: #667eea; font-weight: 600;">�� Связи:</p>
+                    <p style="color: #667eea; font-weight: 600;">🔗 Связи:</p>
                     <p style="font-size: 0.9rem; color: #666;">Показаны красными линиями</p>
                 </div>
                 <button onclick="this.closest('.modal').remove()" style="
@@ -662,7 +652,66 @@
                         card.style.top = '200px';
                         card.style.transform = 'translateX(-50%)';
                         break;
-                    // Добавить остальные позиции...
+                    case 'l2-1':
+                        card.style.left = '15%';
+                        card.style.top = '320px';
+                        card.style.transform = 'translateX(-50%)';
+                        break;
+                    case 'l2-2':
+                        card.style.left = '25%';
+                        card.style.top = '320px';
+                        card.style.transform = 'translateX(-50%)';
+                        break;
+                    case 'l2-3':
+                        card.style.left = '35%';
+                        card.style.top = '320px';
+                        card.style.transform = 'translateX(-50%)';
+                        break;
+                    case 'l2-4':
+                        card.style.left = '50%';
+                        card.style.top = '320px';
+                        card.style.transform = 'translateX(-50%)';
+                        break;
+                    case 'l2-5':
+                        card.style.left = '75%';
+                        card.style.top = '320px';
+                        card.style.transform = 'translateX(-50%)';
+                        break;
+                    case 'l2-6':
+                        card.style.left = '85%';
+                        card.style.top = '320px';
+                        card.style.transform = 'translateX(-50%)';
+                        break;
+                    case 'l3-1':
+                        card.style.left = '10%';
+                        card.style.top = '440px';
+                        card.style.transform = 'translateX(-50%)';
+                        break;
+                    case 'l3-2':
+                        card.style.left = '20%';
+                        card.style.top = '440px';
+                        card.style.transform = 'translateX(-50%)';
+                        break;
+                    case 'l3-3':
+                        card.style.left = '30%';
+                        card.style.top = '440px';
+                        card.style.transform = 'translateX(-50%)';
+                        break;
+                    case 'l3-4':
+                        card.style.left = '40%';
+                        card.style.top = '440px';
+                        card.style.transform = 'translateX(-50%)';
+                        break;
+                    case 'l3-5':
+                        card.style.left = '70%';
+                        card.style.top = '440px';
+                        card.style.transform = 'translateX(-50%)';
+                        break;
+                    case 'l3-6':
+                        card.style.left = '80%';
+                        card.style.top = '440px';
+                        card.style.transform = 'translateX(-50%)';
+                        break;
                 }
             });
         }
@@ -697,7 +746,7 @@
                 setTimeout(() => {
                     line.style.opacity = '1';
                     line.style.transform = 'scaleY(1)';
-                }, index * 100);
+                }, index * 50);
             });
         }, 500);
         
