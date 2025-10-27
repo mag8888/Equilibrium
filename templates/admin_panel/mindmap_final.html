@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v33 - ПЕРЕСОЗДАНИЕ СТРУКТУРЫ</title>
+    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v34 - DRAG & DROP + КОЛЛИЗИИ</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -119,7 +119,7 @@
             border-radius: 8px;
             padding: 12px 16px;
             text-align: center;
-            cursor: pointer;
+            cursor: move;
             transition: all 0.3s ease;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             min-width: 120px;
@@ -134,6 +134,19 @@
         .user-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        
+        .user-card.dragging {
+            z-index: 1000;
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            cursor: grabbing;
+            transition: none;
+        }
+        
+        .user-card.collision {
+            border-color: #EF4444;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
         }
         
         .user-card.root {
@@ -323,6 +336,7 @@
         <button class="btn" onclick="alert('Нажмите на зеленую точку справа от любой карточки для добавления дочернего узла!')">ℹ️ Как добавить узел</button>
         <button class="btn" onclick="addGreenPointsToAll()" style="background: linear-gradient(135deg, #10B981, #059669); color: white; font-weight: bold;">🟢 ПРИНУДИТЕЛЬНО добавить зеленые точки ВЕЗДЕ</button>
         <button class="btn" onclick="recreateStructureWithNewSpacing()" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: white; font-weight: bold;">📏 ПЕРЕСОЗДАТЬ с новыми расстояниями</button>
+        <button class="btn" onclick="enableDragForAllCards()" style="background: linear-gradient(135deg, #8B5CF6, #7C3AED); color: white; font-weight: bold;">🖱️ ВКЛЮЧИТЬ перетаскивание для всех</button>
     </div>
     
     <div class="structure-container">
@@ -366,7 +380,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - FINAL VERSION v33 - ПЕРЕСОЗДАНИЕ СТРУКТУРЫ!');
+        console.log('🌐 MLM Mind Map Loading - FINAL VERSION v34 - DRAG & DROP + КОЛЛИЗИИ!');
         
         const CARD_WIDTH = 150;
         const CARD_HEIGHT = 70;
@@ -527,6 +541,31 @@
         };
         
         // Функция создания узла
+        // Функция для включения перетаскивания для всех существующих карточек
+        function enableDragForAllCards() {
+            console.log('🖱️ Включаем перетаскивание для всех карточек...');
+            
+            const allCards = document.querySelectorAll('.user-card');
+            let enabledCount = 0;
+            
+            allCards.forEach(card => {
+                // Проверяем, не включено ли уже перетаскивание
+                if (!card.hasAttribute('data-draggable')) {
+                    makeDraggable(card);
+                    card.setAttribute('data-draggable', 'true');
+                    enabledCount++;
+                }
+            });
+            
+            console.log(`✅ Включено перетаскивание для ${enabledCount} карточек из ${allCards.length}`);
+            
+            // Обновляем статус
+            const statusElement = document.getElementById('statusMessage');
+            if (statusElement) {
+                statusElement.textContent = `🖱️ Перетаскивание включено для ${allCards.length} карточек! Тяните карточки мышью`;
+            }
+        }
+        
         // Функция для пересоздания структуры с новыми расстояниями
         function recreateStructureWithNewSpacing() {
             console.log('📏 ПЕРЕСОЗДАЕМ структуру с новыми максимальными расстояниями...');
@@ -800,7 +839,170 @@
             }
             
                    mindMapNodes.push({ id, name, level, x, y });
+            // Добавляем drag & drop функциональность
+            makeDraggable(node);
+            
             return node;
+        }
+        
+        // Функция для добавления drag & drop функциональности
+        function makeDraggable(element) {
+            let isDragging = false;
+            let startX, startY, initialX, initialY;
+            
+            element.addEventListener('mousedown', function(e) {
+                // Не начинаем перетаскивание если кликнули на connection point
+                if (e.target.classList.contains('connection-point')) {
+                    return;
+                }
+                
+                isDragging = true;
+                element.classList.add('dragging');
+                
+                startX = e.clientX;
+                startY = e.clientY;
+                initialX = parseInt(element.style.left) || 0;
+                initialY = parseInt(element.style.top) || 0;
+                
+                console.log(`🖱️ Начинаем перетаскивание карточки: ${element.id}`);
+                
+                e.preventDefault();
+            });
+            
+            document.addEventListener('mousemove', function(e) {
+                if (!isDragging) return;
+                
+                const deltaX = e.clientX - startX;
+                const deltaY = e.clientY - startY;
+                
+                const newX = initialX + deltaX;
+                const newY = initialY + deltaY;
+                
+                element.style.left = newX + 'px';
+                element.style.top = newY + 'px';
+                
+                // Проверяем коллизии с другими карточками
+                checkCollisions(element);
+                
+                // Обновляем связи в реальном времени
+                updateConnectionsForCard(element);
+            });
+            
+            document.addEventListener('mouseup', function(e) {
+                if (!isDragging) return;
+                
+                isDragging = false;
+                element.classList.remove('dragging');
+                
+                console.log(`✅ Завершено перетаскивание карточки: ${element.id}`);
+                
+                // Финальная проверка коллизий и отталкивание
+                resolveCollisions(element);
+            });
+        }
+        
+        // Функция для проверки коллизий
+        function checkCollisions(draggedElement) {
+            const allCards = document.querySelectorAll('.user-card');
+            const draggedRect = draggedElement.getBoundingClientRect();
+            
+            allCards.forEach(card => {
+                if (card === draggedElement) return;
+                
+                const cardRect = card.getBoundingClientRect();
+                
+                // Проверяем пересечение
+                const isColliding = !(
+                    draggedRect.right < cardRect.left ||
+                    draggedRect.left > cardRect.right ||
+                    draggedRect.bottom < cardRect.top ||
+                    draggedRect.top > cardRect.bottom
+                );
+                
+                if (isColliding) {
+                    card.classList.add('collision');
+                    draggedElement.classList.add('collision');
+                } else {
+                    card.classList.remove('collision');
+                }
+            });
+        }
+        
+        // Функция для разрешения коллизий (отталкивание)
+        function resolveCollisions(draggedElement) {
+            const allCards = document.querySelectorAll('.user-card');
+            const container = document.getElementById('mindmapContainer');
+            const containerRect = container.getBoundingClientRect();
+            
+            allCards.forEach(card => {
+                if (card === draggedElement) return;
+                
+                const draggedRect = draggedElement.getBoundingClientRect();
+                const cardRect = card.getBoundingClientRect();
+                
+                // Проверяем пересечение
+                const isColliding = !(
+                    draggedRect.right < cardRect.left ||
+                    draggedRect.left > cardRect.right ||
+                    draggedRect.bottom < cardRect.top ||
+                    draggedRect.top > cardRect.bottom
+                );
+                
+                if (isColliding) {
+                    // Вычисляем направление отталкивания
+                    const draggedCenterX = draggedRect.left + draggedRect.width / 2;
+                    const draggedCenterY = draggedRect.top + draggedRect.height / 2;
+                    const cardCenterX = cardRect.left + cardRect.width / 2;
+                    const cardCenterY = cardRect.top + cardRect.height / 2;
+                    
+                    const deltaX = draggedCenterX - cardCenterX;
+                    const deltaY = draggedCenterY - cardCenterY;
+                    
+                    // Минимальное расстояние для разделения
+                    const minDistance = 150;
+                    const currentDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+                    
+                    if (currentDistance < minDistance) {
+                        // Нормализуем вектор направления
+                        const normalizedX = deltaX / currentDistance;
+                        const normalizedY = deltaY / currentDistance;
+                        
+                        // Вычисляем новые позиции
+                        const pushDistance = (minDistance - currentDistance) / 2;
+                        
+                        // Отталкиваем обе карточки
+                        const draggedCurrentX = parseInt(draggedElement.style.left) || 0;
+                        const draggedCurrentY = parseInt(draggedElement.style.top) || 0;
+                        const cardCurrentX = parseInt(card.style.left) || 0;
+                        const cardCurrentY = parseInt(card.style.top) || 0;
+                        
+                        draggedElement.style.left = (draggedCurrentX + normalizedX * pushDistance) + 'px';
+                        draggedElement.style.top = (draggedCurrentY + normalizedY * pushDistance) + 'px';
+                        
+                        card.style.left = (cardCurrentX - normalizedX * pushDistance) + 'px';
+                        card.style.top = (cardCurrentY - normalizedY * pushDistance) + 'px';
+                        
+                        console.log(`💥 Отталкивание: ${draggedElement.id} и ${card.id}`);
+                    }
+                }
+                
+                // Убираем визуальную индикацию коллизии
+                card.classList.remove('collision');
+            });
+            
+            draggedElement.classList.remove('collision');
+            
+            // Обновляем все связи после разрешения коллизий
+            setTimeout(() => {
+                rebuildConnections();
+            }, 100);
+        }
+        
+        // Функция для обновления связей конкретной карточки
+        function updateConnectionsForCard(card) {
+            // Эта функция будет обновлять только связи конкретной карточки
+            // Для производительности не перестраиваем все связи при каждом движении
+            // Полная перестройка происходит только в конце перетаскивания
         }
         
         // Функция создания изогнутой связи
