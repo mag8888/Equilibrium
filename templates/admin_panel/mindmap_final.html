@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v9 - СОХРАНЕНЫ УРОВНИ 1-3</title>
+    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v10 - ЦЕНТРИРОВАН 0-Й УРОВЕНЬ</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -248,12 +248,12 @@
 </head>
 <body>
     <div class="header">
-        <div class="title">🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v9 - СОХРАНЕНЫ УРОВНИ 1-3</div>
+        <div class="title">🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v10 - ЦЕНТРИРОВАН 0-Й УРОВЕНЬ</div>
         <div class="subtitle">Симметричное расположение узлов вверх и вниз от центра без пересечений</div>
     </div>
     
     <div class="status">
-        <div class="status-text">✅ Статус: СИММЕТРИЧНАЯ МАЙНД-КАРТА v9! Сохранено красивое расположение уровней 1-3, компактный 0-й уровень</div>
+        <div class="status-text">✅ Статус: СИММЕТРИЧНАЯ МАЙНД-КАРТА v10! 0-й уровень отцентрован относительно PLAZMA (4*)</div>
     </div>
     
     <div class="controls">
@@ -309,7 +309,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - FINAL VERSION v9 - СОХРАНЕНЫ УРОВНИ 1-3!');
+        console.log('🌐 MLM Mind Map Loading - FINAL VERSION v10 - ЦЕНТРИРОВАН 0-Й УРОВЕНЬ!');
         
         const CARD_WIDTH = 150;
         const CARD_HEIGHT = 70;
@@ -740,9 +740,10 @@
         
         // Функция для исправления перекрытий ТОЛЬКО для 0-го уровня (сохраняет красивое расположение 1-3 уровней)
         function fixOverlaps() {
-            console.log('🔧 Исправляем перекрытия только для 0-го уровня...');
+            console.log('🔧 Исправляем перекрытия только для 0-го уровня с центрированием относительно PLAZMA...');
             
             const level0Cards = document.querySelectorAll('.user-card[data-level="0"]');
+            const plazmaCard = document.querySelector('.user-card[data-level="4"]');
             const cardWidth = 120;
             const cardHeight = 60;
             const minSpacing = 3;
@@ -752,10 +753,24 @@
             if (level0Cards.length > 0) {
                 console.log(`🔧 Обрабатываем 0-й уровень: ${level0Cards.length} карточек`);
                 
-                // Размещаем карточки 0-го уровня в компактной вертикальной колонке
+                // Получаем позицию PLAZMA для центрирования
+                let plazmaY = 300; // Значение по умолчанию
+                if (plazmaCard) {
+                    const plazmaRect = plazmaCard.getBoundingClientRect();
+                    const containerRect = document.getElementById('mindmapContainer').getBoundingClientRect();
+                    plazmaY = plazmaRect.top - containerRect.top + plazmaRect.height / 2;
+                    console.log(`🎯 PLAZMA найдена на позиции Y: ${plazmaY}`);
+                }
+                
+                // Вычисляем общую высоту блока карточек 0-го уровня
+                const totalHeight = level0Cards.length * (cardHeight + minSpacing) - minSpacing;
+                
+                // Центрируем относительно PLAZMA
+                const startY = plazmaY - (totalHeight / 2);
                 const baseX = 1400; // Позиция справа от уровня 1
-                const startY = 200;
                 const spacingY = cardHeight + minSpacing;
+                
+                console.log(`🎯 Центрирование 0-го уровня: startY=${startY}, totalHeight=${totalHeight}, plazmaY=${plazmaY}`);
                 
                 level0Cards.forEach((card, index) => {
                     const targetX = baseX;
@@ -960,7 +975,7 @@
         
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('📄 DOM Content Loaded - FINAL MIND MAP v9 - СОХРАНЕНЫ УРОВНИ 1-3!');
+            console.log('📄 DOM Content Loaded - FINAL MIND MAP v10 - ЦЕНТРИРОВАН 0-Й УРОВЕНЬ!');
             console.log('🔍 Debug: DOM загружен, начинаем инициализацию горизонтальной майнд-карты...');
             
             setTimeout(() => {
