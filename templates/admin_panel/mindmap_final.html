@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v18 - ИНДИВИДУАЛЬНЫЕ СТРУКТУРЫ</title>
+    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v19 - ПОЛНЫЕ ВЕТКИ 4→3→2→1→0</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -282,7 +282,7 @@
         <button class="btn" onclick="renderMindMap()">🔄 Перерисовать</button>
         <button class="btn" onclick="clearMindMap()">🗑️ Очистить</button>
         <button class="btn" onclick="addLevel0()">➕ Добавить 0-й уровень</button>
-        <button class="btn" onclick="generateIndividualStructures()">🏗️ Индивидуальные структуры</button>
+        <button class="btn" onclick="generateIndividualStructures()">🏗️ Полные ветки 4→3→2→1→0</button>
         <button class="btn" onclick="fixOverlaps()">🔧 Исправить перекрытия</button>
         <button class="btn" onclick="checkOverlaps()">🔍 Проверить перекрытия</button>
         <button class="btn" onclick="rebuildConnections()">🔗 Перестроить связи</button>
@@ -676,64 +676,51 @@
             console.log('✅ Horizontal mind map rendered successfully!');
         }
         
-        // Функция для создания индивидуальной структуры под каждого партнера уровня 1
+        // Функция для создания полной индивидуальной структуры 4→3→2→1→0 для каждого узла
         function generateIndividualStructures() {
-            console.log('🏗️ Создаем индивидуальную структуру для каждого партнера уровня 1...');
+            console.log('🏗️ Создаем полную индивидуальную структуру 4→3→2→1→0 для каждого узла...');
             
             // Очищаем текущую структуру
             const container = document.getElementById('mindmapContainer');
             const existingCards = container.querySelectorAll('.user-card');
             existingCards.forEach(card => card.remove());
             
-            // Получаем количество партнеров уровня 1 из исходной структуры
-            const level1Partners = [
-                { name: '1*/1', baseY: 200 },
-                { name: '1*/2', baseY: 300 },
-                { name: '1*/3', baseY: 400 },
-                { name: '1*/4', baseY: 500 },
-                { name: '1*/5', baseY: 600 },
-                { name: '1*/6', baseY: 700 },
-                { name: '1*/7', baseY: 800 },
-                { name: '1*/8', baseY: 900 },
-                { name: '1*/9', baseY: 1000 }
-            ];
+            // Создаем структуру для каждого узла уровня 0
+            const totalLevel0Nodes = 27; // 9 партнеров × 3 узла = 27 узлов уровня 0
             
-            level1Partners.forEach((partner, partnerIndex) => {
-                const branchY = partner.baseY;
+            for (let nodeIndex = 0; nodeIndex < totalLevel0Nodes; nodeIndex++) {
+                const branchY = 150 + (nodeIndex * 120); // Вертикальное расстояние между ветками
                 
-                // Создаем полную ветку для каждого партнера: 4→3→2→1→0
+                // Создаем полную ветку для каждого узла: 4→3→2→1→0
                 
-                // Level 4 (PLAZMA для каждой ветки)
-                const plazmaId = `4-${partnerIndex + 1}`;
-                const plazmaNode = createNode(plazmaId, `PLAZMA-${partnerIndex + 1}`, 4, { x: 50, y: branchY });
+                // Level 4 (PLAZMA для каждого узла)
+                const plazmaId = `4-${nodeIndex + 1}`;
+                const plazmaNode = createNode(plazmaId, `PLAZMA-${nodeIndex + 1}`, 4, { x: 50, y: branchY });
                 container.appendChild(plazmaNode);
                 
                 // Level 3 (один узел для каждой ветки)
-                const level3Id = `3-${partnerIndex + 1}`;
-                const level3Node = createNode(level3Id, `3*/${partnerIndex + 1}`, 3, { x: 250, y: branchY });
+                const level3Id = `3-${nodeIndex + 1}`;
+                const level3Node = createNode(level3Id, `3*/${nodeIndex + 1}`, 3, { x: 250, y: branchY });
                 container.appendChild(level3Node);
                 
                 // Level 2 (один узел для каждой ветки)
-                const level2Id = `2-${partnerIndex + 1}`;
-                const level2Node = createNode(level2Id, `2*/${partnerIndex + 1}`, 2, { x: 450, y: branchY });
+                const level2Id = `2-${nodeIndex + 1}`;
+                const level2Node = createNode(level2Id, `2*/${nodeIndex + 1}`, 2, { x: 450, y: branchY });
                 container.appendChild(level2Node);
                 
-                // Level 1 (партнер)
-                const level1Id = `1-${partnerIndex + 1}`;
-                const level1Node = createNode(level1Id, partner.name, 1, { x: 650, y: branchY });
+                // Level 1 (один узел для каждой ветки)
+                const level1Id = `1-${nodeIndex + 1}`;
+                const level1Node = createNode(level1Id, `1*/${nodeIndex + 1}`, 1, { x: 650, y: branchY });
                 container.appendChild(level1Node);
                 
-                // Level 0 (3 узла под каждым партнером)
-                for (let i = 0; i < 3; i++) {
-                    const level0Id = `0-${partnerIndex * 3 + i + 1}`;
-                    const level0Y = branchY + (i - 1) * 80; // -80, 0, +80 относительно партнера
-                    const level0Node = createNode(level0Id, `0*/${partnerIndex * 3 + i + 1}`, 0, { x: 850, y: level0Y });
-                    container.appendChild(level0Node);
-                }
-            });
+                // Level 0 (финальный узел каждой ветки)
+                const level0Id = `0-${nodeIndex + 1}`;
+                const level0Node = createNode(level0Id, `0*/${nodeIndex + 1}`, 0, { x: 850, y: branchY });
+                container.appendChild(level0Node);
+            }
             
             updateStats();
-            console.log('✅ Индивидуальные структуры созданы для каждого партнера!');
+            console.log('✅ Полные индивидуальные структуры 4→3→2→1→0 созданы для каждого узла!');
             
             // Перестраиваем связи
             setTimeout(() => {
@@ -800,7 +787,7 @@
             document.getElementById('totalConnections').textContent = totalConnections;
             
             document.getElementById('statusMessage').textContent = 
-                `✅ ГОРИЗОНТАЛЬНАЯ МАЙНД-КАРТА v18 готова! Узлов: ${totalNodes}, Связей: ${totalConnections}`;
+                `✅ ГОРИЗОНТАЛЬНАЯ МАЙНД-КАРТА v19 готова! Узлов: ${totalNodes}, Связей: ${totalConnections}`;
         }
         
         // Функции управления
@@ -1098,25 +1085,23 @@
                 });
             }
             
-            // Связи от Level 1 к Level 0 (каждая карточка Level 0 подключается к одной карточке Level 1)
+            // Связи от Level 1 к Level 0 - индивидуальные ветки (1:1)
             if (cardsByLevel['1'] && cardsByLevel['0']) {
                 console.log(`🔗 Создаем связи Level 1 → Level 0: ${cardsByLevel['1'].length} родителей, ${cardsByLevel['0'].length} детей`);
                 
-                cardsByLevel['0'].forEach((level0Card, index) => {
-                    // Определяем к какой карточке Level 1 подключается эта карточка Level 0
-                    const parentIndex = Math.floor(index / 3);
-                    
-                    if (parentIndex < cardsByLevel['1'].length) {
-                        const level1Card = cardsByLevel['1'][parentIndex];
+                cardsByLevel['1'].forEach((level1Card, index) => {
+                    // Каждый Level 1 подключается к своему Level 0 (1:1)
+                    if (cardsByLevel['0'][index]) {
+                        const level0Card = cardsByLevel['0'][index];
                         
-                        console.log(`🔗 Создаем связь: Level 1 карточка ${level1Card.id} → Level 0 карточка ${level0Card.id} (индекс ${index}, родитель ${parentIndex})`);
+                        console.log(`🔗 Создаем связь: ${level1Card.id} → ${level0Card.id}`);
                         
                         createConnection(level1Card, level0Card); // 1 → 0
                         rebuiltConnections++;
                         
-                        console.log(`✅ Связь создана: Level 1 карточка ${parentIndex + 1} → Level 0 карточка ${index + 1}`);
+                        console.log(`✅ Связь создана: ${level1Card.id} → ${level0Card.id}`);
                     } else {
-                        console.log(`⚠️ Родитель не найден для Level 0 карточки ${index + 1} (parentIndex: ${parentIndex}, доступно родителей: ${cardsByLevel['1'].length})`);
+                        console.log(`⚠️ Level 0 карточка не найдена для индекса ${index}`);
                     }
                 });
             }
@@ -1290,7 +1275,7 @@
         
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('📄 DOM Content Loaded - FINAL MIND MAP v18 - ИНДИВИДУАЛЬНЫЕ СТРУКТУРЫ!');
+            console.log('📄 DOM Content Loaded - FINAL MIND MAP v19 - ПОЛНЫЕ ВЕТКИ 4→3→2→1→0!');
             console.log('🔍 Debug: DOM загружен, начинаем инициализацию горизонтальной майнд-карты...');
             
             setTimeout(() => {
