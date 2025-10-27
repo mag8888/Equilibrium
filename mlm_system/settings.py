@@ -222,4 +222,4 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
-# RELOAD CACHE BUSTER - ИСПРАВЛЕНО ВЕРТИКАЛЬНОЕ ПЕРЕМЕЩЕНИЕ v36: 1761405000
+# RELOAD CACHE BUSTER - РАСШИРЕНА ВЫСОТА +30% v37: 1761410000

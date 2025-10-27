@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v36 - ИСПРАВЛЕНО ВЕРТИКАЛЬНОЕ ПЕРЕМЕЩЕНИЕ</title>
+    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v37 - РАСШИРЕНА ВЫСОТА +30%</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -106,10 +106,10 @@
         .mindmap-container {
             position: relative;
             width: 100%;
-            height: 3500px; /* Увеличена высота для лучшего скролла */
+            height: 4550px; /* Увеличена высота на 30%: 3500 + 1050 = 4550px */
             margin: 0 auto;
             min-width: 2500px; /* Увеличена ширина для размещения всех уровней */
-            padding: 300px 100px; /* Увеличен padding для скролла вверх и по бокам */
+            padding: 400px 100px; /* Увеличен padding для еще большего скролла */
         }
         
         .user-card {
@@ -381,7 +381,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - FINAL VERSION v36 - ИСПРАВЛЕНО ВЕРТИКАЛЬНОЕ ПЕРЕМЕЩЕНИЕ!');
+        console.log('🌐 MLM Mind Map Loading - FINAL VERSION v37 - РАСШИРЕНА ВЫСОТА +30%!');
         
         const CARD_WIDTH = 150;
         const CARD_HEIGHT = 70;
@@ -1256,7 +1256,7 @@
             // Создаем MLM структуру с правильным распределением
             
             // Level 4 (PLAZMA) - 1 узел
-            const plazmaNode = createNode('plazma', 'PLAZMA', 4, { x: 150, y: 600 });
+            const plazmaNode = createNode('plazma', 'PLAZMA', 4, { x: 150, y: 700 });
             container.appendChild(plazmaNode);
             console.log('✅ Создана PLAZMA');
             
@@ -1447,7 +1447,7 @@
                 console.log(`🔧 Обрабатываем 0-й уровень: ${level0Cards.length} карточек`);
                 
                 // Получаем позицию PLAZMA для центрирования
-                let plazmaY = 600; // Увеличено значение с учетом нового padding 300px
+                let plazmaY = 700; // Увеличено значение с учетом нового padding 400px
                 if (plazmaCard) {
                     const plazmaRect = plazmaCard.getBoundingClientRect();
                     const containerRect = document.getElementById('mindmapContainer').getBoundingClientRect();
