@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v39 - ПЕРВЫЙ ПАРТНЕР IVA</title>
+    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v40 - IVA КАК ПЕРВАЯ КАРТОЧКА</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -384,7 +384,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - FINAL VERSION v39 - ПЕРВЫЙ ПАРТНЕР IVA!');
+        console.log('🌐 MLM Mind Map Loading - FINAL VERSION v40 - IVA КАК ПЕРВАЯ КАРТОЧКА!');
         
         const CARD_WIDTH = 150;
         const CARD_HEIGHT = 70;
@@ -677,86 +677,6 @@
             console.log(`💾 Сохранена структура: ${structure.length} партнеров`);
         }
         
-        // Функция для добавления первого партнера по умолчанию - IVA
-        function addDefaultPartnerIVA() {
-            console.log('👑 Добавляем первого партнера по умолчанию: IVA');
-            
-            const container = document.getElementById('mindmapContainer');
-            
-            // Проверяем, не добавлен ли уже IVA
-            const existingIVA = container.querySelector('#partner-iva-default');
-            if (existingIVA) {
-                console.log('👑 IVA уже существует, пропускаем');
-                return;
-            }
-            
-            // Проверяем, есть ли сохраненная структура с IVA
-            const saved = localStorage.getItem('mlm_partner_structure');
-            if (saved) {
-                try {
-                    const structure = JSON.parse(saved);
-                    const hasIVA = structure.some(partner => partner.name === 'IVA' || partner.id.includes('iva'));
-                    if (hasIVA) {
-                        console.log('👑 IVA найден в сохраненной структуре, пропускаем');
-                        return;
-                    }
-                } catch (error) {
-                    console.log('⚠️ Ошибка проверки сохраненной структуры:', error);
-                }
-            }
-            
-            // Находим PLAZMA карточку
-            const plazmaCard = container.querySelector('#plazma');
-            if (!plazmaCard) {
-                console.log('❌ PLAZMA карточка не найдена');
-                return;
-            }
-            
-            // Вычисляем позицию для IVA (первый партнер Level 3)
-            const parentRect = plazmaCard.getBoundingClientRect();
-            const containerRect = container.getBoundingClientRect();
-            
-            const parentX = parentRect.left - containerRect.left;
-            const parentY = parentRect.top - containerRect.top;
-            
-            const ivaX = parentX + 200; // Смещение вправо
-            const ivaY = parentY - 120; // Первый ребенок выше родителя
-            
-            // Создаем карточку IVA
-            const ivaCard = createNode('partner-iva-default', 'IVA', 3, { x: ivaX, y: ivaY });
-            ivaCard.setAttribute('data-parent', 'plazma');
-            ivaCard.setAttribute('data-created-by-click', 'true');
-            ivaCard.setAttribute('data-default-partner', 'true');
-            
-            // Добавляем специальный стиль для IVA
-            ivaCard.style.background = 'linear-gradient(135deg, #10B981, #059669)';
-            ivaCard.style.color = 'white';
-            ivaCard.style.fontWeight = 'bold';
-            ivaCard.style.border = '2px solid rgba(255, 255, 255, 0.3)';
-            
-            container.appendChild(ivaCard);
-            
-            // Создаем связь с PLAZMA
-            setTimeout(() => {
-                createSingleConnection(plazmaCard, ivaCard);
-                updateStats();
-                
-                console.log('✅ Первый партнер IVA добавлен к PLAZMA');
-                
-                // Визуальная анимация
-                ivaCard.style.animation = 'fadeIn 0.8s ease-in';
-                
-                // Обновляем статус
-                const statusElement = document.getElementById('statusMessage');
-                if (statusElement) {
-                    statusElement.textContent = '👑 Добавлен первый партнер IVA! Кликайте на карточки для добавления новых партнеров';
-                }
-                
-                // Сохраняем в localStorage
-                savePartnerStructure();
-                
-            }, 150);
-        }
         
         // Функция для загрузки структуры партнеров
         function loadPartnerStructure() {
@@ -878,23 +798,17 @@
                     card.remove();
                 });
                 
-                // Перестраиваем связи и добавляем IVA
+                // Перестраиваем связи
                 setTimeout(() => {
                     rebuildConnections();
+                    updateStats();
                     
-                    setTimeout(() => {
-                        // Добавляем IVA заново
-                        addDefaultPartnerIVA();
-                        
-                        updateStats();
-                        
-                        const statusElement = document.getElementById('statusMessage');
-                        if (statusElement) {
-                            statusElement.textContent = '👑 Сброс выполнен! Структура содержит только базовые узлы + IVA';
-                        }
-                        
-                        console.log('✅ Сброс к IVA завершен');
-                    }, 200);
+                    const statusElement = document.getElementById('statusMessage');
+                    if (statusElement) {
+                        statusElement.textContent = '👑 Сброс выполнен! Структура содержит только базовые узлы (IVA встроена в Level 3)';
+                    }
+                    
+                    console.log('✅ Сброс к базовой структуре с IVA завершен');
                 }, 100);
             }
         }
@@ -904,10 +818,10 @@
             const instructions = `
 👥 КАК ДОБАВЛЯТЬ ПАРТНЕРОВ:
 
-👑 ПЕРВЫЙ ПАРТНЕР IVA:
-   • Автоматически добавляется при создании структуры
+👑 IVA - ПЕРВАЯ КАРТОЧКА LEVEL 3:
+   • IVA встроена как первая карточка Level 3
    • Зеленая карточка, подключена к PLAZMA
-   • Стартовая точка для развития сети
+   • Заменяет стандартную карточку "3*/1"
 
 🖱️ КЛИК НА КАРТОЧКУ:
    • Кликните на любую карточку для добавления партнера
@@ -925,9 +839,9 @@
 
 🎯 ПОРЯДОК ДЕЙСТВИЙ:
    1. Создайте базовую структуру (🏗️ MLM структура)
-   2. IVA добавится автоматически
-   3. Кликайте на карточки для добавления новых партнеров
-   4. Используйте "👑 СБРОС к IVA" для возврата к начальному состоянию
+   2. IVA будет первой зеленой карточкой Level 3
+   3. Кликайте на IVA или другие карточки для добавления партнеров
+   4. Используйте "👑 СБРОС к IVA" для возврата к базовой структуре
             `;
             
             alert(instructions);
@@ -1636,13 +1550,33 @@
             container.appendChild(plazmaNode);
             console.log('✅ Создана PLAZMA');
             
-            // Level 3 - 3 узла
+            // Level 3 - 3 узла (первый узел - IVA)
             for (let i = 0; i < 3; i++) {
-                const level3Id = `3-${i + 1}`;
                 const level3Y = 150 + (i * 500); // Увеличиваем расстояние с 400 до 500
-                const level3Node = createNode(level3Id, `3*/${i + 1}`, 3, { x: 250, y: level3Y });
+                
+                // Первая карточка Level 3 - это IVA
+                let nodeName, nodeId;
+                if (i === 0) {
+                    nodeId = 'iva-level3-main';
+                    nodeName = 'IVA';
+                } else {
+                    nodeId = `3-${i + 1}`;
+                    nodeName = `3*/${i + 1}`;
+                }
+                
+                const level3Node = createNode(nodeId, nodeName, 3, { x: 250, y: level3Y });
+                
+                // Специальный стиль для IVA
+                if (i === 0) {
+                    level3Node.style.background = 'linear-gradient(135deg, #10B981, #059669)';
+                    level3Node.style.color = 'white';
+                    level3Node.style.fontWeight = 'bold';
+                    level3Node.style.border = '2px solid rgba(255, 255, 255, 0.3)';
+                    level3Node.setAttribute('data-is-iva', 'true');
+                }
+                
                 container.appendChild(level3Node);
-                console.log(`✅ Создана карточка Level 3: ${level3Id}`);
+                console.log(`✅ Создана карточка Level 3: ${nodeId} (${nodeName})`);
             }
             
             // Level 2 - 9 узлов (по 3 под каждым Level 3)
@@ -1704,8 +1638,6 @@
                     checkAndRedrawConnections();
                     // Принудительно добавляем зеленые точки ко всем узлам
                     addGreenPointsToAll();
-                    // Добавляем первого партнера по умолчанию
-                    addDefaultPartnerIVA();
                     // Загружаем сохраненную структуру партнеров
                     loadPartnerStructure();
                 }, 200);
