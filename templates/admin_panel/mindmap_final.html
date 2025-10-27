@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v14 - ИСПРАВЛЕНЫ СВЯЗИ</title>
+    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v15 - УБРАНЫ ДУБЛИ СВЯЗЕЙ</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -664,7 +664,12 @@
             }
             
             renderNodeRecursive(mindMapStructure, null);
-            renderConnectionsFromDom();
+            // renderConnectionsFromDom(); // ОТКЛЮЧЕНО: используем rebuildConnections для правильной MLM логики
+            
+            // Используем новую систему связей с правильной MLM логикой
+            setTimeout(() => {
+                rebuildConnections();
+            }, 100);
             
             updateStats();
             console.log('✅ Horizontal mind map rendered successfully!');
@@ -699,8 +704,7 @@
                     const level0Node = createNode(newId, `0*/${index * 3 + i + 1}`, 0, { x: level0X, y: level0Y });
                     document.getElementById('mindmapContainer').appendChild(level0Node);
                     
-                    connectionPairs.push({ parentId: node.id, childId: newId });
-                    linkNodesById(node.id, newId);
+                    // НЕ создаем связи здесь - они будут созданы в rebuildConnections() с правильной MLM логикой
                 }
             });
             
@@ -730,7 +734,7 @@
             document.getElementById('totalConnections').textContent = totalConnections;
             
             document.getElementById('statusMessage').textContent = 
-                `✅ ГОРИЗОНТАЛЬНАЯ МАЙНД-КАРТА v14 готова! Узлов: ${totalNodes}, Связей: ${totalConnections}`;
+                `✅ ГОРИЗОНТАЛЬНАЯ МАЙНД-КАРТА v15 готова! Узлов: ${totalNodes}, Связей: ${totalConnections}`;
         }
         
         // Функции управления
@@ -1197,7 +1201,7 @@
         
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('📄 DOM Content Loaded - FINAL MIND MAP v14 - ИСПРАВЛЕНЫ СВЯЗИ!');
+            console.log('📄 DOM Content Loaded - FINAL MIND MAP v15 - УБРАНЫ ДУБЛИ СВЯЗЕЙ!');
             console.log('🔍 Debug: DOM загружен, начинаем инициализацию горизонтальной майнд-карты...');
             
             setTimeout(() => {
