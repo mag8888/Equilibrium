@@ -682,7 +682,13 @@
             
             // Очищаем текущую структуру
             const container = document.getElementById('mindmapContainer');
+            if (!container) {
+                console.error('❌ mindmapContainer не найден!');
+                return;
+            }
+            
             const existingCards = container.querySelectorAll('.user-card');
+            console.log(`🗑️ Удаляем ${existingCards.length} существующих карточек`);
             existingCards.forEach(card => card.remove());
             
             // Создаем структуру для каждого узла уровня 0
@@ -697,6 +703,7 @@
                 const plazmaId = `4-${nodeIndex + 1}`;
                 const plazmaNode = createNode(plazmaId, `PLAZMA-${nodeIndex + 1}`, 4, { x: 50, y: branchY });
                 container.appendChild(plazmaNode);
+                console.log(`✅ Создана карточка: ${plazmaId}`);
                 
                 // Level 3 (один узел для каждой ветки)
                 const level3Id = `3-${nodeIndex + 1}`;
@@ -719,8 +726,8 @@
                 container.appendChild(level0Node);
             }
             
+            console.log(`✅ Полные индивидуальные структуры созданы! Всего карточек в контейнере: ${container.querySelectorAll('.user-card').length}`);
             updateStats();
-            console.log('✅ Полные индивидуальные структуры 4→3→2→1→0 созданы для каждого узла!');
             
             // Перестраиваем связи
             setTimeout(() => {
