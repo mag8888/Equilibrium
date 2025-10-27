@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v21 - ПРАВИЛЬНАЯ MLM 1→3→9→27→81</title>
+    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v22 - ОТЛАДКА SVG СВЯЗЕЙ</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -995,6 +995,10 @@
                 return 0;
             }
             
+            // Проверяем размеры SVG
+            const svgRect = svg.getBoundingClientRect();
+            console.log(`📐 SVG размеры: ${svgRect.width}x${svgRect.height}, позиция: ${svgRect.left}, ${svgRect.top}`);
+            
             console.log(`🧹 Очищаем SVG (текущих элементов: ${svg.children.length})`);
             
             // Принудительная очистка всех существующих связей
@@ -1069,12 +1073,15 @@
                 
                 path.setAttribute('d', pathData);
                 path.setAttribute('stroke', '#3B82F6');
-                path.setAttribute('stroke-width', '2');
+                path.setAttribute('stroke-width', '3'); // Увеличиваем толщину для лучшей видимости
                 path.setAttribute('fill', 'none');
-                path.setAttribute('opacity', '0.7');
+                path.setAttribute('opacity', '1'); // Делаем полностью непрозрачными
+                path.setAttribute('class', 'connection-line'); // Добавляем класс для отладки
                 
                 svg.appendChild(path);
                 rebuiltConnections++;
+                
+                console.log(`✅ SVG связь добавлена: ${pathData}`);
             }
             
             // Связи от PLAZMA (Level 4) к Level 3 - индивидуальные ветки
@@ -1314,7 +1321,7 @@
         
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('📄 DOM Content Loaded - FINAL MIND MAP v21 - ПРАВИЛЬНАЯ MLM 1→3→9→27→81!');
+            console.log('📄 DOM Content Loaded - FINAL MIND MAP v22 - ОТЛАДКА SVG СВЯЗЕЙ!');
             console.log('🔍 Debug: DOM загружен, начинаем инициализацию горизонтальной майнд-карты...');
             
             setTimeout(() => {
