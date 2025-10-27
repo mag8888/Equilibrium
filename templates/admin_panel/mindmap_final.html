@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v25 - ЦЕНТРИРОВАНИЕ LEVEL 0</title>
+    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v26 - ИНТЕРАКТИВНЫЕ УЗЛЫ</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -158,6 +158,8 @@
             transform: translateY(-50%);
             z-index: 15;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
         
         .connection-point.left {
@@ -166,6 +168,18 @@
         
         .connection-point.right {
             right: -6px;
+            background: #10B981;
+        }
+        
+        .connection-point.right:hover {
+            background: #059669;
+            transform: translateY(-50%) scale(1.3);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
+        }
+        
+        .connection-point.right:active {
+            transform: translateY(-50%) scale(0.9);
+        }
         }
         
         .user-name {
@@ -273,12 +287,12 @@
 </head>
 <body>
     <div class="header">
-        <div class="title">🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v25 - ЦЕНТРИРОВАНИЕ LEVEL 0</div>
+        <div class="title">🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v26 - ИНТЕРАКТИВНЫЕ УЗЛЫ</div>
         <div class="subtitle">Симметричное расположение узлов вверх и вниз от центра без пересечений</div>
     </div>
     
     <div class="status">
-        <div class="status-text">✅ Статус: СИММЕТРИЧНАЯ МАЙНД-КАРТА v25! Центрирование Level 0</div>
+        <div class="status-text">✅ Статус: СИММЕТРИЧНАЯ МАЙНД-КАРТА v26! Интерактивные узлы - клик на зеленую точку</div>
     </div>
     
     <div class="controls">
@@ -294,6 +308,7 @@
         <button class="btn" onclick="generateIndividualStructures()">🌐 Полная структура</button>
         <button class="btn" onclick="centerView()">🎯 Центрировать</button>
         <button class="btn" onclick="openBotChat()">💬 Писать через бот</button>
+        <button class="btn" onclick="alert('Нажмите на зеленую точку справа от любой карточки для добавления дочернего узла!')">ℹ️ Как добавить узел</button>
     </div>
     
     <div class="structure-container">
@@ -337,7 +352,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - FINAL VERSION v25 - ЦЕНТРИРОВАНИЕ LEVEL 0!');
+        console.log('🌐 MLM Mind Map Loading - FINAL VERSION v26 - ИНТЕРАКТИВНЫЕ УЗЛЫ!');
         
         const CARD_WIDTH = 150;
         const CARD_HEIGHT = 70;
@@ -498,6 +513,115 @@
         };
         
         // Функция создания узла
+        // Глобальная функция для создания связи между двумя узлами
+        function createSingleConnection(parentCard, childCard) {
+            const svg = document.getElementById('connectionsSvg') || document.getElementById('connectionSvg');
+            if (!svg) {
+                console.error('❌ SVG элемент не найден');
+                return;
+            }
+            
+            const containerRect = document.getElementById('mindmapContainer').getBoundingClientRect();
+            
+            const parentRect = parentCard.getBoundingClientRect();
+            const childRect = childCard.getBoundingClientRect();
+            
+            // Определяем какие connection points использовать
+            const parentRightPoint = parentCard.querySelector('.connection-point.right');
+            const childLeftPoint = childCard.querySelector('.connection-point.left');
+            
+            let parentX, parentY, childX, childY;
+            
+            if (parentRightPoint && childLeftPoint) {
+                // Используем connection points
+                const parentPointRect = parentRightPoint.getBoundingClientRect();
+                const childPointRect = childLeftPoint.getBoundingClientRect();
+                
+                parentX = parentPointRect.left - containerRect.left + parentPointRect.width / 2;
+                parentY = parentPointRect.top - containerRect.top + parentPointRect.height / 2;
+                childX = childPointRect.left - containerRect.left + childPointRect.width / 2;
+                childY = childPointRect.top - containerRect.top + childPointRect.height / 2;
+            } else {
+                // Fallback к центру карточек
+                parentX = parentRect.left - containerRect.left + parentRect.width / 2;
+                parentY = parentRect.top - containerRect.top + parentRect.height / 2;
+                childX = childRect.left - containerRect.left + childRect.width / 2;
+                childY = childRect.top - containerRect.top + childRect.height / 2;
+            }
+            
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            
+            // Контрольные точки для изогнутой линии
+            const controlX1 = parentX + (childX - parentX) * 0.5;
+            const controlY1 = parentY;
+            const controlX2 = parentX + (childX - parentX) * 0.5;
+            const controlY2 = childY;
+            
+            const pathData = `M ${parentX} ${parentY} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${childX} ${childY}`;
+            
+            path.setAttribute('d', pathData);
+            path.setAttribute('stroke', '#10B981'); // Зеленый цвет для новых связей
+            path.setAttribute('stroke-width', '3');
+            path.setAttribute('fill', 'none');
+            path.setAttribute('opacity', '1');
+            path.setAttribute('class', 'connection-line dynamic-connection');
+            
+            svg.appendChild(path);
+            
+            console.log(`✅ Создана динамическая связь: ${parentCard.id} → ${childCard.id}`);
+        }
+        
+        // Функция для добавления дочернего узла при клике на правую точку
+        function addChildNode(parentCard) {
+            console.log('➕ Добавляем дочерний узел для:', parentCard.id);
+            
+            const parentLevel = parseInt(parentCard.getAttribute('data-level'));
+            const childLevel = parentLevel - 1;
+            
+            // Проверяем, можно ли добавлять дочерние узлы (не ниже Level 0)
+            if (childLevel < 0) {
+                console.log('❌ Нельзя добавить дочерние узлы ниже Level 0');
+                return;
+            }
+            
+            // Подсчитываем существующих детей этого родителя
+            const container = document.getElementById('mindmapContainer');
+            const existingChildren = container.querySelectorAll(`.user-card[data-parent="${parentCard.id}"]`);
+            
+            if (existingChildren.length >= 3) {
+                console.log('❌ Максимум 3 дочерних узла уже достигнут');
+                return;
+            }
+            
+            // Получаем позицию родителя
+            const parentRect = parentCard.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+            
+            const parentX = parentRect.left - containerRect.left;
+            const parentY = parentRect.top - containerRect.top;
+            
+            // Вычисляем позицию нового дочернего узла
+            const childX = parentX + 200; // Смещение вправо
+            const childY = parentY + (existingChildren.length * 80) - 80; // Распределяем по вертикали
+            
+            // Создаем уникальный ID для нового узла
+            const newChildId = `${childLevel}-${Date.now()}-${existingChildren.length + 1}`;
+            const newChildName = `${childLevel}*/${existingChildren.length + 1}`;
+            
+            // Создаем новый узел
+            const newChild = createNode(newChildId, newChildName, childLevel, { x: childX, y: childY });
+            newChild.setAttribute('data-parent', parentCard.id);
+            
+            container.appendChild(newChild);
+            
+            // Создаем связь между родителем и новым дочерним узлом
+            setTimeout(() => {
+                createSingleConnection(parentCard, newChild);
+                updateStats();
+                console.log(`✅ Добавлен дочерний узел: ${newChildName} для родителя ${parentCard.id}`);
+            }, 100);
+        }
+        
         function createNode(id, name, level, position) {
             const { x, y } = position;
             const node = document.createElement('div');
@@ -519,6 +643,14 @@
             
             const rightConnectionPoint = document.createElement('div');
             rightConnectionPoint.className = 'connection-point right';
+            rightConnectionPoint.title = 'Нажмите, чтобы добавить дочерний узел (макс. 3)';
+            
+            // Добавляем обработчик клика для добавления дочернего узла
+            rightConnectionPoint.addEventListener('click', function(e) {
+                e.stopPropagation(); // Предотвращаем всплытие события
+                addChildNode(node);
+            });
+            
             node.appendChild(rightConnectionPoint);
             
             if (id === 'plazma') {
