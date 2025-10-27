@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v28 - ОТЛАДКА КЛИКОВ</title>
+    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v29 - ЗЕЛЕНЫЕ ТОЧКИ ВЕЗДЕ</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -299,12 +299,12 @@
 </head>
 <body>
     <div class="header">
-        <div class="title">🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v27 - УЗЛЫ УРОВНЯ 0*</div>
+        <div class="title">🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v29 - ЗЕЛЕНЫЕ ТОЧКИ ВЕЗДЕ</div>
         <div class="subtitle">Симметричное расположение узлов вверх и вниз от центра без пересечений</div>
     </div>
     
     <div class="status">
-        <div class="status-text">✅ Статус: СИММЕТРИЧНАЯ МАЙНД-КАРТА v27! Генерация узлов уровня 0*</div>
+        <div class="status-text">✅ Статус: СИММЕТРИЧНАЯ МАЙНД-КАРТА v29! Зеленые точки везде для интерактивности</div>
     </div>
     
     <div class="controls">
@@ -321,6 +321,7 @@
         <button class="btn" onclick="centerView()">🎯 Центрировать</button>
         <button class="btn" onclick="openBotChat()">💬 Писать через бот</button>
         <button class="btn" onclick="alert('Нажмите на зеленую точку справа от любой карточки для добавления дочернего узла!')">ℹ️ Как добавить узел</button>
+        <button class="btn" onclick="addGreenPointsToAll()">🟢 Добавить зеленые точки везде</button>
     </div>
     
     <div class="structure-container">
@@ -364,7 +365,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - FINAL VERSION v28 - ОТЛАДКА КЛИКОВ!');
+        console.log('🌐 MLM Mind Map Loading - FINAL VERSION v29 - ЗЕЛЕНЫЕ ТОЧКИ ВЕЗДЕ!');
         
         const CARD_WIDTH = 150;
         const CARD_HEIGHT = 70;
@@ -525,6 +526,59 @@
         };
         
         // Функция создания узла
+        // Функция для добавления зеленых точек ко всем существующим узлам
+        function addGreenPointsToAll() {
+            console.log('🟢 Добавляем зеленые точки ко всем узлам...');
+            
+            const allCards = document.querySelectorAll('.user-card');
+            let addedPoints = 0;
+            
+            allCards.forEach(card => {
+                // Проверяем, есть ли уже правая зеленая точка
+                const existingRightPoint = card.querySelector('.connection-point.right');
+                
+                if (!existingRightPoint) {
+                    console.log(`🟢 Добавляем зеленую точку к карточке: ${card.id}`);
+                    
+                    // Создаем правую зеленую точку
+                    const rightConnectionPoint = document.createElement('div');
+                    rightConnectionPoint.className = 'connection-point right';
+                    rightConnectionPoint.title = 'Нажмите, чтобы добавить дочерний узел (макс. 3)';
+                    
+                    // Добавляем обработчик клика
+                    rightConnectionPoint.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        console.log('🖱️ Клик по зеленой точке карточки:', card.id);
+                        addChildNode(card);
+                    });
+                    
+                    // Добавляем обработчик наведения
+                    rightConnectionPoint.addEventListener('mouseenter', function() {
+                        console.log('🟢 Наведение на зеленую точку карточки:', card.id);
+                    });
+                    
+                    card.appendChild(rightConnectionPoint);
+                    addedPoints++;
+                }
+                
+                // Проверяем левую точку тоже
+                const existingLeftPoint = card.querySelector('.connection-point.left');
+                if (!existingLeftPoint) {
+                    const leftConnectionPoint = document.createElement('div');
+                    leftConnectionPoint.className = 'connection-point left';
+                    card.appendChild(leftConnectionPoint);
+                }
+            });
+            
+            console.log(`✅ Добавлено зеленых точек: ${addedPoints} из ${allCards.length} карточек`);
+            
+            // Обновляем статус
+            const statusElement = document.getElementById('statusMessage');
+            if (statusElement) {
+                statusElement.textContent = `🟢 Добавлено ${addedPoints} зеленых точек! Всего карточек: ${allCards.length}`;
+            }
+        }
+        
         // Глобальная функция для создания связи между двумя узлами
         function createSingleConnection(parentCard, childCard) {
             const svg = document.getElementById('connectionsSvg') || document.getElementById('connectionSvg');
@@ -632,6 +686,8 @@
             newChild.setAttribute('data-parent', parentCard.id);
             
             container.appendChild(newChild);
+            
+            console.log(`🟢 Добавлены зеленые точки к новому узлу: ${newChildName}`);
             
             // Создаем связь между родителем и новым дочерним узлом
             setTimeout(() => {
