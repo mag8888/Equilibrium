@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v19 - ПОЛНЫЕ ВЕТКИ 4→3→2→1→0</title>
+    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v20 - ОТЛАДКА СВЯЗЕЙ</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -505,7 +505,7 @@
             
             node.innerHTML = `
                 <div class="user-name">${name}</div>
-                <div class="user-id">${level}*/${id.split('-')[1]}</div>
+                <div class="user-id">${name}</div>
             `;
             
             // Добавляем connection points (кружочки для связей)
@@ -988,6 +988,8 @@
             const allCards = document.querySelectorAll('.user-card');
             const cardsByLevel = {};
             
+            console.log(`🔍 Найдено карточек: ${allCards.length}`);
+            
             // Группируем карточки по уровням
             allCards.forEach(card => {
                 const level = card.getAttribute('data-level');
@@ -997,10 +999,16 @@
                 cardsByLevel[level].push(card);
             });
             
+            // Выводим статистику по уровням
+            Object.keys(cardsByLevel).forEach(level => {
+                console.log(`📊 Level ${level}: ${cardsByLevel[level].length} карточек`);
+            });
+            
             const containerRect = document.getElementById('mindmapContainer').getBoundingClientRect();
             
             // Функция для создания связи между двумя карточками
             function createConnection(parentCard, childCard) {
+                console.log(`🔗 Создаем связь: ${parentCard.id} → ${childCard.id}`);
                 const parentRect = parentCard.getBoundingClientRect();
                 const childRect = childCard.getBoundingClientRect();
                 
@@ -1275,7 +1283,7 @@
         
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('📄 DOM Content Loaded - FINAL MIND MAP v19 - ПОЛНЫЕ ВЕТКИ 4→3→2→1→0!');
+            console.log('📄 DOM Content Loaded - FINAL MIND MAP v20 - ОТЛАДКА СВЯЗЕЙ!');
             console.log('🔍 Debug: DOM загружен, начинаем инициализацию горизонтальной майнд-карты...');
             
             setTimeout(() => {
