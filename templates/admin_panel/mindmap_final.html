@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v38 - УМНАЯ ЛОГИКА ПАРТНЕРОВ</title>
+    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v39 - ПЕРВЫЙ ПАРТНЕР IVA</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -340,6 +340,7 @@
         <button class="btn" onclick="enableBackgroundPanning()" style="background: linear-gradient(135deg, #06B6D4, #0891B2); color: white; font-weight: bold;">🖱️ ВКЛЮЧИТЬ перемещение по фону</button>
         <button class="btn" onclick="clearPartnerStructure()" style="background: linear-gradient(135deg, #EF4444, #DC2626); color: white; font-weight: bold;">🗑️ ОЧИСТИТЬ партнеров</button>
         <button class="btn" onclick="showPartnerInstructions()" style="background: linear-gradient(135deg, #10B981, #059669); color: white; font-weight: bold;">ℹ️ Как добавлять партнеров</button>
+        <button class="btn" onclick="resetToIVAOnly()" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: white; font-weight: bold;">👑 СБРОС к IVA</button>
     </div>
     
     <div class="structure-container">
@@ -383,7 +384,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - FINAL VERSION v38 - УМНАЯ ЛОГИКА ПАРТНЕРОВ!');
+        console.log('🌐 MLM Mind Map Loading - FINAL VERSION v39 - ПЕРВЫЙ ПАРТНЕР IVA!');
         
         const CARD_WIDTH = 150;
         const CARD_HEIGHT = 70;
@@ -676,6 +677,87 @@
             console.log(`💾 Сохранена структура: ${structure.length} партнеров`);
         }
         
+        // Функция для добавления первого партнера по умолчанию - IVA
+        function addDefaultPartnerIVA() {
+            console.log('👑 Добавляем первого партнера по умолчанию: IVA');
+            
+            const container = document.getElementById('mindmapContainer');
+            
+            // Проверяем, не добавлен ли уже IVA
+            const existingIVA = container.querySelector('#partner-iva-default');
+            if (existingIVA) {
+                console.log('👑 IVA уже существует, пропускаем');
+                return;
+            }
+            
+            // Проверяем, есть ли сохраненная структура с IVA
+            const saved = localStorage.getItem('mlm_partner_structure');
+            if (saved) {
+                try {
+                    const structure = JSON.parse(saved);
+                    const hasIVA = structure.some(partner => partner.name === 'IVA' || partner.id.includes('iva'));
+                    if (hasIVA) {
+                        console.log('👑 IVA найден в сохраненной структуре, пропускаем');
+                        return;
+                    }
+                } catch (error) {
+                    console.log('⚠️ Ошибка проверки сохраненной структуры:', error);
+                }
+            }
+            
+            // Находим PLAZMA карточку
+            const plazmaCard = container.querySelector('#plazma');
+            if (!plazmaCard) {
+                console.log('❌ PLAZMA карточка не найдена');
+                return;
+            }
+            
+            // Вычисляем позицию для IVA (первый партнер Level 3)
+            const parentRect = plazmaCard.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+            
+            const parentX = parentRect.left - containerRect.left;
+            const parentY = parentRect.top - containerRect.top;
+            
+            const ivaX = parentX + 200; // Смещение вправо
+            const ivaY = parentY - 120; // Первый ребенок выше родителя
+            
+            // Создаем карточку IVA
+            const ivaCard = createNode('partner-iva-default', 'IVA', 3, { x: ivaX, y: ivaY });
+            ivaCard.setAttribute('data-parent', 'plazma');
+            ivaCard.setAttribute('data-created-by-click', 'true');
+            ivaCard.setAttribute('data-default-partner', 'true');
+            
+            // Добавляем специальный стиль для IVA
+            ivaCard.style.background = 'linear-gradient(135deg, #10B981, #059669)';
+            ivaCard.style.color = 'white';
+            ivaCard.style.fontWeight = 'bold';
+            ivaCard.style.border = '2px solid rgba(255, 255, 255, 0.3)';
+            
+            container.appendChild(ivaCard);
+            
+            // Создаем связь с PLAZMA
+            setTimeout(() => {
+                createSingleConnection(plazmaCard, ivaCard);
+                updateStats();
+                
+                console.log('✅ Первый партнер IVA добавлен к PLAZMA');
+                
+                // Визуальная анимация
+                ivaCard.style.animation = 'fadeIn 0.8s ease-in';
+                
+                // Обновляем статус
+                const statusElement = document.getElementById('statusMessage');
+                if (statusElement) {
+                    statusElement.textContent = '👑 Добавлен первый партнер IVA! Кликайте на карточки для добавления новых партнеров';
+                }
+                
+                // Сохраняем в localStorage
+                savePartnerStructure();
+                
+            }, 150);
+        }
+        
         // Функция для загрузки структуры партнеров
         function loadPartnerStructure() {
             const saved = localStorage.getItem('mlm_partner_structure');
@@ -778,10 +860,54 @@
             }
         }
         
+        // Функция для сброса к начальному состоянию (только IVA)
+        function resetToIVAOnly() {
+            if (confirm('👑 Сбросить к начальному состоянию? Останется только базовая структура + IVA')) {
+                console.log('👑 Сброс к начальному состоянию с IVA...');
+                
+                // Очищаем localStorage
+                localStorage.removeItem('mlm_partner_structure');
+                
+                // Удаляем всех партнеров кроме базовой структуры
+                const container = document.getElementById('mindmapContainer');
+                const partnerCards = container.querySelectorAll('.user-card[data-created-by-click="true"]');
+                
+                console.log(`🗑️ Удаляем ${partnerCards.length} партнеров...`);
+                
+                partnerCards.forEach(card => {
+                    card.remove();
+                });
+                
+                // Перестраиваем связи и добавляем IVA
+                setTimeout(() => {
+                    rebuildConnections();
+                    
+                    setTimeout(() => {
+                        // Добавляем IVA заново
+                        addDefaultPartnerIVA();
+                        
+                        updateStats();
+                        
+                        const statusElement = document.getElementById('statusMessage');
+                        if (statusElement) {
+                            statusElement.textContent = '👑 Сброс выполнен! Структура содержит только базовые узлы + IVA';
+                        }
+                        
+                        console.log('✅ Сброс к IVA завершен');
+                    }, 200);
+                }, 100);
+            }
+        }
+        
         // Функция для показа инструкций по добавлению партнеров
         function showPartnerInstructions() {
             const instructions = `
 👥 КАК ДОБАВЛЯТЬ ПАРТНЕРОВ:
+
+👑 ПЕРВЫЙ ПАРТНЕР IVA:
+   • Автоматически добавляется при создании структуры
+   • Зеленая карточка, подключена к PLAZMA
+   • Стартовая точка для развития сети
 
 🖱️ КЛИК НА КАРТОЧКУ:
    • Кликните на любую карточку для добавления партнера
@@ -795,12 +921,13 @@
 💾 АВТОСОХРАНЕНИЕ:
    • Все партнеры сохраняются автоматически
    • После перезагрузки структура восстанавливается
-   • Используйте кнопку "🗑️ ОЧИСТИТЬ" для сброса
+   • IVA всегда присутствует как первый партнер
 
 🎯 ПОРЯДОК ДЕЙСТВИЙ:
    1. Создайте базовую структуру (🏗️ MLM структура)
-   2. Кликайте на карточки для добавления партнеров
-   3. Структура сохраняется автоматически!
+   2. IVA добавится автоматически
+   3. Кликайте на карточки для добавления новых партнеров
+   4. Используйте "👑 СБРОС к IVA" для возврата к начальному состоянию
             `;
             
             alert(instructions);
@@ -1577,6 +1704,8 @@
                     checkAndRedrawConnections();
                     // Принудительно добавляем зеленые точки ко всем узлам
                     addGreenPointsToAll();
+                    // Добавляем первого партнера по умолчанию
+                    addDefaultPartnerIVA();
                     // Загружаем сохраненную структуру партнеров
                     loadPartnerStructure();
                 }, 200);
