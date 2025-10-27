@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v15 - УБРАНЫ ДУБЛИ СВЯЗЕЙ</title>
+    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v16 - ЗАЩИТА ОТ ДУБЛЕЙ</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -734,7 +734,7 @@
             document.getElementById('totalConnections').textContent = totalConnections;
             
             document.getElementById('statusMessage').textContent = 
-                `✅ ГОРИЗОНТАЛЬНАЯ МАЙНД-КАРТА v15 готова! Узлов: ${totalNodes}, Связей: ${totalConnections}`;
+                `✅ ГОРИЗОНТАЛЬНАЯ МАЙНД-КАРТА v16 готова! Узлов: ${totalNodes}, Связей: ${totalConnections}`;
         }
         
         // Функции управления
@@ -899,19 +899,35 @@
             };
         }
         
+        // Переменная для предотвращения множественных вызовов
+        let isRebuildingConnections = false;
+        
         // Функция для перестройки всех связей с учетом текущих позиций карточек
         function rebuildConnections() {
+            if (isRebuildingConnections) {
+                console.log('⏳ rebuildConnections уже выполняется, пропускаем...');
+                return 0;
+            }
+            
+            isRebuildingConnections = true;
             console.log('🔗 Перестраиваем все связи с учетом текущих позиций...');
             
             // Ищем SVG элемент (может быть connectionSvg или connectionsSvg)
             let svg = document.getElementById('connectionsSvg') || document.getElementById('connectionSvg');
             if (!svg) {
                 console.log('❌ SVG элемент не найден');
+                isRebuildingConnections = false;
                 return 0;
             }
             
-            // Очищаем все существующие связи
-            svg.innerHTML = '';
+            console.log(`🧹 Очищаем SVG (текущих элементов: ${svg.children.length})`);
+            
+            // Принудительная очистка всех существующих связей
+            while (svg.firstChild) {
+                svg.removeChild(svg.firstChild);
+            }
+            
+            console.log(`✅ SVG очищен (осталось элементов: ${svg.children.length})`);
             
             let rebuiltConnections = 0;
             
@@ -1020,20 +1036,29 @@
             
             // Связи от Level 1 к Level 0 (каждая карточка Level 0 подключается к одной карточке Level 1)
             if (cardsByLevel['1'] && cardsByLevel['0']) {
+                console.log(`🔗 Создаем связи Level 1 → Level 0: ${cardsByLevel['1'].length} родителей, ${cardsByLevel['0'].length} детей`);
+                
                 cardsByLevel['0'].forEach((level0Card, index) => {
                     // Определяем к какой карточке Level 1 подключается эта карточка Level 0
                     const parentIndex = Math.floor(index / 3);
                     
                     if (parentIndex < cardsByLevel['1'].length) {
                         const level1Card = cardsByLevel['1'][parentIndex];
-                        createConnection(level1Card, level0Card);
                         
-                        console.log(`🔗 Level 0 карточка ${index + 1} ← Level 1 карточка ${parentIndex + 1}`);
+                        console.log(`🔗 Создаем связь: Level 1 карточка ${level1Card.id} → Level 0 карточка ${level0Card.id} (индекс ${index}, родитель ${parentIndex})`);
+                        
+                        createConnection(level1Card, level0Card);
+                        rebuiltConnections++;
+                        
+                        console.log(`✅ Связь создана: Level 0 карточка ${index + 1} ← Level 1 карточка ${parentIndex + 1}`);
+                    } else {
+                        console.log(`⚠️ Родитель не найден для Level 0 карточки ${index + 1} (parentIndex: ${parentIndex}, доступно родителей: ${cardsByLevel['1'].length})`);
                     }
                 });
             }
             
             console.log(`✅ Перестроено связей: ${rebuiltConnections}`);
+            isRebuildingConnections = false;
             return rebuiltConnections;
         }
         
@@ -1201,7 +1226,7 @@
         
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('📄 DOM Content Loaded - FINAL MIND MAP v15 - УБРАНЫ ДУБЛИ СВЯЗЕЙ!');
+            console.log('📄 DOM Content Loaded - FINAL MIND MAP v16 - ЗАЩИТА ОТ ДУБЛЕЙ!');
             console.log('🔍 Debug: DOM загружен, начинаем инициализацию горизонтальной майнд-карты...');
             
             setTimeout(() => {
