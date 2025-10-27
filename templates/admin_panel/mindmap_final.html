@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v24 - АВТОПРОВЕРКА СВЯЗЕЙ</title>
+    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v25 - ЦЕНТРИРОВАНИЕ LEVEL 0</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -273,12 +273,12 @@
 </head>
 <body>
     <div class="header">
-        <div class="title">🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v24 - АВТОПРОВЕРКА СВЯЗЕЙ</div>
+        <div class="title">🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v25 - ЦЕНТРИРОВАНИЕ LEVEL 0</div>
         <div class="subtitle">Симметричное расположение узлов вверх и вниз от центра без пересечений</div>
     </div>
     
     <div class="status">
-        <div class="status-text">✅ Статус: СИММЕТРИЧНАЯ МАЙНД-КАРТА v24! Автопроверка связей</div>
+        <div class="status-text">✅ Статус: СИММЕТРИЧНАЯ МАЙНД-КАРТА v25! Центрирование Level 0</div>
     </div>
     
     <div class="controls">
@@ -337,7 +337,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - FINAL VERSION v24 - АВТОПРОВЕРКА СВЯЗЕЙ!');
+        console.log('🌐 MLM Mind Map Loading - FINAL VERSION v25 - ЦЕНТРИРОВАНИЕ LEVEL 0!');
         
         const CARD_WIDTH = 150;
         const CARD_HEIGHT = 70;
@@ -734,16 +734,31 @@
                 console.log(`✅ Создана карточка Level 1: ${level1Id}`);
             }
             
-            // Level 0 - 81 узел (по 3 под каждым Level 1)
+            // Level 0 - 81 узел (по 3 под каждым Level 1) - ЦЕНТРИРОВАННЫЕ
             for (let i = 0; i < 81; i++) {
                 const level0Id = `0-${i + 1}`;
                 const parentIndex = Math.floor(i / 3); // Определяем родителя Level 1
                 const level1Parent = Math.floor(parentIndex / 3); // Level 2 дедушка
                 const level2Parent = Math.floor(level1Parent / 3); // Level 3 прадедушка
-                const level0Y = 20 + (level2Parent * 500) + (Math.floor((parentIndex % 9) / 3) * 160) + ((parentIndex % 3) * 50) + ((i % 3) * 18);
+                
+                // Вычисляем Y позицию родителя Level 1
+                const parentLevel1Y = 30 + (level2Parent * 500) + (Math.floor((parentIndex % 9) / 3) * 160) + ((parentIndex % 3) * 50);
+                
+                // Центрируем 3 карточки Level 0 относительно родителя Level 1
+                const childPosition = i % 3; // 0, 1, 2
+                let level0Y;
+                
+                if (childPosition === 0) {
+                    level0Y = parentLevel1Y - 18; // Верхняя карточка
+                } else if (childPosition === 1) {
+                    level0Y = parentLevel1Y; // Центральная карточка (как родитель)
+                } else {
+                    level0Y = parentLevel1Y + 18; // Нижняя карточка
+                }
+                
                 const level0Node = createNode(level0Id, `0*/${i + 1}`, 0, { x: 850, y: level0Y });
                 container.appendChild(level0Node);
-                if (i < 10) console.log(`✅ Создана карточка Level 0: ${level0Id}`); // Логируем только первые 10
+                if (i < 10) console.log(`✅ Создана карточка Level 0: ${level0Id} (родитель: ${parentIndex + 1}, позиция: ${childPosition})`);
             }
             
             console.log(`✅ MLM структура создана! Всего карточек: ${container.querySelectorAll('.user-card').length}`);
