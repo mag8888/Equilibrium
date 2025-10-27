@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v32 - МАКСИМАЛЬНЫЕ РАССТОЯНИЯ</title>
+    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v33 - ПЕРЕСОЗДАНИЕ СТРУКТУРЫ</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -322,6 +322,7 @@
         <button class="btn" onclick="openBotChat()">💬 Писать через бот</button>
         <button class="btn" onclick="alert('Нажмите на зеленую точку справа от любой карточки для добавления дочернего узла!')">ℹ️ Как добавить узел</button>
         <button class="btn" onclick="addGreenPointsToAll()" style="background: linear-gradient(135deg, #10B981, #059669); color: white; font-weight: bold;">🟢 ПРИНУДИТЕЛЬНО добавить зеленые точки ВЕЗДЕ</button>
+        <button class="btn" onclick="recreateStructureWithNewSpacing()" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: white; font-weight: bold;">📏 ПЕРЕСОЗДАТЬ с новыми расстояниями</button>
     </div>
     
     <div class="structure-container">
@@ -365,7 +366,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - FINAL VERSION v32 - МАКСИМАЛЬНЫЕ РАССТОЯНИЯ!');
+        console.log('🌐 MLM Mind Map Loading - FINAL VERSION v33 - ПЕРЕСОЗДАНИЕ СТРУКТУРЫ!');
         
         const CARD_WIDTH = 150;
         const CARD_HEIGHT = 70;
@@ -526,6 +527,46 @@
         };
         
         // Функция создания узла
+        // Функция для пересоздания структуры с новыми расстояниями
+        function recreateStructureWithNewSpacing() {
+            console.log('📏 ПЕРЕСОЗДАЕМ структуру с новыми максимальными расстояниями...');
+            
+            // Очищаем текущую структуру
+            const container = document.getElementById('mindmapContainer');
+            const svg = document.getElementById('connectionsSvg') || document.getElementById('connectionSvg');
+            
+            if (container) {
+                // Удаляем все карточки
+                const allCards = container.querySelectorAll('.user-card');
+                console.log(`🗑️ Удаляем ${allCards.length} существующих карточек`);
+                allCards.forEach(card => card.remove());
+            }
+            
+            if (svg) {
+                // Очищаем все связи
+                while (svg.firstChild) {
+                    svg.removeChild(svg.firstChild);
+                }
+                console.log('🗑️ Очищены все связи');
+            }
+            
+            // Обновляем статус
+            const statusElement = document.getElementById('statusMessage');
+            if (statusElement) {
+                statusElement.textContent = '🔄 Пересоздание структуры с новыми расстояниями...';
+            }
+            
+            // Пересоздаем структуру с задержкой
+            setTimeout(() => {
+                console.log('🏗️ Создаем новую структуру с максимальными расстояниями...');
+                generateIndividualStructures();
+                
+                if (statusElement) {
+                    statusElement.textContent = '✅ Структура пересоздана с новыми расстояниями!';
+                }
+            }, 500);
+        }
+        
         // Функция для добавления зеленых точек ко всем существующим узлам
         function addGreenPointsToAll() {
             console.log('🟢 ПРИНУДИТЕЛЬНО добавляем зеленые точки ко всем узлам...');
