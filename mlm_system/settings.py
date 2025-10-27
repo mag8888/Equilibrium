@@ -222,4 +222,4 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
-# RELOAD CACHE BUSTER - РАСШИРЕННЫЙ СКРОЛЛ + ПЕРЕМЕЩЕНИЕ ФОНА v35: 1761400000
+# RELOAD CACHE BUSTER - ИСПРАВЛЕНО ВЕРТИКАЛЬНОЕ ПЕРЕМЕЩЕНИЕ v36: 1761405000

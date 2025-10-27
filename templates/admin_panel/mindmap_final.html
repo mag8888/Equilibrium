@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v35 - РАСШИРЕННЫЙ СКРОЛЛ + ПЕРЕМЕЩЕНИЕ ФОНА</title>
+    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v36 - ИСПРАВЛЕНО ВЕРТИКАЛЬНОЕ ПЕРЕМЕЩЕНИЕ</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -381,7 +381,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - FINAL VERSION v35 - РАСШИРЕННЫЙ СКРОЛЛ + ПЕРЕМЕЩЕНИЕ ФОНА!');
+        console.log('🌐 MLM Mind Map Loading - FINAL VERSION v36 - ИСПРАВЛЕНО ВЕРТИКАЛЬНОЕ ПЕРЕМЕЩЕНИЕ!');
         
         const CARD_WIDTH = 150;
         const CARD_HEIGHT = 70;
@@ -1008,7 +1008,7 @@
         
         // Функция для добавления перемещения по клику на фон
         function enableBackgroundPanning() {
-            console.log('🖱️ Включаем перемещение по клику на фон...');
+            console.log('🖱️ Включаем перемещение по клику на фон (горизонталь + вертикаль)...');
             
             const container = document.querySelector('.structure-container');
             let isPanning = false;
@@ -1018,50 +1018,76 @@
                 // Проверяем, что кликнули именно на фон, а не на карточку
                 if (e.target.classList.contains('user-card') || 
                     e.target.closest('.user-card') || 
-                    e.target.classList.contains('connection-point')) {
+                    e.target.classList.contains('connection-point') ||
+                    e.target.tagName === 'path' ||
+                    e.target.tagName === 'svg') {
                     return;
                 }
                 
                 isPanning = true;
                 container.style.cursor = 'grabbing';
                 
-                startX = e.pageX - container.offsetLeft;
-                startY = e.pageY - container.offsetTop;
+                // Используем clientX/clientY для более точного позиционирования
+                startX = e.clientX;
+                startY = e.clientY;
                 scrollLeft = container.scrollLeft;
                 scrollTop = container.scrollTop;
                 
-                console.log('🖱️ Начинаем перемещение фона');
+                console.log(`🖱️ Начинаем перемещение фона от позиции: ${startX}, ${startY}`);
+                console.log(`📍 Текущий скролл: left=${scrollLeft}, top=${scrollTop}`);
                 e.preventDefault();
             });
             
             container.addEventListener('mouseleave', function() {
-                isPanning = false;
-                container.style.cursor = 'default';
+                if (isPanning) {
+                    isPanning = false;
+                    container.style.cursor = 'grab';
+                    console.log('🖱️ Перемещение прервано (мышь покинула область)');
+                }
             });
             
             container.addEventListener('mouseup', function() {
-                isPanning = false;
-                container.style.cursor = 'default';
-                console.log('✅ Завершено перемещение фона');
+                if (isPanning) {
+                    isPanning = false;
+                    container.style.cursor = 'grab';
+                    console.log('✅ Завершено перемещение фона');
+                }
             });
             
             container.addEventListener('mousemove', function(e) {
                 if (!isPanning) return;
                 e.preventDefault();
                 
-                const x = e.pageX - container.offsetLeft;
-                const y = e.pageY - container.offsetTop;
-                const walkX = (x - startX) * 2; // Увеличиваем скорость перемещения
-                const walkY = (y - startY) * 2;
+                // Вычисляем смещение от начальной позиции
+                const deltaX = e.clientX - startX;
+                const deltaY = e.clientY - startY;
                 
-                container.scrollLeft = scrollLeft - walkX;
-                container.scrollTop = scrollTop - walkY;
+                // Применяем смещение к скроллу (инвертируем направление)
+                const newScrollLeft = scrollLeft - deltaX;
+                const newScrollTop = scrollTop - deltaY;
+                
+                container.scrollLeft = newScrollLeft;
+                container.scrollTop = newScrollTop;
+                
+                // Логируем для отладки (только каждые 10 пикселей для производительности)
+                if (Math.abs(deltaX) % 10 < 2 || Math.abs(deltaY) % 10 < 2) {
+                    console.log(`🔄 Перемещение: deltaX=${deltaX}, deltaY=${deltaY}, scrollLeft=${newScrollLeft}, scrollTop=${newScrollTop}`);
+                }
             });
             
             // Добавляем стили для курсора
             container.style.cursor = 'grab';
             
-            console.log('✅ Перемещение по фону включено');
+            // Убеждаемся, что контейнер может скроллиться
+            container.style.overflow = 'auto';
+            
+            console.log('✅ Перемещение по фону включено (горизонталь + вертикаль)');
+            
+            // Обновляем статус
+            const statusElement = document.getElementById('statusMessage');
+            if (statusElement) {
+                statusElement.textContent = '🖱️ Перемещение по фону включено! Тяните фон мышью в любом направлении';
+            }
         }
         
         // Функция создания изогнутой связи
