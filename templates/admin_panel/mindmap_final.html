@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v13 - ЧАТ С БОТОМ</title>
+    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v14 - ИСПРАВЛЕНЫ СВЯЗИ</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -730,7 +730,7 @@
             document.getElementById('totalConnections').textContent = totalConnections;
             
             document.getElementById('statusMessage').textContent = 
-                `✅ ГОРИЗОНТАЛЬНАЯ МАЙНД-КАРТА v13 готова! Узлов: ${totalNodes}, Связей: ${totalConnections}`;
+                `✅ ГОРИЗОНТАЛЬНАЯ МАЙНД-КАРТА v14 готова! Узлов: ${totalNodes}, Связей: ${totalConnections}`;
         }
         
         // Функции управления
@@ -984,48 +984,48 @@
             
             // Улучшенная логика связей для MLM структуры
             
-            // Связи от Level 3 к Level 2 (каждый 3-й уровень к 3 карточкам 2-го уровня)
+            // Связи от Level 3 к Level 2 (каждая карточка Level 2 подключается к одной карточке Level 3)
             if (cardsByLevel['3'] && cardsByLevel['2']) {
-                cardsByLevel['3'].forEach((level3Card, index) => {
-                    const startIndex = index * 3;
-                    const endIndex = Math.min(startIndex + 3, cardsByLevel['2'].length);
-                    const level2Cards = cardsByLevel['2'].slice(startIndex, endIndex);
-                    
-                    level2Cards.forEach(level2Card => {
-                        createConnection(level3Card, level2Card);
-                    });
-                    
-                    console.log(`🔗 Level 3 карточка ${index + 1} → ${level2Cards.length} карточек Level 2`);
-                });
-            }
-            
-            // Связи от Level 2 к Level 1 (каждый 2-й уровень к 3 карточкам 1-го уровня)
-            if (cardsByLevel['2'] && cardsByLevel['1']) {
                 cardsByLevel['2'].forEach((level2Card, index) => {
-                    const startIndex = index * 3;
-                    const endIndex = Math.min(startIndex + 3, cardsByLevel['1'].length);
-                    const level1Cards = cardsByLevel['1'].slice(startIndex, endIndex);
+                    // Определяем к какой карточке Level 3 подключается эта карточка Level 2
+                    const parentIndex = Math.floor(index / 3);
                     
-                    level1Cards.forEach(level1Card => {
-                        createConnection(level2Card, level1Card);
-                    });
-                    
-                    console.log(`🔗 Level 2 карточка ${index + 1} → ${level1Cards.length} карточек Level 1`);
+                    if (parentIndex < cardsByLevel['3'].length) {
+                        const level3Card = cardsByLevel['3'][parentIndex];
+                        createConnection(level3Card, level2Card);
+                        
+                        console.log(`🔗 Level 2 карточка ${index + 1} ← Level 3 карточка ${parentIndex + 1}`);
+                    }
                 });
             }
             
-            // Связи от Level 1 к Level 0 (каждый 1-й уровень к 3 карточкам 0-го уровня)
-            if (cardsByLevel['1'] && cardsByLevel['0']) {
+            // Связи от Level 2 к Level 1 (каждая карточка Level 1 подключается к одной карточке Level 2)
+            if (cardsByLevel['2'] && cardsByLevel['1']) {
                 cardsByLevel['1'].forEach((level1Card, index) => {
-                    const startIndex = index * 3;
-                    const endIndex = Math.min(startIndex + 3, cardsByLevel['0'].length);
-                    const level0Cards = cardsByLevel['0'].slice(startIndex, endIndex);
+                    // Определяем к какой карточке Level 2 подключается эта карточка Level 1
+                    const parentIndex = Math.floor(index / 3);
                     
-                    level0Cards.forEach(level0Card => {
+                    if (parentIndex < cardsByLevel['2'].length) {
+                        const level2Card = cardsByLevel['2'][parentIndex];
+                        createConnection(level2Card, level1Card);
+                        
+                        console.log(`🔗 Level 1 карточка ${index + 1} ← Level 2 карточка ${parentIndex + 1}`);
+                    }
+                });
+            }
+            
+            // Связи от Level 1 к Level 0 (каждая карточка Level 0 подключается к одной карточке Level 1)
+            if (cardsByLevel['1'] && cardsByLevel['0']) {
+                cardsByLevel['0'].forEach((level0Card, index) => {
+                    // Определяем к какой карточке Level 1 подключается эта карточка Level 0
+                    const parentIndex = Math.floor(index / 3);
+                    
+                    if (parentIndex < cardsByLevel['1'].length) {
+                        const level1Card = cardsByLevel['1'][parentIndex];
                         createConnection(level1Card, level0Card);
-                    });
-                    
-                    console.log(`🔗 Level 1 карточка ${index + 1} → ${level0Cards.length} карточек Level 0`);
+                        
+                        console.log(`🔗 Level 0 карточка ${index + 1} ← Level 1 карточка ${parentIndex + 1}`);
+                    }
                 });
             }
             
@@ -1197,7 +1197,7 @@
         
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('📄 DOM Content Loaded - FINAL MIND MAP v13 - ЧАТ С БОТОМ!');
+            console.log('📄 DOM Content Loaded - FINAL MIND MAP v14 - ИСПРАВЛЕНЫ СВЯЗИ!');
             console.log('🔍 Debug: DOM загружен, начинаем инициализацию горизонтальной майнд-карты...');
             
             setTimeout(() => {
