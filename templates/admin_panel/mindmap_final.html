@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ</title>
+    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v7</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -248,18 +248,20 @@
 </head>
 <body>
     <div class="header">
-        <div class="title">🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ</div>
+        <div class="title">🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v7</div>
         <div class="subtitle">Симметричное расположение узлов вверх и вниз от центра без пересечений</div>
     </div>
     
     <div class="status">
-        <div class="status-text">✅ Статус: СИММЕТРИЧНАЯ МАЙНД-КАРТА! Узлы расположены вверх и вниз от центра без пересечений</div>
+        <div class="status-text">✅ Статус: СИММЕТРИЧНАЯ МАЙНД-КАРТА v7! Узлы расположены вверх и вниз от центра БЕЗ ПЕРЕКРЫТИЙ</div>
     </div>
     
     <div class="controls">
         <button class="btn" onclick="renderMindMap()">🔄 Перерисовать</button>
         <button class="btn" onclick="clearMindMap()">🗑️ Очистить</button>
         <button class="btn" onclick="addLevel0()">➕ Добавить 0-й уровень</button>
+        <button class="btn" onclick="fixOverlaps()">🔧 Исправить перекрытия</button>
+        <button class="btn" onclick="checkOverlaps()">🔍 Проверить перекрытия</button>
         <button class="btn" onclick="testConnections()">🔗 Тест связей</button>
         <button class="btn" onclick="showFullStructure()">🌐 Полная структура</button>
         <button class="btn" onclick="centerView()">🎯 Центрировать</button>
@@ -306,7 +308,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - FINAL VERSION!');
+        console.log('🌐 MLM Mind Map Loading - FINAL VERSION v7 - БЕЗ ПЕРЕКРЫТИЙ!');
         
         const CARD_WIDTH = 150;
         const CARD_HEIGHT = 70;
@@ -671,6 +673,11 @@
             
             updateStats();
             console.log('✅ Уровень 0 добавлен СИММЕТРИЧНО ВВЕРХ И ВНИЗ!');
+            
+            // Автоматически исправляем перекрытия после добавления Level 0
+            setTimeout(() => {
+                fixOverlaps();
+            }, 100);
         }
         
         // Функция обновления статистики
@@ -730,6 +737,181 @@
             }, 500);
         }
         
+        // УЛУЧШЕННАЯ функция для автоматического размещения карточек без перекрытий
+        function fixOverlaps() {
+            console.log('🔧 УЛУЧШЕННОЕ исправление перекрытий карточек...');
+            
+            const allCards = document.querySelectorAll('.user-card');
+            const cardWidth = 120;
+            const cardHeight = 60;
+            const minSpacing = 30; // Увеличенное минимальное расстояние между карточками
+            
+            // Группируем карточки по уровням
+            const cardsByLevel = {};
+            allCards.forEach(card => {
+                const level = card.getAttribute('data-level');
+                if (!cardsByLevel[level]) {
+                    cardsByLevel[level] = [];
+                }
+                cardsByLevel[level].push(card);
+            });
+            
+            let totalFixed = 0;
+            
+            // Обрабатываем каждый уровень отдельно
+            Object.keys(cardsByLevel).forEach(level => {
+                const cards = cardsByLevel[level];
+                console.log(`🔧 Обрабатываем уровень ${level}: ${cards.length} карточек`);
+                
+                // Определяем базовые позиции для уровня
+                let baseX, startY, spacingY;
+                
+                switch(level) {
+                    case '4': // PLAZMA
+                        baseX = 200;
+                        startY = 300;
+                        spacingY = cardHeight + minSpacing;
+                        break;
+                    case '3': // Level 3
+                        baseX = 500;
+                        startY = 200;
+                        spacingY = cardHeight + minSpacing;
+                        break;
+                    case '2': // Level 2
+                        baseX = 800;
+                        startY = 200;
+                        spacingY = cardHeight + minSpacing;
+                        break;
+                    case '1': // Level 1
+                        baseX = 1100;
+                        startY = 200;
+                        spacingY = cardHeight + minSpacing;
+                        break;
+                    case '0': // Level 0
+                        baseX = 1400;
+                        startY = 200;
+                        spacingY = cardHeight + minSpacing;
+                        break;
+                    default:
+                        baseX = 0;
+                        startY = 200;
+                        spacingY = cardHeight + minSpacing;
+                }
+                
+                // Размещаем карточки в вертикальной колонке без перекрытий
+                cards.forEach((card, index) => {
+                    const targetX = baseX;
+                    const targetY = startY + (index * spacingY);
+                    
+                    // Получаем текущую позицию
+                    const currentX = parseInt(card.style.left) || 0;
+                    const currentY = parseInt(card.style.top) || 0;
+                    
+                    // Устанавливаем новую позицию
+                    card.style.left = `${targetX}px`;
+                    card.style.top = `${targetY}px`;
+                    
+                    // Проверяем, была ли изменена позиция
+                    if (Math.abs(currentX - targetX) > 5 || Math.abs(currentY - targetY) > 5) {
+                        totalFixed++;
+                        console.log(`🔧 Перемещена карточка ${card.id}: ${currentX},${currentY} → ${targetX},${targetY}`);
+                    }
+                });
+            });
+            
+            // Дополнительная проверка на перекрытия между уровнями
+            const allCardsAfter = document.querySelectorAll('.user-card');
+            let crossLevelOverlaps = 0;
+            
+            for (let i = 0; i < allCardsAfter.length; i++) {
+                for (let j = i + 1; j < allCardsAfter.length; j++) {
+                    const card1 = allCardsAfter[i];
+                    const card2 = allCardsAfter[j];
+                    
+                    const x1 = parseInt(card1.style.left) || 0;
+                    const y1 = parseInt(card1.style.top) || 0;
+                    const x2 = parseInt(card2.style.left) || 0;
+                    const y2 = parseInt(card2.style.top) || 0;
+                    
+                    // Проверяем перекрытие
+                    const overlapX = Math.abs(x1 - x2) < cardWidth + minSpacing;
+                    const overlapY = Math.abs(y1 - y2) < cardHeight + minSpacing;
+                    
+                    if (overlapX && overlapY) {
+                        // Сдвигаем вторую карточку
+                        const newX2 = x1 + cardWidth + minSpacing;
+                        card2.style.left = `${newX2}px`;
+                        crossLevelOverlaps++;
+                        console.log(`🔧 Исправлено межуровневое перекрытие: ${card2.id} сдвинута в ${newX2},${y2}`);
+                    }
+                }
+            }
+            
+            console.log(`✅ Исправлено перекрытий: ${totalFixed} (внутри уровней) + ${crossLevelOverlaps} (между уровнями)`);
+            updateStats();
+            
+            return {
+                success: true,
+                totalFixed: totalFixed + crossLevelOverlaps,
+                message: `🔧 Исправлено ${totalFixed + crossLevelOverlaps} перекрытий карточек!`
+            };
+        }
+        
+        // Функция для проверки и подсчета перекрытий
+        function checkOverlaps() {
+            console.log('🔍 Проверяем перекрытия карточек...');
+            
+            const allCards = document.querySelectorAll('.user-card');
+            const cardWidth = 120;
+            const cardHeight = 60;
+            const minSpacing = 30;
+            
+            let overlaps = 0;
+            const overlapPairs = [];
+            
+            for (let i = 0; i < allCards.length; i++) {
+                for (let j = i + 1; j < allCards.length; j++) {
+                    const card1 = allCards[i];
+                    const card2 = allCards[j];
+                    
+                    const x1 = parseInt(card1.style.left) || 0;
+                    const y1 = parseInt(card1.style.top) || 0;
+                    const x2 = parseInt(card2.style.left) || 0;
+                    const y2 = parseInt(card2.style.top) || 0;
+                    
+                    // Проверяем перекрытие
+                    const overlapX = Math.abs(x1 - x2) < cardWidth + minSpacing;
+                    const overlapY = Math.abs(y1 - y2) < cardHeight + minSpacing;
+                    
+                    if (overlapX && overlapY) {
+                        overlaps++;
+                        if (overlapPairs.length < 5) { // Показываем только первые 5
+                            overlapPairs.push({
+                                card1: card1.id,
+                                card2: card2.id,
+                                pos1: { x: x1, y: y1 },
+                                pos2: { x: x2, y: y2 }
+                            });
+                        }
+                    }
+                }
+            }
+            
+            console.log(`🔍 Найдено перекрытий: ${overlaps}`);
+            if (overlapPairs.length > 0) {
+                console.log('🔍 Примеры перекрытий:', overlapPairs);
+            }
+            
+            return {
+                totalOverlaps: overlaps,
+                overlapPairs: overlapPairs,
+                success: overlaps === 0,
+                message: overlaps === 0 ? 
+                    '✅ Перекрытий не найдено!' : 
+                    `❌ Найдено ${overlaps} перекрытий`
+            };
+        }
+        
         function centerView() {
             const container = document.querySelector('.structure-container');
             container.scrollLeft = 0;
@@ -739,7 +921,7 @@
         
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('📄 DOM Content Loaded - FINAL MIND MAP');
+            console.log('📄 DOM Content Loaded - FINAL MIND MAP v7 - БЕЗ ПЕРЕКРЫТИЙ!');
             console.log('🔍 Debug: DOM загружен, начинаем инициализацию горизонтальной майнд-карты...');
             
             setTimeout(() => {
