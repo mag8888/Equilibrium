@@ -290,7 +290,7 @@
         <button class="btn" onclick="checkOverlaps()">🔍 Проверить перекрытия</button>
         <button class="btn" onclick="rebuildConnections()">🔗 Перестроить связи</button>
         <button class="btn" onclick="testConnections()">🔗 Тест связей</button>
-        <button class="btn" onclick="showFullStructure()">🌐 Полная структура</button>
+        <button class="btn" onclick="generateIndividualStructures()">🌐 Полная структура</button>
         <button class="btn" onclick="centerView()">🎯 Центрировать</button>
         <button class="btn" onclick="openBotChat()">💬 Писать через бот</button>
     </div>
@@ -629,6 +629,7 @@
         }
         
         function renderMindMap() {
+            console.log('🎨🎨🎨 ВЫЗВАНА СТАРАЯ ФУНКЦИЯ renderMindMap() 🎨🎨🎨');
             console.log('🎨 Rendering horizontal mind map...');
             
             const container = document.getElementById('mindmapContainer');
@@ -681,6 +682,7 @@
         
         // Функция для создания правильной MLM структуры с экспоненциальным ростом 1→3→9→27→81
         function generateIndividualStructures() {
+            console.log('🏗️🏗️🏗️ ВЫЗВАНА ПРАВИЛЬНАЯ ФУНКЦИЯ generateIndividualStructures() 🏗️🏗️🏗️');
             console.log('🏗️ Создаем правильную MLM структуру: 4=1 → 3=3 → 2=9 → 1=27 → 0=81...');
             
             // Очищаем текущую структуру
@@ -1327,24 +1329,12 @@
             console.log('📄 DOM Content Loaded - FINAL MIND MAP v22 - ОТЛАДКА SVG СВЯЗЕЙ!');
             console.log('🔍 Debug: DOM загружен, начинаем инициализацию горизонтальной майнд-карты...');
             
-            setTimeout(() => {
-                renderMindMap();
-                setTimeout(() => {
-                    addLevel0();
-                }, 1000);
-            }, 500);
+            // Отключаем автоматическую загрузку старой структуры
+            // Пользователь сам выберет какую структуру создать
+            console.log('✅ Страница готова! Выберите тип структуры из кнопок выше.');
         });
         
-        // Дополнительная инициализация для гарантии
-        setTimeout(() => {
-            if (document.querySelectorAll('.user-card').length === 0) {
-                console.log('🔄 Повторная инициализация майнд-карты...');
-                renderMindMap();
-                setTimeout(() => {
-                    addLevel0();
-                }, 1000);
-            }
-        }, 2000);
+        // Дополнительная инициализация отключена - пользователь выбирает структуру кнопками
     </script>
 </body>
 </html>
