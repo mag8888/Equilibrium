@@ -222,4 +222,4 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
-# RELOAD CACHE BUSTER - ПРИНУДИТЕЛЬНЫЕ ЗЕЛЕНЫЕ ТОЧКИ v30: 1761375000
+# RELOAD CACHE BUSTER - УВЕЛИЧЕННЫЕ РАССТОЯНИЯ v31: 1761380000
