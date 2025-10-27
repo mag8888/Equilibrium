@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v29 - ЗЕЛЕНЫЕ ТОЧКИ ВЕЗДЕ</title>
+    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v30 - ПРИНУДИТЕЛЬНЫЕ ЗЕЛЕНЫЕ ТОЧКИ</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -321,7 +321,7 @@
         <button class="btn" onclick="centerView()">🎯 Центрировать</button>
         <button class="btn" onclick="openBotChat()">💬 Писать через бот</button>
         <button class="btn" onclick="alert('Нажмите на зеленую точку справа от любой карточки для добавления дочернего узла!')">ℹ️ Как добавить узел</button>
-        <button class="btn" onclick="addGreenPointsToAll()">🟢 Добавить зеленые точки везде</button>
+        <button class="btn" onclick="addGreenPointsToAll()" style="background: linear-gradient(135deg, #10B981, #059669); color: white; font-weight: bold;">🟢 ПРИНУДИТЕЛЬНО добавить зеленые точки ВЕЗДЕ</button>
     </div>
     
     <div class="structure-container">
@@ -365,7 +365,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - FINAL VERSION v29 - ЗЕЛЕНЫЕ ТОЧКИ ВЕЗДЕ!');
+        console.log('🌐 MLM Mind Map Loading - FINAL VERSION v30 - ПРИНУДИТЕЛЬНЫЕ ЗЕЛЕНЫЕ ТОЧКИ!');
         
         const CARD_WIDTH = 150;
         const CARD_HEIGHT = 70;
@@ -528,54 +528,60 @@
         // Функция создания узла
         // Функция для добавления зеленых точек ко всем существующим узлам
         function addGreenPointsToAll() {
-            console.log('🟢 Добавляем зеленые точки ко всем узлам...');
+            console.log('🟢 ПРИНУДИТЕЛЬНО добавляем зеленые точки ко всем узлам...');
             
             const allCards = document.querySelectorAll('.user-card');
             let addedPoints = 0;
+            let repairedPoints = 0;
             
             allCards.forEach(card => {
-                // Проверяем, есть ли уже правая зеленая точка
-                const existingRightPoint = card.querySelector('.connection-point.right');
+                const cardLevel = card.getAttribute('data-level');
+                console.log(`🔍 Обрабатываем карточку ${card.id} (Level ${cardLevel})`);
                 
-                if (!existingRightPoint) {
-                    console.log(`🟢 Добавляем зеленую точку к карточке: ${card.id}`);
-                    
-                    // Создаем правую зеленую точку
-                    const rightConnectionPoint = document.createElement('div');
-                    rightConnectionPoint.className = 'connection-point right';
-                    rightConnectionPoint.title = 'Нажмите, чтобы добавить дочерний узел (макс. 3)';
-                    
-                    // Добавляем обработчик клика
-                    rightConnectionPoint.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        console.log('🖱️ Клик по зеленой точке карточки:', card.id);
-                        addChildNode(card);
-                    });
-                    
-                    // Добавляем обработчик наведения
-                    rightConnectionPoint.addEventListener('mouseenter', function() {
-                        console.log('🟢 Наведение на зеленую точку карточки:', card.id);
-                    });
-                    
-                    card.appendChild(rightConnectionPoint);
-                    addedPoints++;
-                }
+                // Удаляем старые точки если есть
+                const oldRightPoints = card.querySelectorAll('.connection-point.right');
+                const oldLeftPoints = card.querySelectorAll('.connection-point.left');
                 
-                // Проверяем левую точку тоже
-                const existingLeftPoint = card.querySelector('.connection-point.left');
-                if (!existingLeftPoint) {
-                    const leftConnectionPoint = document.createElement('div');
-                    leftConnectionPoint.className = 'connection-point left';
-                    card.appendChild(leftConnectionPoint);
-                }
+                oldRightPoints.forEach(point => {
+                    point.remove();
+                    repairedPoints++;
+                });
+                oldLeftPoints.forEach(point => point.remove());
+                
+                // Создаем левую синюю точку
+                const leftConnectionPoint = document.createElement('div');
+                leftConnectionPoint.className = 'connection-point left';
+                card.appendChild(leftConnectionPoint);
+                
+                // Создаем правую ЗЕЛЕНУЮ точку
+                const rightConnectionPoint = document.createElement('div');
+                rightConnectionPoint.className = 'connection-point right';
+                rightConnectionPoint.title = 'Нажмите, чтобы добавить дочерний узел (макс. 3)';
+                
+                // Добавляем обработчик клика
+                rightConnectionPoint.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    console.log('🖱️ Клик по зеленой точке карточки:', card.id);
+                    addChildNode(card);
+                });
+                
+                // Добавляем обработчик наведения
+                rightConnectionPoint.addEventListener('mouseenter', function() {
+                    console.log('🟢 Наведение на зеленую точку карточки:', card.id);
+                });
+                
+                card.appendChild(rightConnectionPoint);
+                addedPoints++;
+                
+                console.log(`✅ Добавлена зеленая точка к ${card.id} (Level ${cardLevel})`);
             });
             
-            console.log(`✅ Добавлено зеленых точек: ${addedPoints} из ${allCards.length} карточек`);
+            console.log(`✅ ПРИНУДИТЕЛЬНО добавлено зеленых точек: ${addedPoints} (восстановлено: ${repairedPoints}) из ${allCards.length} карточек`);
             
             // Обновляем статус
             const statusElement = document.getElementById('statusMessage');
             if (statusElement) {
-                statusElement.textContent = `🟢 Добавлено ${addedPoints} зеленых точек! Всего карточек: ${allCards.length}`;
+                statusElement.textContent = `🟢 ВЕЗДЕ добавлены зеленые точки! Карточек: ${allCards.length}, Точек: ${addedPoints}`;
             }
         }
         
@@ -992,6 +998,8 @@
                 rebuildConnections();
                 setTimeout(() => {
                     checkAndRedrawConnections();
+                    // Принудительно добавляем зеленые точки ко всем узлам
+                    addGreenPointsToAll();
                 }, 200);
             }, 100);
         }
