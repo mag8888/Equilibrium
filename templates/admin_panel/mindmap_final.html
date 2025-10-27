@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v27 - УЗЛЫ УРОВНЯ 0*</title>
+    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v28 - ОТЛАДКА КЛИКОВ</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -180,6 +180,18 @@
         .connection-point.right:active {
             transform: translateY(-50%) scale(0.9);
         }
+        
+        /* Анимация появления новых узлов */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
         }
         
         .user-name {
@@ -352,7 +364,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - FINAL VERSION v27 - УЗЛЫ УРОВНЯ 0*!');
+        console.log('🌐 MLM Mind Map Loading - FINAL VERSION v28 - ОТЛАДКА КЛИКОВ!');
         
         const CARD_WIDTH = 150;
         const CARD_HEIGHT = 70;
@@ -626,6 +638,15 @@
                 createSingleConnection(parentCard, newChild);
                 updateStats();
                 console.log(`✅ Добавлен дочерний узел: ${newChildName} для родителя ${parentCard.id}`);
+                
+                // Визуальная индикация успешного добавления
+                newChild.style.animation = 'fadeIn 0.5s ease-in';
+                
+                // Обновляем статус
+                const statusElement = document.getElementById('statusMessage');
+                if (statusElement) {
+                    statusElement.textContent = `✅ Добавлен узел ${newChildName}! Всего узлов: ${document.querySelectorAll('.user-card').length}`;
+                }
             }, 100);
         }
         
@@ -655,7 +676,13 @@
             // Добавляем обработчик клика для добавления дочернего узла
             rightConnectionPoint.addEventListener('click', function(e) {
                 e.stopPropagation(); // Предотвращаем всплытие события
+                console.log('🖱️ Клик по зеленой точке карточки:', node.id);
                 addChildNode(node);
+            });
+            
+            // Дополнительная отладка для проверки
+            rightConnectionPoint.addEventListener('mouseenter', function() {
+                console.log('🟢 Наведение на зеленую точку карточки:', node.id);
             });
             
             node.appendChild(rightConnectionPoint);
