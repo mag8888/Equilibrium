@@ -222,4 +222,4 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
-# RELOAD CACHE BUSTER - УВЕЛИЧЕННЫЕ РАССТОЯНИЯ v31: 1761380000
+# RELOAD CACHE BUSTER - МАКСИМАЛЬНЫЕ РАССТОЯНИЯ v32: 1761385000
