@@ -425,7 +425,7 @@
 </head>
 <body>
     <div class="header">
-        <div class="title">🌐 MLM СТРУКТУРА - ИСПРАВЛЕНИЕ СКРОЛЛА v111 - РАБОЧИЙ ПЕРЕТАСКИВАНИЕ</div>
+        <div class="title">🌐 MLM СТРУКТУРА - ИСПРАВЛЕНИЕ ВИДИМОСТИ v112 - ВСЕ ЭЛЕМЕНТЫ ДОСТУПНЫ</div>
         <div class="subtitle">Симметричное расположение узлов вверх и вниз от центра без пересечений</div>
     </div>
     
@@ -462,6 +462,7 @@
         <button class="btn" onclick="autoLayoutNoOverlap(); rebuildConnections();" style="background: linear-gradient(135deg, #EF4444, #DC2626); color: white; font-weight: bold;">🚫 ИСПРАВИТЬ НАЛОЖЕНИЯ</button>
         <button class="btn" onclick="enableAdvancedScrolling();" style="background: linear-gradient(135deg, #8B5CF6, #7C3AED); color: white; font-weight: bold;">🖱️ ПРОДВИНУТЫЙ СКРОЛЛИНГ</button>
         <button class="btn" onclick="disableAdvancedScrolling();" style="background: linear-gradient(135deg, #6B7280, #4B5563); color: white; font-weight: bold;">🚫 ОТКЛЮЧИТЬ СКРОЛЛИНГ</button>
+        <button class="btn" onclick="ensureAllElementsVisible(); rebuildConnections();" style="background: linear-gradient(135deg, #10B981, #059669); color: white; font-weight: bold;">👁️ ИСПРАВИТЬ ВИДИМОСТЬ</button>
     </div>
     
     <div class="structure-container">
@@ -505,7 +506,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - VERSION v111 - ИСПРАВЛЕНИЕ СКРОЛЛА!');
+        console.log('🌐 MLM Mind Map Loading - VERSION v112 - ИСПРАВЛЕНИЕ ВИДИМОСТИ!');
         
         // Генератор человеческих имен для нижней строки
         function generateHumanName() {
@@ -1515,6 +1516,127 @@
             }
 
             console.log('✅ autoLayout111 завершена с центрированием по высоте!');
+        }
+
+        // Функция для автоматического пересчета позиций при изменениях
+        function recalculatePositionsOnChange() {
+            console.log('🔄 Автоматический пересчет позиций при изменении структуры...');
+            
+            // Небольшая задержка для завершения DOM операций
+            setTimeout(() => {
+                const container = document.getElementById('mindmapContainer');
+                const nodes = Array.from(container.querySelectorAll('.user-card'));
+                
+                if (nodes.length > 0) {
+                    // Находим IVA
+                    const iva = container.querySelector('#iva-main-partner') || nodes.find(n => !n.getAttribute('data-parent'));
+                    
+                    if (iva) {
+                        // Применяем динамическое центрирование
+                        centerIVADynamically(iva, nodes);
+                        
+                        // Перестраиваем связи
+                        rebuildConnections();
+                        
+                        // Разрешаем коллизии
+                        resolveCollisions();
+                        
+                        // Проверяем и исправляем элементы за пределами экрана
+                        ensureAllElementsVisible();
+                        
+                        console.log('✅ Позиции пересчитаны автоматически');
+                    }
+                }
+            }, 100);
+        }
+
+        // Функция для обеспечения видимости всех элементов
+        function ensureAllElementsVisible() {
+            console.log('👁️ Проверяем видимость всех элементов...');
+            
+            const container = document.getElementById('mindmapContainer');
+            const nodes = Array.from(container.querySelectorAll('.user-card'));
+            
+            if (nodes.length === 0) return;
+            
+            // Находим границы всех элементов
+            let minX = Infinity, maxX = -Infinity;
+            let minY = Infinity, maxY = -Infinity;
+            
+            nodes.forEach(node => {
+                const rect = node.getBoundingClientRect();
+                const containerRect = container.getBoundingClientRect();
+                
+                const relativeX = rect.left - containerRect.left;
+                const relativeY = rect.top - containerRect.top;
+                
+                minX = Math.min(minX, relativeX);
+                maxX = Math.max(maxX, relativeX + rect.width);
+                minY = Math.min(minY, relativeY);
+                maxY = Math.max(maxY, relativeY + rect.height);
+            });
+            
+            console.log(`📐 Границы элементов: X(${minX} - ${maxX}), Y(${minY} - ${maxY})`);
+            
+            // Проверяем, есть ли элементы за пределами видимой области
+            const containerWidth = container.clientWidth;
+            const containerHeight = container.clientHeight;
+            
+            let needsAdjustment = false;
+            
+            // Если элементы уходят вверх (отрицательные Y)
+            if (minY < 0) {
+                console.log(`⚠️ Элементы уходят вверх на ${Math.abs(minY)}px`);
+                needsAdjustment = true;
+                
+                // Сдвигаем все элементы вниз
+                const offsetY = Math.abs(minY) + 50; // добавляем отступ
+                nodes.forEach(node => {
+                    const currentTop = parseInt(node.style.top) || 0;
+                    node.style.top = (currentTop + offsetY) + 'px';
+                });
+                
+                console.log(`✅ Сдвинули все элементы вниз на ${offsetY}px`);
+            }
+            
+            // Если элементы уходят влево (отрицательные X)
+            if (minX < 0) {
+                console.log(`⚠️ Элементы уходят влево на ${Math.abs(minX)}px`);
+                needsAdjustment = true;
+                
+                // Сдвигаем все элементы вправо
+                const offsetX = Math.abs(minX) + 50; // добавляем отступ
+                nodes.forEach(node => {
+                    const currentLeft = parseInt(node.style.left) || 0;
+                    node.style.left = (currentLeft + offsetX) + 'px';
+                });
+                
+                console.log(`✅ Сдвинули все элементы вправо на ${offsetX}px`);
+            }
+            
+            // Если элементы выходят за правую границу
+            if (maxX > containerWidth) {
+                console.log(`⚠️ Элементы выходят за правую границу на ${maxX - containerWidth}px`);
+                // Увеличиваем ширину контейнера
+                container.style.width = Math.max(containerWidth, maxX + 100) + 'px';
+                console.log(`✅ Увеличили ширину контейнера до ${container.style.width}`);
+            }
+            
+            // Если элементы выходят за нижнюю границу
+            if (maxY > containerHeight) {
+                console.log(`⚠️ Элементы выходят за нижнюю границу на ${maxY - containerHeight}px`);
+                // Увеличиваем высоту контейнера
+                container.style.height = Math.max(containerHeight, maxY + 100) + 'px';
+                console.log(`✅ Увеличили высоту контейнера до ${container.style.height}`);
+            }
+            
+            if (needsAdjustment) {
+                // Перестраиваем связи после изменения позиций
+                rebuildConnections();
+                console.log('✅ Все элементы теперь в видимой области');
+            } else {
+                console.log('✅ Все элементы уже в видимой области');
+            }
         }
 
         // Улучшенная функция скроллинга с зумом и стрелками
@@ -3712,6 +3834,12 @@
                 setTimeout(() => {
                     enableAdvancedScrolling();
                     console.log('🖱️ Продвинутый скроллинг включен автоматически!');
+                    
+                    // Исправляем видимость элементов
+                    setTimeout(() => {
+                        ensureAllElementsVisible();
+                        console.log('👁️ Видимость элементов исправлена автоматически!');
+                    }, 1500);
                 }, 1000);
             }, 500);
             
