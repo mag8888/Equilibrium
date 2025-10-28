@@ -1699,9 +1699,11 @@
             // Имя отображаем как человеко-читаемое (если есть), а идентификатор — ниже
             const humanName = options && options.humanName ? options.humanName : (node.getAttribute('data-human-name') || '');
             const uniqueId = options && options.uniqueId ? options.uniqueId : '';
+            if (uniqueId) node.setAttribute('data-uid', uniqueId);
+            const levelPrefix = `${level}*`;
             node.innerHTML = `
                 <div class="user-name">${humanName ? humanName : name}</div>
-                <div class="user-id">${uniqueId ? uniqueId : name}</div>
+                <div class="user-id">${levelPrefix}${uniqueId ? ' ' + uniqueId : ''}</div>
             `;
             
             // Добавляем connection points (кружочки для связей)
