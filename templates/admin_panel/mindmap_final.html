@@ -838,14 +838,16 @@
             return Array.from(container.querySelectorAll(`.user-card[data-parent="${parentId}"]`));
         }
 
-        // Поиск по ветке: найти БЛИЖАЙШИЙ к исходному узлу узел нужного уровня с <3 детьми
-        // Критерии: (1) минимальная глубина от startNode, (2) минимальное число детей, (3) минимальная вертикальная дистанция |y - y(start)|, (4) минимальная горизонтальная дистанция
+        // Поиск по ветке: найти узел нужного уровня с <3 детьми в своей ветке
+        // Приоритеты выбора:
+        // 1) минимальная глубина от исходного узла (ближе к основе)
+        // 2) меньше детей (быстрее закрываем тройки)
+        // 3) сверху вниз (меньший Y)
+        // 4) слева направо (меньший X)
         function findBestPlacementInBranch(startNode, targetLevel) {
             const container = document.getElementById('mindmapContainer');
-            const startY = parseInt(startNode.style.top) || 0;
-            const startX = parseInt(startNode.style.left) || 0;
             const queue = [{ node: startNode, depth: 0 }];
-            let best = { node: null, depth: Infinity, count: Infinity, dy: Infinity, dx: Infinity };
+            let best = { node: null, depth: Infinity, count: Infinity, y: Infinity, x: Infinity };
             while (queue.length > 0) {
                 const { node, depth } = queue.shift();
                 const level = parseInt(node.getAttribute('data-level')) || 0;
@@ -855,26 +857,24 @@
                     const count = children.length;
                     const nodeY = parseInt(node.style.top) || 0;
                     const nodeX = parseInt(node.style.left) || 0;
-                    const dy = Math.abs(nodeY - startY);
-                    const dx = Math.abs(nodeX - startX);
                     if (count < 3) {
                         if (
                             depth < best.depth ||
                             (depth === best.depth && (count < best.count ||
-                                (count === best.count && (dy < best.dy || (dy === best.dy && dx < best.dx)))))
+                                (count === best.count && (nodeY < best.y || (nodeY === best.y && nodeX < best.x)))))
                         ) {
-                            best = { node, depth, count, dy, dx };
+                            best = { node, depth, count, y: nodeY, x: nodeX };
                         }
                     }
                 }
                 // Продолжаем поиск вниз по ветке
-                // Сортировка: сначала по вертикальной близости к старту, затем по горизонтали
+                // Сортировка обхода: сверху вниз, слева направо
                 children.sort((a, b) => {
-                    const ay = Math.abs((parseInt(a.style.top)||0) - startY);
-                    const by = Math.abs((parseInt(b.style.top)||0) - startY);
+                    const ay = parseInt(a.style.top)||0;
+                    const by = parseInt(b.style.top)||0;
                     if (ay !== by) return ay - by;
-                    const ax = Math.abs((parseInt(a.style.left)||0) - startX);
-                    const bx = Math.abs((parseInt(b.style.left)||0) - startX);
+                    const ax = parseInt(a.style.left)||0;
+                    const bx = parseInt(b.style.left)||0;
                     return ax - bx;
                 });
                 children.forEach(ch => queue.push({ node: ch, depth: depth + 1 }));
@@ -888,7 +888,8 @@
             console.log(`👥 Добавляем партнера к карточке: ${parentCard.id}`);
             
             const parentLevel = parseInt(parentCard.getAttribute('data-level'));
-            const childLevel = Math.max(0, parentLevel - 1); // правило: 0* всегда под 0*, 1* под 1* и т.д.
+            // Строгое правило уровней для тринара: ребенок на уровень ниже, но не ниже 0*
+            const childLevel = Math.max(0, parentLevel - 1);
             
             console.log(`🎯 Родитель: Level ${parentLevel}, создаем дочерний: Level ${childLevel}`);
             
@@ -903,7 +904,7 @@
             
             // Если уровень родителя отличается от уровня ребенка — нельзя прикреплять напрямую
             // ИЛИ у родителя уже есть 3 ребенка — ищем узел ЦЕЛЕВОГО уровня по ветке
-            if (parentLevel !== childLevel || directChildren.length >= 3) {
+            if (directChildren.length >= 3) {
                 console.log('🔄 Ищем место на уровне ребенка по ветке (сверху вниз, у кого меньше всего детей)...');
                 const bestNode = findBestPlacementInBranch(parentCard, childLevel);
                 if (bestNode) {
