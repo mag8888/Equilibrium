@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>👑 ПРОФИЛЬ ПАРТНЕРА IVA v55 - ИСПРАВЛЕНА ЛОГИКА IVA</title>
+    <title>👑 ПРОФИЛЬ ПАРТНЕРА IVA v56 - ПРОВЕРКА ВСЕХ ПАРТНЕРОВ</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -497,7 +497,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - VERSION v55 - ИСПРАВЛЕНА ЛОГИКА IVA!');
+        console.log('🌐 MLM Mind Map Loading - VERSION v56 - ПРОВЕРКА ВСЕХ ПАРТНЕРОВ!');
         
         const CARD_WIDTH = 150;
         const CARD_HEIGHT = 70;
@@ -1394,7 +1394,25 @@
                 setTimeout(() => {
                     rebuildConnections();
                 }, 100);
+                
+                // Проверяем всех детей (может они тоже повысятся)
+                setTimeout(() => {
+                    checkAllPartners();
+                }, 100);
             }
+        }
+        
+        // Функция для проверки уровня ВСЕХ партнеров
+        function checkAllPartners() {
+            console.log('🔍 Проверяем уровень ВСЕХ партнеров...');
+            const container = document.getElementById('mindmapContainer');
+            const allCards = container.querySelectorAll('.user-card');
+            
+            allCards.forEach(card => {
+                checkAndUpgradeLevel(card);
+            });
+            
+            console.log('✅ Проверка всех партнеров завершена');
         }
         
         function addChildNode(parentCard) {
