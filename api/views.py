@@ -95,7 +95,6 @@ class MLMViewSet(viewsets.ViewSet):
         return Response({'status': 'error', 'message': 'Нельзя обновить статус'})
     
     @action(detail=False, methods=['post'], permission_classes=[AllowAny])
-    @csrf_exempt
     def create_partner(self, request):
         """Создать нового партнера"""
         data = request.data
@@ -145,7 +144,6 @@ class MLMViewSet(viewsets.ViewSet):
         return Response(data)
     
     @action(detail=False, methods=['post'], permission_classes=[AllowAny])
-    @csrf_exempt
     def clear_partners(self, request):
         """Очистить всех партнеров пользователя (для тестирования)"""
         user = self._get_root_user(request)
