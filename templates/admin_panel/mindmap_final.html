@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>👑 ПРОФИЛЬ ПАРТНЕРА IVA v49 - СВЯЗИ ПОСЛЕ ПЕРЕТАСКИВАНИЯ</title>
+    <title>👑 ПРОФИЛЬ ПАРТНЕРА IVA v50 - ЦВЕТА УРОВНЕЙ 0-7</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -129,6 +129,55 @@
             justify-content: center;
             z-index: 10;
             user-select: none;
+        }
+        
+        /* Цветовое кодирование уровней 0*-7* */
+        .user-card[data-level="0"] {
+            background: linear-gradient(135deg, #FFFFFF, #F5F5F5); /* Белый - Level 0* */
+            border: 2px solid #E0E0E0;
+            color: #333;
+        }
+        
+        .user-card[data-level="1"] {
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB); /* Голубой - Level 1* */
+            border: 2px solid #90CAF9;
+            color: #1565C0;
+        }
+        
+        .user-card[data-level="2"] {
+            background: linear-gradient(135deg, #C8E6C9, #A5D6A7); /* Зеленый - Level 2* */
+            border: 2px solid #81C784;
+            color: #2E7D32;
+        }
+        
+        .user-card[data-level="3"] {
+            background: linear-gradient(135deg, #FFF9C4, #FFF59D); /* Желтый - Level 3* */
+            border: 2px solid #FFD54F;
+            color: #F57F17;
+        }
+        
+        .user-card[data-level="4"] {
+            background: linear-gradient(135deg, #FFCCBC, #FFAB91); /* Оранжевый - Level 4* */
+            border: 2px solid #FF8A65;
+            color: #D84315;
+        }
+        
+        .user-card[data-level="5"] {
+            background: linear-gradient(135deg, #F8BBD0, #F48FB1); /* Розовый - Level 5* */
+            border: 2px solid #F06292;
+            color: #C2185B;
+        }
+        
+        .user-card[data-level="6"] {
+            background: linear-gradient(135deg, #E1BEE7, #CE93D8); /* Сиреневый - Level 6* */
+            border: 2px solid #BA68C8;
+            color: #7B1FA2;
+        }
+        
+        .user-card[data-level="7"] {
+            background: linear-gradient(135deg, #B39DDB, #9C27B0); /* Фиолетовый - Level 7* */
+            border: 2px solid #7B1FA2;
+            color: white;
         }
         
         .user-card:hover {
@@ -385,7 +434,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - VERSION v49 - СВЯЗИ ПОСЛЕ ПЕРЕТАСКИВАНИЯ!');
+        console.log('🌐 MLM Mind Map Loading - VERSION v50 - ЦВЕТА УРОВНЕЙ 0-7!');
         
         const CARD_WIDTH = 150;
         const CARD_HEIGHT = 70;
