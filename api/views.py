@@ -11,6 +11,7 @@ from users.models import User, UserProfile
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from mlm.models import MLMStructure, Payment, Bonus, Withdrawal, MLMSettings, MLMPartner
+from django.db.utils import ProgrammingError, OperationalError
 import traceback
 from .serializers import (
     UserSerializer, UserProfileSerializer, 
@@ -134,6 +135,12 @@ class MLMViewSet(viewsets.ViewSet):
                 'parent_uid': partner.parent.unique_id if partner.parent else None,
                 'created_at': partner.created_at.isoformat() if partner.created_at else None
             }, status=status.HTTP_201_CREATED)
+        except (ProgrammingError, OperationalError) as e:
+            # Таблицы ещё нет (миграции не применены) — не валим 500, а возвращаем понятное сообщение
+            return Response({
+                'error': 'mlm_mlmpartner table is not ready (migrations not applied)',
+                'detail': str(e),
+            }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
         except Exception as e:
             import traceback
             return Response({
@@ -146,7 +153,11 @@ class MLMViewSet(viewsets.ViewSet):
         """Получить всех партнеров пользователя"""
         try:
             user = self._get_root_user(request)
-            partners = MLMPartner.objects.filter(root_user=user, is_active=True)
+            try:
+                partners = MLMPartner.objects.filter(root_user=user, is_active=True)
+            except (ProgrammingError, OperationalError) as e:
+                # Если таблица ещё не создана — возвращаем пустой список, чтобы фронт не падал
+                return Response([], status=status.HTTP_200_OK)
             
             data = []
             for partner in partners:
