@@ -844,7 +844,7 @@
             const queue = [startNode];
             let bestNode = null;
             let bestCount = Infinity;
-            let bestY = -Infinity; // предпочитаем более нижние узлы
+            let bestY = Infinity; // при равенстве выбираем ВЫШЕ (сверху вниз)
             while (queue.length > 0) {
                 const node = queue.shift();
                 const level = parseInt(node.getAttribute('data-level')) || 0;
@@ -854,7 +854,7 @@
                     const count = children.length;
                     const nodeY = parseInt(node.style.top) || 0;
                     if (count < 3) {
-                        if (count < bestCount || (count === bestCount && nodeY > bestY)) {
+                        if (count < bestCount || (count === bestCount && nodeY < bestY)) {
                             bestCount = count;
                             bestNode = node;
                             bestY = nodeY;
@@ -862,8 +862,8 @@
                     }
                 }
                 // Продолжаем поиск вниз по ветке
-                // Сортируем по Y (снизу вверх), чтобы нижние получали приоритет
-                children.sort((a, b) => (parseInt(b.style.top)||0) - (parseInt(a.style.top)||0));
+                // Сортируем по Y (сверху вниз), чтобы заполнять сверху вниз
+                children.sort((a, b) => (parseInt(a.style.top)||0) - (parseInt(b.style.top)||0));
                 queue.push(...children);
             }
             return bestNode;
@@ -875,7 +875,7 @@
             console.log(`👥 Добавляем партнера к карточке: ${parentCard.id}`);
             
             const parentLevel = parseInt(parentCard.getAttribute('data-level'));
-            const childLevel = Math.max(0, parentLevel - 1); // Дочерний уровень всегда на 1 меньше
+            const childLevel = Math.max(0, parentLevel - 1); // правило: 0* всегда под 0*, 1* под 1* и т.д.
             
             console.log(`🎯 Родитель: Level ${parentLevel}, создаем дочерний: Level ${childLevel}`);
             
@@ -888,9 +888,10 @@
             let targetParent = parentCard;
             let targetLevel = childLevel;
             
-            // Если у родителя уже есть 3 прямых ребенка — ищем место глубже в ветке у узлов с тем же уровнем, у кого меньше детей
-            if (directChildren.length >= 3) {
-                console.log('🔄 У родителя уже 3 ребенка, ищем место глубже по ветке (у кого меньше всего) на уровне ребенка...');
+            // Если уровень родителя отличается от уровня ребенка — нельзя прикреплять напрямую
+            // ИЛИ у родителя уже есть 3 ребенка — ищем узел ЦЕЛЕВОГО уровня по ветке
+            if (parentLevel !== childLevel || directChildren.length >= 3) {
+                console.log('🔄 Ищем место на уровне ребенка по ветке (сверху вниз, у кого меньше всего детей)...');
                 const bestNode = findBestPlacementInBranch(parentCard, childLevel);
                 if (bestNode) {
                     targetParent = bestNode;
