@@ -888,8 +888,8 @@
             console.log(`👥 Добавляем партнера к карточке: ${parentCard.id}`);
             
             const parentLevel = parseInt(parentCard.getAttribute('data-level'));
-            // Строгое правило уровней для тринара: ребенок на уровень ниже, но не ниже 0*
-            const childLevel = Math.max(0, parentLevel - 1);
+            // Новые партнеры ВСЕГДА создаются уровнем 0*
+            const childLevel = 0;
             
             console.log(`🎯 Родитель: Level ${parentLevel}, создаем дочерний: Level ${childLevel}`);
             
@@ -902,14 +902,13 @@
             let targetParent = parentCard;
             let targetLevel = childLevel;
             
-            // Если уровень родителя отличается от уровня ребенка — нельзя прикреплять напрямую
-            // ИЛИ у родителя уже есть 3 ребенка — ищем узел ЦЕЛЕВОГО уровня по ветке
-            if (directChildren.length >= 3) {
-                console.log('🔄 Ищем место на уровне ребенка по ветке (сверху вниз, у кого меньше всего детей)...');
-                const bestNode = findBestPlacementInBranch(parentCard, childLevel);
+            // Если у текущего узла уже 3 ребенка ИЛИ его уровень не 1*, то ищем ближайший узел уровня 1* в своей ветке
+            if (directChildren.length >= 3 || parentLevel !== 1) {
+                console.log('🔄 Ищем ближайший узел уровня 1* по ветке для размещения 0* (сверху вниз, слева направо)...');
+                const bestNode = findBestPlacementInBranch(parentCard, 1);
                 if (bestNode) {
                     targetParent = bestNode;
-                    targetLevel = Math.max(0, parseInt(bestNode.getAttribute('data-level')) - 1);
+                    targetLevel = 0;
                     console.log(`✅ Найден узел для размещения: ${bestNode.id} (level ${bestNode.getAttribute('data-level')})`);
                 } else {
                     console.log('⚠️ Не найден подходящий узел; размещаем у исходного родителя.');
@@ -919,6 +918,13 @@
             // Создаем нового партнера
             const uniqueId = generateUniqueId();
             const existingChildren = container.querySelectorAll(`.user-card[data-parent="${targetParent.id}"]`);
+            if (existingChildren.length >= 3) {
+                console.log('❌ У целевого родителя уже 3 ребенка – ищем другой узел');
+                const altNode = findBestPlacementInBranch(targetParent, targetParent.getAttribute('data-level')) || findBestPlacementInBranch(targetParent, 1);
+                if (altNode) {
+                    targetParent = altNode;
+                }
+            }
             const childNumber = existingChildren.length + 1;
             
             const newChildId = `partner-${targetLevel}-${uniqueId}`;
@@ -1709,8 +1715,11 @@
                 // Визуальная индикация успешного добавления
                 newChild.style.animation = 'fadeIn 0.5s ease-in';
                 
-                // Проверяем и повышаем уровень родителя если нужно
-                checkAndUpgradeLevel(parentCard);
+                // Проверяем и повышаем уровень ТОЛЬКО если у родителя уже есть 3 партнера 0*
+                const zeroLevelCount = countPartnersAtLevel(targetParent, 0);
+                if (zeroLevelCount >= 3) {
+                    checkAndUpgradeLevel(targetParent);
+                }
                 // Дополнительно проверяем всех партнеров, чтобы сработали каскадные повышения
                 checkAllPartners();
                 
