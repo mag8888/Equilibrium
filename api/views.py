@@ -163,6 +163,49 @@ class MLMViewSet(viewsets.ViewSet):
                 'traceback': traceback.format_exc()
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def update_partner_level(self, request):
+        """Обновить уровень партнера"""
+        try:
+            data = request.data
+            user = self._get_root_user(request)
+            if user is None:
+                return Response({'error': 'Database not ready'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+            
+            unique_id = data.get('unique_id')
+            new_level = data.get('level')
+            
+            if not unique_id or new_level is None:
+                return Response({'error': 'unique_id and level are required'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Находим партнера
+            partner = MLMPartner.objects.filter(unique_id=unique_id, root_user=user).first()
+            if not partner:
+                return Response({'error': 'Partner not found'}, status=status.HTTP_404_NOT_FOUND)
+            
+            # Обновляем уровень
+            old_level = partner.level
+            partner.level = new_level
+            partner.save()
+            
+            return Response({
+                'id': partner.id,
+                'unique_id': partner.unique_id,
+                'human_name': partner.human_name,
+                'old_level': old_level,
+                'new_level': partner.level,
+                'updated_at': partner.updated_at.isoformat() if partner.updated_at else None
+            }, status=status.HTTP_200_OK)
+            
+        except (ProgrammingError, OperationalError) as e:
+            return Response({'error': 'Database not ready'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        except Exception as e:
+            import traceback
+            return Response({
+                'error': str(e),
+                'traceback': traceback.format_exc()
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
     @action(detail=False, methods=['get'], permission_classes=[AllowAny])
     def partners(self, request):
         """Получить всех партнеров пользователя"""
