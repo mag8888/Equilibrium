@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v42 - IVA ОТЛАДКА</title>
+    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v43 - IVA ДОБАВЛЕНА С ЗАДЕРЖКОЙ</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -385,7 +385,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - FINAL VERSION v42 - IVA ОТЛАДКА!');
+        console.log('🌐 MLM Mind Map Loading - FINAL VERSION v43 - IVA ДОБАВЛЕНА С ЗАДЕРЖКОЙ!');
         
         const CARD_WIDTH = 150;
         const CARD_HEIGHT = 70;
@@ -1816,7 +1816,12 @@
                     
                     // Добавляем IVA как первого партнера Level 0*
                     console.log('🔄 Вызываем addIVAPartner после загрузки...');
-                    addIVAPartner();
+                    
+                    // Используем setTimeout для гарантии что карточки готовы
+                    setTimeout(() => {
+                        console.log('✅ Задержка прошла, создаем IVA...');
+                        addIVAPartner();
+                    }, 100);
                     
                     // Загружаем сохраненную структуру партнеров
                     loadPartnerStructure();
