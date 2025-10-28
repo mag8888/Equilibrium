@@ -183,12 +183,9 @@ class MLMViewSet(viewsets.ViewSet):
                 })
             
             return Response(data)
-        except Exception as e:
-            import traceback
-            return Response({
-                'error': str(e),
-                'traceback': traceback.format_exc()
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception:
+            # Любая ошибка на этом этапе не должна ломать фронт
+            return Response([], status=status.HTTP_200_OK)
     
     @action(detail=False, methods=['post'], permission_classes=[AllowAny])
     def clear_partners(self, request):
