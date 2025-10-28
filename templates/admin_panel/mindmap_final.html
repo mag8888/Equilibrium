@@ -425,7 +425,7 @@
 </head>
 <body>
     <div class="header">
-        <div class="title">🌐 MLM СТРУКТУРА - РАССТАНОВКА 111 v106 - IVA СЛЕВА ПО ЦЕНТРУ ВЫСОТЫ</div>
+        <div class="title">🌐 MLM СТРУКТУРА - РАССТАНОВКА 111 v107 - ЦЕНТРИРОВАНИЕ ПО ВЫСОТЕ</div>
         <div class="subtitle">Симметричное расположение узлов вверх и вниз от центра без пересечений</div>
     </div>
     
@@ -504,7 +504,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - VERSION v106 - IVA СЛЕВА ПО ЦЕНТРУ ВЫСОТЫ!');
+        console.log('🌐 MLM Mind Map Loading - VERSION v107 - ЦЕНТРИРОВАНИЕ ПО ВЫСОТЕ!');
         
         // Генератор человеческих имен для нижней строки
         function generateHumanName() {
@@ -1383,9 +1383,9 @@
             });
         }
 
-        // Функция autoLayout111 - строит дерево от корневой карточки
+        // Функция autoLayout111 - строит дерево от корневой карточки с центрированием по высоте
         function autoLayout111() {
-            console.log('🎯 Запускаем autoLayout111...');
+            console.log('🎯 Запускаем autoLayout111 с центрированием по высоте...');
             
             const container = document.getElementById('mindmapContainer');
             const nodes = Array.from(container.querySelectorAll('.user-card'));
@@ -1399,12 +1399,6 @@
             if (!root) root = nodes[0];
 
             console.log(`👑 Корневая карточка: ${root.id}`);
-
-            // Размещаем корневую карточку слева по центру высоты
-            const ROOT_X = 50; // слева
-            const ROOT_Y = 300; // центр по вертикали
-            root.style.left = ROOT_X + 'px';
-            root.style.top = ROOT_Y + 'px';
 
             // Строим дерево по уровням
             const levels = new Map();
@@ -1442,26 +1436,46 @@
             // Расставляем каждый уровень
             const LEVEL_GAP = 300; // расстояние между уровнями
             const VERTICAL_GAP = 120; // расстояние между карточками по вертикали
+            const ROOT_X = 50; // IVA слева
 
-            for (let level = 1; level <= currentLevel; level++) {
+            // Сначала размещаем все карточки для расчета общей высоты
+            const levelPositions = new Map();
+            
+            for (let level = 0; level <= currentLevel; level++) {
                 const levelNodes = levels.get(level) || [];
                 if (levelNodes.length === 0) continue;
 
-                // Размещаем уровни справа от центра
                 const levelX = ROOT_X + (level * LEVEL_GAP);
-                
-                // Центрируем все карточки уровня относительно корня
                 const totalHeight = levelNodes.length * VERTICAL_GAP;
-                const startY = ROOT_Y - (totalHeight / 2) + (VERTICAL_GAP / 2);
-
-                levelNodes.forEach((node, index) => {
-                    const y = startY + (index * VERTICAL_GAP);
-                    node.style.left = levelX + 'px';
-                    node.style.top = y + 'px';
-                    
-                    console.log(`📍 Карточка ${node.id}: X=${levelX}, Y=${y}`);
+                
+                levelPositions.set(level, {
+                    x: levelX,
+                    totalHeight: totalHeight,
+                    nodes: levelNodes
                 });
             }
+
+            // Находим максимальную высоту среди всех уровней
+            const maxHeight = Math.max(...Array.from(levelPositions.values()).map(pos => pos.totalHeight));
+            const CONTAINER_CENTER_Y = 300; // центр контейнера по высоте
+
+            console.log(`📏 Максимальная высота структуры: ${maxHeight}px`);
+
+            // Размещаем все карточки с центрированием
+            levelPositions.forEach((position, level) => {
+                const { x, totalHeight, nodes } = position;
+                
+                // Центрируем каждый уровень относительно общего центра
+                const startY = CONTAINER_CENTER_Y - (totalHeight / 2) + (VERTICAL_GAP / 2);
+
+                nodes.forEach((node, index) => {
+                    const y = startY + (index * VERTICAL_GAP);
+                    node.style.left = x + 'px';
+                    node.style.top = y + 'px';
+                    
+                    console.log(`📍 Уровень ${level}, Карточка ${node.id}: X=${x}, Y=${y}`);
+                });
+            });
 
             // Перестраиваем связи
             rebuildConnections();
@@ -1469,10 +1483,10 @@
             // Обновляем статусную строку
             const statusMessage = document.getElementById('statusMessage');
             if (statusMessage) {
-                statusMessage.textContent = `✅ РАССТАНОВКА 111 применена! IVA слева по центру высоты, уровней: ${currentLevel + 1}, карточек: ${nodes.length}`;
+                statusMessage.textContent = `✅ РАССТАНОВКА 111 применена! Структура центрирована по высоте, уровней: ${currentLevel + 1}, карточек: ${nodes.length}`;
             }
 
-            console.log('✅ autoLayout111 завершена!');
+            console.log('✅ autoLayout111 завершена с центрированием по высоте!');
         }
 
         
