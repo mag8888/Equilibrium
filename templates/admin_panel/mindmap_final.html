@@ -425,7 +425,7 @@
 </head>
 <body>
     <div class="header">
-        <div class="title">🌐 MLM СТРУКТУРА - АВТО-ТРОЙКИ С ИНТЕРВАЛОМ v102 - 0.5С МЕЖДУ КАРТОЧКАМИ</div>
+        <div class="title">🌐 MLM СТРУКТУРА - ОТМЕНА АВТО-РАССТАНОВКИ v103 - РУЧНОЕ УПРАВЛЕНИЕ</div>
         <div class="subtitle">Симметричное расположение узлов вверх и вниз от центра без пересечений</div>
     </div>
     
@@ -459,7 +459,6 @@
         <button class="btn" onclick="autoLayoutNoOverlap(); rebuildConnections(); resolveCollisions();" style="background: linear-gradient(135deg, #10B981, #059669); color: white; font-weight: bold;">🎨 КРАСИВАЯ РАСКЛАДКА</button>
         <button class="btn" onclick="recalculatePositionsOnChange();" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: white; font-weight: bold;">🎯 ПЕРЕСЧЕТ ПОЗИЦИЙ</button>
         <button class="btn" onclick="autoLayoutNoOverlap(); rebuildConnections();" style="background: linear-gradient(135deg, #EF4444, #DC2626); color: white; font-weight: bold;">🚫 ИСПРАВИТЬ НАЛОЖЕНИЯ</button>
-        <button class="btn" onclick="autoTripletLayout();" style="background: linear-gradient(135deg, #8B5CF6, #7C3AED); color: white; font-weight: bold;">🎯 АВТО-ТРОЙКИ 0.5С</button>
     </div>
     
     <div class="structure-container">
@@ -503,7 +502,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - VERSION v102 - АВТО-ТРОЙКИ С ИНТЕРВАЛОМ!');
+        console.log('🌐 MLM Mind Map Loading - VERSION v103 - ОТМЕНА АВТО-РАССТАНОВКИ!');
         
         // Генератор человеческих имен для нижней строки
         function generateHumanName() {
@@ -680,12 +679,6 @@
                 rebuildConnections();
                 addGreenPointsToAll();
                 resolveCollisions();
-                
-                // Запускаем автоматическую расстановку троек с интервалом
-                setTimeout(() => {
-                    autoTripletLayout();
-                }, 1000);
-                
                 console.log('✅ Партнеры загружены и отображены (авто-раскладка без перекрытий)');
             }, 100);
         }
@@ -1305,112 +1298,6 @@
             }, 100);
         }
 
-        // Автоматическая расстановка троек с интервалом 0.5 сек
-        function autoTripletLayout() {
-            console.log('🎯 Запускаем автоматическую расстановку троек...');
-            
-            const container = document.getElementById('mindmapContainer');
-            const nodes = Array.from(container.querySelectorAll('.user-card'));
-            if (nodes.length === 0) return;
-
-            // Определяем корень (IVA)
-            let root = container.querySelector('#iva-main-partner') || nodes.find(n => !n.getAttribute('data-parent'));
-            if (!root) root = nodes[0];
-
-            // Размещаем IVA слева по центру
-            const IVA_X = 50;
-            const IVA_Y = 300;
-            root.style.left = IVA_X + 'px';
-            root.style.top = IVA_Y + 'px';
-            console.log(`👑 IVA размещена: ${IVA_X}, ${IVA_Y}`);
-
-            // Строим структуру по уровням
-            const levels = new Map();
-            const processed = new Set();
-
-            // Уровень 0 - IVA
-            levels.set(0, [root]);
-            processed.add(root.id);
-
-            // Находим все уровни
-            let currentLevel = 0;
-            while (true) {
-                const currentLevelNodes = levels.get(currentLevel) || [];
-                const nextLevelNodes = [];
-
-                currentLevelNodes.forEach(parent => {
-                    const children = nodes.filter(n => 
-                        n.getAttribute('data-parent') === parent.id && !processed.has(n.id)
-                    );
-                    
-                    children.forEach(child => {
-                        nextLevelNodes.push(child);
-                        processed.add(child.id);
-                    });
-                });
-
-                if (nextLevelNodes.length === 0) break;
-                
-                currentLevel++;
-                levels.set(currentLevel, nextLevelNodes);
-            }
-
-            console.log(`📊 Найдено уровней: ${currentLevel + 1}`);
-
-            // Расставляем каждый уровень с интервалом 0.5 сек
-            let delay = 0;
-            const INTERVAL = 500; // 0.5 секунды
-
-            for (let level = 1; level <= currentLevel; level++) {
-                const levelNodes = levels.get(level) || [];
-                if (levelNodes.length === 0) continue;
-
-                const levelX = IVA_X + (level * 300); // 300px между колонками
-                
-                // Группируем по родителям
-                const byParent = new Map();
-                levelNodes.forEach(node => {
-                    const parentId = node.getAttribute('data-parent');
-                    if (!byParent.has(parentId)) byParent.set(parentId, []);
-                    byParent.get(parentId).push(node);
-                });
-
-                // Расставляем каждую группу (тройку) с интервалом
-                byParent.forEach((children, parentId) => {
-                    const parent = nodes.find(n => n.id === parentId);
-                    if (!parent) return;
-
-                    const parentY = parseInt(parent.style.top) || 0;
-                    
-                    // Центрируем группу относительно родителя
-                    const groupStartY = parentY - ((children.length - 1) * 150) / 2;
-                    
-                    // Расставляем каждую карточку в тройке с интервалом
-                    children.forEach((child, index) => {
-                        setTimeout(() => {
-                            const childY = groupStartY + (index * 150);
-                            
-                            child.style.left = levelX + 'px';
-                            child.style.top = childY + 'px';
-                            
-                            console.log(`📍 Карточка ${child.id}: X=${levelX}, Y=${childY} (задержка: ${delay}ms)`);
-                            
-                            // Перестраиваем связи после каждого размещения
-                            rebuildConnections();
-                            
-                        }, delay);
-                        
-                        delay += INTERVAL; // Увеличиваем задержку для следующей карточки
-                    });
-                });
-            }
-
-            // Финальное центрирование IVA после всех размещений
-            setTimeout(() => {
-                centerIVADynamically(root, nodes);
-                console.log('✅ Автоматическая расстановка троек завершена!');
-            }, delay + 500);
-        }
         
         
         // Функция для добавления IVA как первого партнера Level 0*
