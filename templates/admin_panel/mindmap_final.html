@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>👑 ПРОФИЛЬ ПАРТНЕРА IVA v54 - ПРАВИЛЬНАЯ ЛОГИКА</title>
+    <title>👑 ПРОФИЛЬ ПАРТНЕРА IVA v55 - ИСПРАВЛЕНА ЛОГИКА IVA</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -497,7 +497,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - VERSION v54 - ПРАВИЛЬНАЯ ЛОГИКА!');
+        console.log('🌐 MLM Mind Map Loading - VERSION v55 - ИСПРАВЛЕНА ЛОГИКА IVA!');
         
         const CARD_WIDTH = 150;
         const CARD_HEIGHT = 70;
@@ -863,29 +863,24 @@
             const ivaCard = container.querySelector('#iva-main-partner');
             if (!ivaCard) return 0;
             
-            // Подсчитываем всех партнеров в команде IVA
-            const allPartners = container.querySelectorAll('.user-card[data-created-by-click="true"]');
-            const teamPartners = Array.from(allPartners).filter(card => 
-                card.id !== 'iva-main-partner' // Исключаем саму IVA
-            );
+            const currentLevel = parseInt(ivaCard.getAttribute('data-level')) || 0;
+            console.log(`🔍 Вычисление уровня IVA: текущий = ${currentLevel}*`);
             
-            const teamSize = teamPartners.length;
-            console.log(`📊 Размер команды IVA: ${teamSize} партнеров`);
+            // Ищем партнеров ТЕКУЩЕГО уровня
+            const targetLevel = currentLevel;
+            const partnerCount = countPartnersAtLevel(ivaCard, targetLevel);
             
-            // Логика повышения уровня:
-            // 0* -> 1*: 3 партнера
-            // 1* -> 2*: 6 партнеров (3 + 3 новых)
-            // 2* -> 3*: 12 партнеров (6 + 6 новых)
-            // 3* -> 4*: 24 партнера (12 + 12 новых)
+            console.log(`📊 IVA Level ${currentLevel}*: партнеров Level ${targetLevel}* = ${partnerCount}`);
             
-            let newLevel = 0;
-            if (teamSize >= 24) newLevel = 4;
-            else if (teamSize >= 12) newLevel = 3;
-            else if (teamSize >= 6) newLevel = 2;
-            else if (teamSize >= 3) newLevel = 1;
+            // Если есть 3+ партнера текущего уровня, можем повыситься
+            if (partnerCount >= 3 && currentLevel < 7) {
+                const newLevel = currentLevel + 1;
+                console.log(`🎯 Вычисленный уровень IVA: ${newLevel}* (партнеров ${targetLevel}*: ${partnerCount})`);
+                return newLevel;
+            }
             
-            console.log(`🎯 Вычисленный уровень IVA: ${newLevel}* (команда: ${teamSize})`);
-            return newLevel;
+            console.log(`🎯 Вычисленный уровень IVA: ${currentLevel}* (партнеров ${targetLevel}*: ${partnerCount})`);
+            return currentLevel;
         }
         
         // Функция для обновления уровня IVA
