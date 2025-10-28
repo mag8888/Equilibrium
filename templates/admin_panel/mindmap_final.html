@@ -856,30 +856,36 @@
             if (directChildren.length >= 3) {
                 console.log('🔄 У родителя уже 3 ребенка, ищем лучшее место...');
                 
-                // Находим ребенка с минимальным количеством собственных детей
+                // Находим первого ребенка с менее чем 3 детьми (слева направо)
                 let bestChild = null;
-                let minChildrenCount = Infinity;
                 
-                directChildren.forEach(child => {
+                // Сортируем детей по позиции (слева направо)
+                const sortedChildren = directChildren.sort((a, b) => {
+                    const aX = parseInt(a.style.left) || 0;
+                    const bX = parseInt(b.style.left) || 0;
+                    return aX - bX;
+                });
+                
+                for (let child of sortedChildren) {
                     const grandChildren = container.querySelectorAll(`.user-card[data-parent="${child.id}"]`);
                     const childrenCount = grandChildren.length;
                     
                     console.log(`📊 Ребенок ${child.id} имеет ${childrenCount} собственных детей`);
                     
-                    if (childrenCount < minChildrenCount) {
-                        minChildrenCount = childrenCount;
+                    if (childrenCount < 3) {
                         bestChild = child;
+                        console.log(`✅ Выбран первый незаполненный ребенок: ${child.id} (${childrenCount} детей)`);
+                        break;
                     }
-                });
+                }
                 
-                if (bestChild && minChildrenCount < 3) {
-                    console.log(`✅ Выбран лучший ребенок: ${bestChild.id} (${minChildrenCount} детей)`);
+                if (bestChild) {
                     targetParent = bestChild;
                     targetLevel = Math.max(0, parseInt(bestChild.getAttribute('data-level')) - 1);
                 } else {
                     console.log('❌ Все дети уже имеют максимум детей, добавляем к первому');
-                    targetParent = directChildren[0];
-                    targetLevel = Math.max(0, parseInt(directChildren[0].getAttribute('data-level')) - 1);
+                    targetParent = sortedChildren[0];
+                    targetLevel = Math.max(0, parseInt(sortedChildren[0].getAttribute('data-level')) - 1);
                 }
             }
             
