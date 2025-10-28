@@ -1,13 +1,15 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from django.db.models import Q, Count, Sum
 from users.models import User, UserProfile
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from mlm.models import MLMStructure, Payment, Bonus, Withdrawal, MLMSettings, MLMPartner
 from .serializers import (
     UserSerializer, UserProfileSerializer, 
@@ -52,6 +54,19 @@ class MLMViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication, SessionAuthentication]
 
+    def _get_root_user(self, request):
+        """Возвращает пользователя-владельца структуры. Если не авторизован — демо-пользователь."""
+        if request.user and request.user.is_authenticated:
+            return request.user
+        demo_user, _ = User.objects.get_or_create(
+            username='mlm_demo',
+            defaults={
+                'email': 'mlm_demo@example.com',
+                'password': 'mlm_demo_password',
+            },
+        )
+        return demo_user
+
     @action(detail=False, methods=['get'])
     def bonuses(self, request):
         """Получить бонусы пользователя"""
@@ -79,11 +94,12 @@ class MLMViewSet(viewsets.ViewSet):
             return Response({'status': 'success', 'message': 'Статус обновлен до партнера'})
         return Response({'status': 'error', 'message': 'Нельзя обновить статус'})
     
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    @csrf_exempt
     def create_partner(self, request):
         """Создать нового партнера"""
         data = request.data
-        user = request.user
+        user = self._get_root_user(request)
         
         # Создаем нового партнера
         partner = MLMPartner.objects.create(
@@ -107,10 +123,10 @@ class MLMViewSet(viewsets.ViewSet):
             'created_at': partner.created_at
         }, status=status.HTTP_201_CREATED)
     
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], permission_classes=[AllowAny])
     def partners(self, request):
         """Получить всех партнеров пользователя"""
-        user = request.user
+        user = self._get_root_user(request)
         partners = MLMPartner.objects.filter(root_user=user, is_active=True)
         
         data = []
@@ -128,10 +144,11 @@ class MLMViewSet(viewsets.ViewSet):
         
         return Response(data)
     
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    @csrf_exempt
     def clear_partners(self, request):
         """Очистить всех партнеров пользователя (для тестирования)"""
-        user = request.user
+        user = self._get_root_user(request)
         deleted_count = MLMPartner.objects.filter(root_user=user).count()
         MLMPartner.objects.filter(root_user=user).delete()
         
