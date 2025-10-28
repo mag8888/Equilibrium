@@ -425,7 +425,7 @@
 </head>
 <body>
     <div class="header">
-        <div class="title">🌐 MLM СТРУКТУРА - КРАСИВАЯ РАСКЛАДКА КАК НА КАРТИНКЕ v99 - IVA СЛЕВА, ПАРТНЕРЫ СПРАВА</div>
+        <div class="title">🌐 MLM СТРУКТУРА - ДИНАМИЧЕСКОЕ ЦЕНТРИРОВАНИЕ v100 - УМНАЯ РАССТАНОВКА</div>
         <div class="subtitle">Симметричное расположение узлов вверх и вниз от центра без пересечений</div>
     </div>
     
@@ -457,6 +457,7 @@
         <button class="btn" onclick="clearAllPartners()" style="background: linear-gradient(135deg, #EF4444, #DC2626); color: white; font-weight: bold;">🗑️ ОЧИСТИТЬ ПАРТНЕРОВ</button>
         <button class="btn" onclick="showIVAProgression()" style="background: linear-gradient(135deg, #8B5CF6, #7C3AED); color: white; font-weight: bold;">📈 ПРОГРЕССИЯ IVA</button>
         <button class="btn" onclick="autoLayoutNoOverlap(); rebuildConnections(); resolveCollisions();" style="background: linear-gradient(135deg, #10B981, #059669); color: white; font-weight: bold;">🎨 КРАСИВАЯ РАСКЛАДКА</button>
+        <button class="btn" onclick="recalculatePositionsOnChange();" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: white; font-weight: bold;">🎯 ПЕРЕСЧЕТ ПОЗИЦИЙ</button>
     </div>
     
     <div class="structure-container">
@@ -500,7 +501,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - VERSION v99 - КРАСИВАЯ РАСКЛАДКА КАК НА КАРТИНКЕ!');
+        console.log('🌐 MLM Mind Map Loading - VERSION v100 - ДИНАМИЧЕСКОЕ ЦЕНТРИРОВАНИЕ!');
         
         // Генератор человеческих имен для нижней строки
         function generateHumanName() {
@@ -986,6 +987,9 @@
                 // Сохраняем в localStorage для персистентности
                 savePartnerStructure();
                 
+                // Автоматический пересчет позиций при добавлении нового партнера
+                recalculatePositionsOnChange();
+                
                 // Сохраняем партнера в БД
                 const parentUid = targetParent.getAttribute('data-uid') || targetParent.id;
                 const partnerData = {
@@ -1029,24 +1033,23 @@
             console.log(`💾 Сохранена структура: ${structure.length} партнеров`);
         }
 
-        // Автоматическая раскладка без наложений (как на картинке: IVA слева, партнеры справа)
+        // Динамическое центрирование и умная расстановка всех карточек
         function autoLayoutNoOverlap() {
             const container = document.getElementById('mindmapContainer');
             const nodes = Array.from(container.querySelectorAll('.user-card'));
             if (nodes.length === 0) return;
 
-            console.log('🎨 Применяем красивую раскладку как на картинке...');
+            console.log('🎨 Применяем динамическое центрирование и умную расстановку...');
 
             // Определяем корень (IVA)
             let root = container.querySelector('#iva-main-partner') || nodes.find(n => !n.getAttribute('data-parent'));
             if (!root) root = nodes[0];
 
-            // Размещаем IVA слева по центру
+            // Сначала строим структуру как обычно
             const IVA_X = 50;
-            const IVA_Y = 300; // центр по высоте
+            const IVA_Y = 300; // временная позиция
             root.style.left = IVA_X + 'px';
             root.style.top = IVA_Y + 'px';
-            console.log(`👑 IVA размещена: ${IVA_X}, ${IVA_Y}`);
 
             // Находим всех прямых детей IVA
             const directChildren = nodes.filter(n => n.getAttribute('data-parent') === root.id);
@@ -1054,9 +1057,8 @@
 
             if (directChildren.length > 0) {
                 // Размещаем детей справа от IVA в колонке
-                const CHILDREN_X = 300; // справа от IVA
-                const CHILDREN_START_Y = 150; // верхний край
-                const CHILDREN_GAP = 120; // расстояние между детьми
+                const CHILDREN_X = 300;
+                const CHILDREN_GAP = 120;
 
                 // Центрируем колонку детей относительно IVA
                 const totalHeight = directChildren.length * CHILDREN_GAP;
@@ -1066,14 +1068,11 @@
                     const y = startY + index * CHILDREN_GAP;
                     child.style.left = CHILDREN_X + 'px';
                     child.style.top = y + 'px';
-                    console.log(`👶 Ребенок ${index + 1}: ${CHILDREN_X}, ${y}`);
                 });
 
-                // Обрабатываем остальные уровни (внуки и т.д.)
+                // Обрабатываем остальные уровни
                 const remainingNodes = nodes.filter(n => n !== root && !directChildren.includes(n));
                 if (remainingNodes.length > 0) {
-                    console.log(`🌳 Обрабатываем остальные ${remainingNodes.length} узлов...`);
-                    
                     // Группируем по родителям
                     const byParent = new Map();
                     remainingNodes.forEach(node => {
@@ -1089,7 +1088,7 @@
 
                         const parentX = parseInt(parent.style.left) || 0;
                         const parentY = parseInt(parent.style.top) || 0;
-                        const groupX = parentX + 250; // справа от родителя
+                        const groupX = parentX + 250;
                         
                         // Центрируем группу относительно родителя
                         const groupStartY = parentY - ((children.length - 1) * CHILDREN_GAP) / 2;
@@ -1103,7 +1102,133 @@
                 }
             }
 
-            console.log('✅ Красивая раскладка применена!');
+            // ДИНАМИЧЕСКОЕ ЦЕНТРИРОВАНИЕ IVA
+            centerIVADynamically(root, nodes);
+            
+            console.log('✅ Динамическое центрирование и умная расстановка применены!');
+        }
+
+        // Функция динамического центрирования IVA
+        function centerIVADynamically(iva, allNodes) {
+            if (allNodes.length <= 1) return;
+
+            console.log('🎯 Динамическое центрирование IVA...');
+
+            // Находим границы всей структуры
+            let minY = Infinity, maxY = -Infinity;
+            let minX = Infinity, maxX = -Infinity;
+
+            allNodes.forEach(node => {
+                const x = parseInt(node.style.left) || 0;
+                const y = parseInt(node.style.top) || 0;
+                
+                minX = Math.min(minX, x);
+                maxX = Math.max(maxX, x);
+                minY = Math.min(minY, y);
+                maxY = Math.max(maxY, y);
+            });
+
+            // Вычисляем центр всей структуры
+            const structureCenterY = (minY + maxY) / 2;
+            const structureCenterX = (minX + maxX) / 2;
+
+            console.log(`📊 Границы структуры: Y(${minY}-${maxY}), X(${minX}-${maxX})`);
+            console.log(`🎯 Центр структуры: Y=${structureCenterY}, X=${structureCenterX}`);
+
+            // Размещаем IVA слева от центра структуры
+            const IVA_FINAL_X = Math.max(50, structureCenterX - 400); // IVA слева от центра
+            const IVA_FINAL_Y = structureCenterY; // IVA по центру по высоте
+
+            iva.style.left = IVA_FINAL_X + 'px';
+            iva.style.top = IVA_FINAL_Y + 'px';
+
+            console.log(`👑 IVA размещена динамически: X=${IVA_FINAL_X}, Y=${IVA_FINAL_Y}`);
+
+            // Пересчитываем позиции всех остальных узлов относительно новой позиции IVA
+            recalculateAllPositions(iva, allNodes);
+        }
+
+        // Пересчет позиций всех узлов относительно IVA
+        function recalculateAllPositions(iva, allNodes) {
+            console.log('🔄 Пересчитываем позиции всех узлов...');
+
+            const IVA_X = parseInt(iva.style.left) || 0;
+            const IVA_Y = parseInt(iva.style.top) || 0;
+
+            // Находим прямых детей IVA
+            const directChildren = allNodes.filter(n => n.getAttribute('data-parent') === iva.id);
+            
+            if (directChildren.length > 0) {
+                const CHILDREN_X = IVA_X + 250; // справа от IVA
+                const CHILDREN_GAP = 120;
+
+                // Центрируем детей относительно IVA
+                const totalHeight = directChildren.length * CHILDREN_GAP;
+                const startY = IVA_Y - (totalHeight / 2) + (CHILDREN_GAP / 2);
+
+                directChildren.forEach((child, index) => {
+                    const y = startY + index * CHILDREN_GAP;
+                    child.style.left = CHILDREN_X + 'px';
+                    child.style.top = y + 'px';
+                });
+
+                // Рекурсивно пересчитываем остальные уровни
+                recalculateChildrenPositions(directChildren, allNodes);
+            }
+        }
+
+        // Рекурсивный пересчет позиций детей
+        function recalculateChildrenPositions(parents, allNodes) {
+            parents.forEach(parent => {
+                const children = allNodes.filter(n => n.getAttribute('data-parent') === parent.id);
+                if (children.length === 0) return;
+
+                const parentX = parseInt(parent.style.left) || 0;
+                const parentY = parseInt(parent.style.top) || 0;
+                const CHILDREN_GAP = 120;
+                const CHILDREN_X = parentX + 250;
+
+                // Центрируем детей относительно родителя
+                const groupStartY = parentY - ((children.length - 1) * CHILDREN_GAP) / 2;
+
+                children.forEach((child, index) => {
+                    const y = groupStartY + index * CHILDREN_GAP;
+                    child.style.left = CHILDREN_X + 'px';
+                    child.style.top = y + 'px';
+                });
+
+                // Рекурсивно обрабатываем внуков
+                recalculateChildrenPositions(children, allNodes);
+            });
+        }
+
+        // Функция для автоматического пересчета позиций при изменениях
+        function recalculatePositionsOnChange() {
+            console.log('🔄 Автоматический пересчет позиций при изменении структуры...');
+            
+            // Небольшая задержка для завершения DOM операций
+            setTimeout(() => {
+                const container = document.getElementById('mindmapContainer');
+                const nodes = Array.from(container.querySelectorAll('.user-card'));
+                
+                if (nodes.length > 0) {
+                    // Находим IVA
+                    const iva = container.querySelector('#iva-main-partner') || nodes.find(n => !n.getAttribute('data-parent'));
+                    
+                    if (iva) {
+                        // Применяем динамическое центрирование
+                        centerIVADynamically(iva, nodes);
+                        
+                        // Перестраиваем связи
+                        rebuildConnections();
+                        
+                        // Разрешаем коллизии
+                        resolveCollisions();
+                        
+                        console.log('✅ Позиции пересчитаны автоматически');
+                    }
+                }
+            }, 100);
         }
         
         
