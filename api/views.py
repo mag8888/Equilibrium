@@ -62,6 +62,13 @@ class MLMViewSet(viewsets.ViewSet):
         if request.user and request.user.is_authenticated:
             return request.user
         try:
+            # Попытка применить миграции при первом обращении к API
+            try:
+                from django.core.management import call_command
+                call_command('migrate', interactive=False, verbosity=0)
+            except Exception:
+                pass
+                
             demo_user, created = User.objects.get_or_create(
                 username='mlm_demo',
                 defaults={
