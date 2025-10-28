@@ -89,16 +89,37 @@ WSGI_APPLICATION = 'mlm_system.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# Database
+# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+
+# Получаем переменные окружения с fallback на Railway переменные
+DATABASE_HOST = config('DATABASE_HOST', default=os.environ.get('DATABASE_HOST', 'localhost'))
+DATABASE_NAME = config('DATABASE_NAME', default=os.environ.get('DATABASE_NAME', 'railway'))
+DATABASE_USER = config('DATABASE_USER', default=os.environ.get('DATABASE_USER', 'postgres'))
+DATABASE_PASSWORD = config('DATABASE_PASSWORD', default=os.environ.get('DATABASE_PASSWORD', ''))
+DATABASE_PORT = config('DATABASE_PORT', default=os.environ.get('DATABASE_PORT', '5432'))
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DATABASE_NAME', default='railway'),
-        'USER': config('DATABASE_USER', default='postgres'),
-        'PASSWORD': config('DATABASE_PASSWORD', default=''),
-        'HOST': config('DATABASE_HOST', default='localhost'),
-        'PORT': config('DATABASE_PORT', default='5432'),
+        'NAME': DATABASE_NAME,
+        'USER': DATABASE_USER,
+        'PASSWORD': DATABASE_PASSWORD,
+        'HOST': DATABASE_HOST,
+        'PORT': DATABASE_PORT,
+        'OPTIONS': {
+            'connect_timeout': 10,
+            'options': '-c default_transaction_isolation=read_committed'
+        },
     }
 }
+
+# Диагностика подключения к БД
+print(f"🔍 DATABASE_HOST: {DATABASE_HOST}")
+print(f"🔍 DATABASE_NAME: {DATABASE_NAME}")
+print(f"🔍 DATABASE_USER: {DATABASE_USER}")
+print(f"🔍 DATABASE_PORT: {DATABASE_PORT}")
+print(f"🔍 DATABASE_PASSWORD: {'***' if DATABASE_PASSWORD else 'EMPTY'}")
 
 
 # Password validation
