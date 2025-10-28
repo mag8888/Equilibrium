@@ -833,6 +833,38 @@
             ]
         };
         
+        // Вспомогательная функция: прямые дети узла
+        function getDirectChildren(container, parentId) {
+            return Array.from(container.querySelectorAll(`.user-card[data-parent="${parentId}"]`));
+        }
+
+        // Поиск по ветке: найти узел целевого уровня с минимальным количеством детей (<3)
+        function findBestPlacementInBranch(startNode, targetLevel) {
+            const container = document.getElementById('mindmapContainer');
+            const queue = [startNode];
+            let bestNode = null;
+            let bestCount = Infinity;
+            while (queue.length > 0) {
+                const node = queue.shift();
+                const level = parseInt(node.getAttribute('data-level')) || 0;
+                const children = getDirectChildren(container, node.id);
+                // Кандидаты только целевого уровня
+                if (level === targetLevel) {
+                    const count = children.length;
+                    if (count < 3 && count < bestCount) {
+                        bestCount = count;
+                        bestNode = node;
+                        if (bestCount === 0) break; // лучше не будет
+                    }
+                }
+                // Продолжаем поиск вниз по ветке
+                // Сортируем по X (слева направо) для стабильности
+                children.sort((a, b) => (parseInt(a.style.left)||0) - (parseInt(b.style.left)||0));
+                queue.push(...children);
+            }
+            return bestNode;
+        }
+
         // Функция создания узла
         // Функция для добавления партнера к карточке с умной логикой
         function addPartnerToCard(parentCard) {
@@ -852,34 +884,16 @@
             let targetParent = parentCard;
             let targetLevel = childLevel;
             
-            // Если у родителя уже есть 3 прямых ребенка, применяем умную логику
+            // Если у родителя уже есть 3 прямых ребенка — ищем место глубже в ветке у узлов с тем же уровнем, у кого меньше детей
             if (directChildren.length >= 3) {
-                console.log('🔄 У родителя уже 3 ребенка, ищем лучшее место...');
-                
-                // Находим ребенка с минимальным количеством собственных детей
-                let bestChild = null;
-                let minChildrenCount = Infinity;
-                
-                directChildren.forEach(child => {
-                    const grandChildren = container.querySelectorAll(`.user-card[data-parent="${child.id}"]`);
-                    const childrenCount = grandChildren.length;
-                    
-                    console.log(`📊 Ребенок ${child.id} имеет ${childrenCount} собственных детей`);
-                    
-                    if (childrenCount < minChildrenCount) {
-                        minChildrenCount = childrenCount;
-                        bestChild = child;
-                    }
-                });
-                
-                if (bestChild && minChildrenCount < 3) {
-                    console.log(`✅ Выбран лучший ребенок: ${bestChild.id} (${minChildrenCount} детей)`);
-                    targetParent = bestChild;
-                    targetLevel = Math.max(0, parseInt(bestChild.getAttribute('data-level')) - 1);
+                console.log('🔄 У родителя уже 3 ребенка, ищем место глубже по ветке (у кого меньше всего)...');
+                const bestNode = findBestPlacementInBranch(parentCard, parentLevel);
+                if (bestNode) {
+                    targetParent = bestNode;
+                    targetLevel = Math.max(0, parseInt(bestNode.getAttribute('data-level')) - 1);
+                    console.log(`✅ Найден узел для размещения: ${bestNode.id} (level ${bestNode.getAttribute('data-level')})`);
                 } else {
-                    console.log('❌ Все дети уже имеют максимум детей, добавляем к первому');
-                    targetParent = directChildren[0];
-                    targetLevel = Math.max(0, parseInt(directChildren[0].getAttribute('data-level')) - 1);
+                    console.log('⚠️ Не найден подходящий узел; размещаем у исходного родителя.');
                 }
             }
             
