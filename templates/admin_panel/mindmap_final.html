@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>👑 ПРОФИЛЬ ПАРТНЕРА IVA v50 - ЦВЕТА УРОВНЕЙ 0-7</title>
+    <title>👑 ПРОФИЛЬ ПАРТНЕРА IVA v51 - ПРОГРЕССИЯ УРОВНЕЙ</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -254,6 +254,20 @@
                 transform: scale(1);
             }
         }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            }
+            50% {
+                transform: scale(1.15);
+                box-shadow: 0 8px 25px rgba(16, 185, 129, 0.6);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            }
         }
         
         .user-name {
@@ -434,7 +448,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - VERSION v50 - ЦВЕТА УРОВНЕЙ 0-7!');
+        console.log('🌐 MLM Mind Map Loading - VERSION v51 - ПРОГРЕССИЯ УРОВНЕЙ!');
         
         const CARD_WIDTH = 150;
         const CARD_HEIGHT = 70;
@@ -1264,6 +1278,81 @@
         }
         
         // Функция для добавления дочернего узла при клике на правую точку
+        // Функция для подсчета партнеров определенного уровня
+        function countPartnersAtLevel(card, targetLevel) {
+            const container = document.getElementById('mindmapContainer');
+            const parentId = card.id;
+            
+            // Находим всех детей этой карточки
+            const children = container.querySelectorAll(`.user-card[data-parent="${parentId}"]`);
+            
+            // Подсчитываем сколько из них имеют нужный уровень
+            let count = 0;
+            children.forEach(child => {
+                const childLevel = parseInt(child.getAttribute('data-level')) || 0;
+                if (childLevel === targetLevel) {
+                    count++;
+                }
+            });
+            
+            return count;
+        }
+        
+        // Функция для проверки и повышения уровня карточки
+        function checkAndUpgradeLevel(card) {
+            const currentLevel = parseInt(card.getAttribute('data-level')) || 0;
+            
+            // Не повышаем уровень если уже максимальный (7*)
+            if (currentLevel >= 7) {
+                return;
+            }
+            
+            const targetLevel = currentLevel; // Ищем партнеров своего уровня
+            const partnerCount = countPartnersAtLevel(card, targetLevel);
+            
+            console.log(`🔍 Проверка уровня для ${card.id}: текущий = ${currentLevel}*, партнеров ${targetLevel}* = ${partnerCount}`);
+            
+            // Если есть 3 партнера своего уровня, повышаем уровень
+            if (partnerCount >= 3) {
+                const newLevel = currentLevel + 1;
+                console.log(`🚀 Повышение уровня ${card.id}: ${currentLevel}* → ${newLevel}*`);
+                
+                // Обновляем атрибуты
+                card.setAttribute('data-level', newLevel.toString());
+                
+                // Обновляем отображение имени
+                const nameElement = card.querySelector('.user-name');
+                if (nameElement) {
+                    const currentName = nameElement.textContent;
+                    // Обновляем имя, заменяя старый уровень на новый
+                    const newName = currentName.replace(/\d+\*/g, `${newLevel}*`);
+                    nameElement.textContent = newName;
+                }
+                
+                // Визуальная индикация повышения уровня
+                card.style.animation = 'none';
+                setTimeout(() => {
+                    card.style.animation = 'pulse 0.5s ease-in';
+                }, 10);
+                
+                // Проверяем рекурсивно родителя (может он тоже повысится)
+                const parentId = card.getAttribute('data-parent');
+                if (parentId) {
+                    const parentCard = document.getElementById(parentId);
+                    if (parentCard) {
+                        setTimeout(() => {
+                            checkAndUpgradeLevel(parentCard);
+                        }, 200);
+                    }
+                }
+                
+                // Перестраиваем связи
+                setTimeout(() => {
+                    rebuildConnections();
+                }, 100);
+            }
+        }
+        
         function addChildNode(parentCard) {
             console.log('➕ Добавляем дочерний узел уровня 0* для:', parentCard.id);
             
@@ -1327,6 +1416,9 @@
                 
                 // Визуальная индикация успешного добавления
                 newChild.style.animation = 'fadeIn 0.5s ease-in';
+                
+                // Проверяем и повышаем уровень родителя если нужно
+                checkAndUpgradeLevel(parentCard);
                 
                 // Обновляем статус
                 const statusElement = document.getElementById('statusMessage');
