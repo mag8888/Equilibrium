@@ -222,4 +222,4 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
-# RELOAD CACHE BUSTER - IVA ДОБАВЛЕНА С ЗАДЕРЖКОЙ v43: 1761440000
+# RELOAD CACHE BUSTER - IVA ДОБАВЛЕНА С ЗАДЕРЖКОЙ v43 - ФОРС КЭШ: 1761445000
