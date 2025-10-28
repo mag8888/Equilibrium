@@ -890,8 +890,8 @@
             
             // Если у родителя уже есть 3 прямых ребенка — ищем место глубже в ветке у узлов с тем же уровнем, у кого меньше детей
             if (directChildren.length >= 3) {
-                console.log('🔄 У родителя уже 3 ребенка, ищем место глубже по ветке (у кого меньше всего)...');
-                const bestNode = findBestPlacementInBranch(parentCard, parentLevel);
+                console.log('🔄 У родителя уже 3 ребенка, ищем место глубже по ветке (у кого меньше всего) на уровне ребенка...');
+                const bestNode = findBestPlacementInBranch(parentCard, childLevel);
                 if (bestNode) {
                     targetParent = bestNode;
                     targetLevel = Math.max(0, parseInt(bestNode.getAttribute('data-level')) - 1);
