@@ -902,16 +902,42 @@
             let targetParent = parentCard;
             let targetLevel = childLevel;
             
-            // Если у текущего узла уже 3 ребенка ИЛИ его уровень не 1*, то ищем ближайший узел уровня 1* в своей ветке
-            if (directChildren.length >= 3 || parentLevel !== 1) {
-                console.log('🔄 Ищем ближайший узел уровня 1* по ветке для размещения 0* (сверху вниз, слева направо)...');
-                const bestNode = findBestPlacementInBranch(parentCard, 1);
+            // Если у исходного родителя (например IVA 1*) уже 3 ребенка — кладем под первого подходящего 0* ребёнка (сверху-вниз, слева-направо) с <3 детьми
+            if (parentLevel === 1 && directChildren.length >= 3) {
+                const level0Children = directChildren.filter(c => (parseInt(c.getAttribute('data-level'))||0) === 0);
+                level0Children.sort((a,b)=>{
+                    const ac = getDirectChildren(container, a.id).length;
+                    const bc = getDirectChildren(container, b.id).length;
+                    if (ac !== bc) return ac - bc;
+                    const ay = parseInt(a.style.top)||0;
+                    const by = parseInt(b.style.top)||0;
+                    if (ay !== by) return ay - by;
+                    const ax = parseInt(a.style.left)||0;
+                    const bx = parseInt(b.style.left)||0;
+                    return ax - bx;
+                });
+                const firstSlot = level0Children.find(ch => getDirectChildren(container, ch.id).length < 3);
+                if (firstSlot) {
+                    targetParent = firstSlot;
+                    targetLevel = 0;
+                    console.log(`✅ Помещаем под первого 0* ребёнка: ${firstSlot.id}`);
+                } else {
+                    // иначе ищем ближайший узел уровня 1* по ветке (например, когда 0* дети тоже заполнены)
+                    console.log('🔄 Все 0* дети заполнены — ищем ближайший узел уровня 1* по ветке...');
+                    const bestNode = findBestPlacementInBranch(parentCard, 1);
+                    if (bestNode) {
+                        targetParent = bestNode;
+                        targetLevel = 0;
+                        console.log(`✅ Найден узел 1* для размещения: ${bestNode.id}`);
+                    }
+                }
+            } else if (parentLevel !== 1 && directChildren.length >= 3) {
+                // Для узлов не 1* — стандартный поиск по ветке нужного уровня
+                console.log('🔄 Родитель не 1* и заполнен — ищем ближайший узел того же уровня по ветке...');
+                const bestNode = findBestPlacementInBranch(parentCard, parentLevel);
                 if (bestNode) {
                     targetParent = bestNode;
                     targetLevel = 0;
-                    console.log(`✅ Найден узел для размещения: ${bestNode.id} (level ${bestNode.getAttribute('data-level')})`);
-                } else {
-                    console.log('⚠️ Не найден подходящий узел; размещаем у исходного родителя.');
                 }
             }
             
