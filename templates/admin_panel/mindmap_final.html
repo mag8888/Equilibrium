@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>👑 ПРОФИЛЬ ПАРТНЕРА IVA v48 - КЛИК VS ПЕРЕТАСКИВАНИЕ</title>
+    <title>👑 ПРОФИЛЬ ПАРТНЕРА IVA v49 - СВЯЗИ ПОСЛЕ ПЕРЕТАСКИВАНИЯ</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -385,7 +385,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - VERSION v48 - КЛИК VS ПЕРЕТАСКИВАНИЕ!');
+        console.log('🌐 MLM Mind Map Loading - VERSION v49 - СВЯЗИ ПОСЛЕ ПЕРЕТАСКИВАНИЯ!');
         
         const CARD_WIDTH = 150;
         const CARD_HEIGHT = 70;
@@ -1264,7 +1264,11 @@
             
             container.appendChild(newChild);
             
-            console.log(`🟢 Добавлены зеленые точки к новому узлу: ${newChildName}`);
+            // Добавляем зеленые точки к новому узлу
+            setTimeout(() => {
+                addGreenPointsToAll();
+                console.log(`🟢 Добавлены зеленые точки к новому узлу: ${newChildName}`);
+            }, 50);
             
             // Создаем связь между родителем и новым дочерним узлом
             setTimeout(() => {
@@ -1420,6 +1424,12 @@
                 
                 // Финальная проверка коллизий и отталкивание
                 resolveCollisions(element);
+                
+                // Перестраиваем связи после завершения перетаскивания
+                setTimeout(() => {
+                    console.log(`🔗 Перестраиваем связи после перетаскивания: ${element.id}`);
+                    rebuildConnections();
+                }, 100);
             });
         }
         
