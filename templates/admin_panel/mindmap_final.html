@@ -20,18 +20,6 @@
             min-height: 100vh;
         }
         
-        // Генератор человеческих имен для нижней строки
-        function generateHumanName() {
-            const names = [
-                'Иван', 'Роман', 'Елена', 'Анна', 'Мария', 'Ольга', 'Наталья', 'София', 'Полина', 'Ксения',
-                'Дмитрий', 'Алексей', 'Сергей', 'Павел', 'Андрей', 'Виктор', 'Руслан', 'Евгений', 'Максим', 'Игорь',
-                'Татьяна', 'Алина', 'Юлия', 'Валерия', 'Катерина', 'Вероника', 'Лилия', 'Оксана', 'Алёна', 'Ирина'
-            ];
-            const surname = ['Иванов', 'Петров', 'Сидоров', 'Кузнецов', 'Смирнов', 'Васильев', 'Морозов', 'Егоров', 'Орлов', 'Громов'];
-            const n = names[Math.floor(Math.random() * names.length)];
-            const s = surname[Math.floor(Math.random() * surname.length)];
-            return `${n} ${s}`;
-        }
         
         .header {
             text-align: center;
@@ -510,7 +498,25 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - VERSION v56 - ПРОВЕРКА ВСЕХ ПАРТНЕРОВ!');
+        console.log('🌐 MLM Mind Map Loading - VERSION v59 - УНИКАЛЬНЫЕ ID И ИМЕНА!');
+        
+        // Генератор человеческих имен для нижней строки
+        function generateHumanName() {
+            const names = [
+                'Иван', 'Роман', 'Елена', 'Анна', 'Мария', 'Ольга', 'Наталья', 'София', 'Полина', 'Ксения',
+                'Дмитрий', 'Алексей', 'Сергей', 'Павел', 'Андрей', 'Виктор', 'Руслан', 'Евгений', 'Максим', 'Игорь',
+                'Татьяна', 'Алина', 'Юлия', 'Валерия', 'Катерина', 'Вероника', 'Лилия', 'Оксана', 'Алёна', 'Ирина'
+            ];
+            const surname = ['Иванов', 'Петров', 'Сидоров', 'Кузнецов', 'Смирнов', 'Васильев', 'Морозов', 'Егоров', 'Орлов', 'Громов'];
+            const n = names[Math.floor(Math.random() * names.length)];
+            const s = surname[Math.floor(Math.random() * surname.length)];
+            return `${n} ${s}`;
+        }
+        
+        // Генератор уникального 7-значного ID
+        function generateUniqueId() {
+            return Math.floor(1000000 + Math.random() * 9000000).toString();
+        }
         
         const CARD_WIDTH = 150;
         const CARD_HEIGHT = 70;
@@ -721,11 +727,11 @@
             }
             
             // Создаем нового партнера
-            const timestamp = Date.now();
+            const uniqueId = generateUniqueId();
             const existingChildren = container.querySelectorAll(`.user-card[data-parent="${targetParent.id}"]`);
             const childNumber = existingChildren.length + 1;
             
-            const newChildId = `partner-${targetLevel}-${timestamp}-${childNumber}`;
+            const newChildId = `partner-${targetLevel}-${uniqueId}`;
             const newChildName = `${targetLevel}*/${childNumber}`;
             const humanName = generateHumanName();
             
@@ -1474,13 +1480,15 @@
             }
             
             // Создаем уникальный ID для нового узла
-            const timestamp = Date.now();
-            const newChildId = `${childLevel}-dynamic-${timestamp}-${childNumber}`;
+            const uniqueId = generateUniqueId();
+            const newChildId = `${childLevel}-dynamic-${uniqueId}`;
             const newChildName = `${childLevel}*/${childNumber}`;
+            const humanName = generateHumanName();
             
             // Создаем новый узел
             const newChild = createNode(newChildId, newChildName, childLevel, { x: childX, y: childY });
             newChild.setAttribute('data-parent', parentCard.id);
+            newChild.setAttribute('data-human-name', humanName);
             
             container.appendChild(newChild);
             
@@ -2734,7 +2742,7 @@
         
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('📄 DOM Content Loaded - PROFILE IVA v45 - БЕЗ PLAZMA!');
+            console.log('📄 DOM Content Loaded - PROFILE IVA v59 - УНИКАЛЬНЫЕ ID И ИМЕНА!');
             console.log('🔍 Debug: DOM загружен, начинаем инициализацию горизонтальной майнд-карты...');
             
             // Автоматически загружаем профиль партнера IVA
