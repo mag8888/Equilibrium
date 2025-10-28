@@ -838,35 +838,48 @@
             return Array.from(container.querySelectorAll(`.user-card[data-parent="${parentId}"]`));
         }
 
-        // Поиск по ветке: найти узел целевого уровня с минимальным количеством детей (<3)
+        // Поиск по ветке: найти БЛИЖАЙШИЙ к исходному узлу узел нужного уровня с <3 детьми
+        // Критерии: (1) минимальная глубина от startNode, (2) минимальное число детей, (3) минимальная вертикальная дистанция |y - y(start)|, (4) минимальная горизонтальная дистанция
         function findBestPlacementInBranch(startNode, targetLevel) {
             const container = document.getElementById('mindmapContainer');
-            const queue = [startNode];
-            let bestNode = null;
-            let bestCount = Infinity;
-            let bestY = Infinity; // при равенстве выбираем ВЫШЕ (сверху вниз)
+            const startY = parseInt(startNode.style.top) || 0;
+            const startX = parseInt(startNode.style.left) || 0;
+            const queue = [{ node: startNode, depth: 0 }];
+            let best = { node: null, depth: Infinity, count: Infinity, dy: Infinity, dx: Infinity };
             while (queue.length > 0) {
-                const node = queue.shift();
+                const { node, depth } = queue.shift();
                 const level = parseInt(node.getAttribute('data-level')) || 0;
                 const children = getDirectChildren(container, node.id);
                 // Кандидаты только целевого уровня
                 if (level === targetLevel) {
                     const count = children.length;
                     const nodeY = parseInt(node.style.top) || 0;
+                    const nodeX = parseInt(node.style.left) || 0;
+                    const dy = Math.abs(nodeY - startY);
+                    const dx = Math.abs(nodeX - startX);
                     if (count < 3) {
-                        if (count < bestCount || (count === bestCount && nodeY < bestY)) {
-                            bestCount = count;
-                            bestNode = node;
-                            bestY = nodeY;
+                        if (
+                            depth < best.depth ||
+                            (depth === best.depth && (count < best.count ||
+                                (count === best.count && (dy < best.dy || (dy === best.dy && dx < best.dx)))))
+                        ) {
+                            best = { node, depth, count, dy, dx };
                         }
                     }
                 }
                 // Продолжаем поиск вниз по ветке
-                // Сортируем по Y (сверху вниз), чтобы заполнять сверху вниз
-                children.sort((a, b) => (parseInt(a.style.top)||0) - (parseInt(b.style.top)||0));
-                queue.push(...children);
+                // Сортировка: сначала по вертикальной близости к старту, затем по горизонтали
+                children.sort((a, b) => {
+                    const ay = Math.abs((parseInt(a.style.top)||0) - startY);
+                    const by = Math.abs((parseInt(b.style.top)||0) - startY);
+                    if (ay !== by) return ay - by;
+                    const ax = Math.abs((parseInt(a.style.left)||0) - startX);
+                    const bx = Math.abs((parseInt(b.style.left)||0) - startX);
+                    return ax - bx;
+                });
+                children.forEach(ch => queue.push({ node: ch, depth: depth + 1 }));
             }
-            return bestNode;
+            return best.node;
         }
 
         // Функция создания узла
