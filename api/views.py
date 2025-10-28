@@ -57,22 +57,27 @@ class MLMViewSet(viewsets.ViewSet):
     authentication_classes = [TokenAuthentication, SessionAuthentication]
 
     def _get_root_user(self, request):
-        """Возвращает пользователя-владельца структуры. Если не авторизован — демо-пользователь."""
+        """Возвращает пользователя-владельца структуры. Если не авторизован — демо-пользователь.
+        При отсутствии БД/таблиц возвращает None вместо 500."""
         if request.user and request.user.is_authenticated:
             return request.user
-        demo_user, created = User.objects.get_or_create(
-            username='mlm_demo',
-            defaults={
-                'email': 'mlm_demo@example.com',
-            },
-        )
-        if created:
-            try:
-                demo_user.set_password('mlm_demo_password')
-                demo_user.save(update_fields=['password'])
-            except Exception:
-                pass
-        return demo_user
+        try:
+            demo_user, created = User.objects.get_or_create(
+                username='mlm_demo',
+                defaults={
+                    'email': 'mlm_demo@example.com',
+                },
+            )
+            if created:
+                try:
+                    demo_user.set_password('mlm_demo_password')
+                    demo_user.save(update_fields=['password'])
+                except Exception:
+                    pass
+            return demo_user
+        except (ProgrammingError, OperationalError):
+            # База или таблицы ещё не готовы
+            return None
 
     @action(detail=False, methods=['get'])
     def bonuses(self, request):
@@ -107,6 +112,8 @@ class MLMViewSet(viewsets.ViewSet):
         try:
             data = request.data
             user = self._get_root_user(request)
+            if user is None:
+                return Response({'error': 'Database not ready'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
             
             # Разрешаем parent_id как unique_id родителя
             parent_uid = data.get('parent_id')
@@ -153,9 +160,12 @@ class MLMViewSet(viewsets.ViewSet):
         """Получить всех партнеров пользователя"""
         try:
             user = self._get_root_user(request)
+            if user is None:
+                # База не готова — пустой список, чтобы фронт спокойно создал IVA локально
+                return Response([], status=status.HTTP_200_OK)
             try:
                 partners = MLMPartner.objects.filter(root_user=user, is_active=True)
-            except (ProgrammingError, OperationalError) as e:
+            except (ProgrammingError, OperationalError):
                 # Если таблица ещё не создана — возвращаем пустой список, чтобы фронт не падал
                 return Response([], status=status.HTTP_200_OK)
             
