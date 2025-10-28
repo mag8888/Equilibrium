@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>👑 ПРОФИЛЬ ПАРТНЕРА IVA v53 - ПРАВИЛЬНАЯ ПРОГРЕССИЯ</title>
+    <title>👑 ПРОФИЛЬ ПАРТНЕРА IVA v54 - ПРАВИЛЬНАЯ ЛОГИКА</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -497,7 +497,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - VERSION v53 - ПРАВИЛЬНАЯ ПРОГРЕССИЯ!');
+        console.log('🌐 MLM Mind Map Loading - VERSION v54 - ПРАВИЛЬНАЯ ЛОГИКА!');
         
         const CARD_WIDTH = 150;
         const CARD_HEIGHT = 70;
@@ -1355,13 +1355,13 @@
                 return;
             }
             
-            // Ищем партнеров СЛЕДУЮЩЕГО уровня (currentLevel + 1)
-            const targetLevel = currentLevel + 1;
+            // Ищем партнеров ТЕКУЩЕГО уровня (не следующего!)
+            const targetLevel = currentLevel;
             const partnerCount = countPartnersAtLevel(card, targetLevel);
             
             console.log(`🔍 Проверка уровня для ${card.id}: текущий = ${currentLevel}*, партнеров ${targetLevel}* = ${partnerCount}`);
             
-            // Если есть 3 партнера СЛЕДУЮЩЕГО уровня, повышаем уровень
+            // Если есть 3 партнера ТЕКУЩЕГО уровня, повышаем уровень
             if (partnerCount >= 3) {
                 const newLevel = currentLevel + 1;
                 console.log(`🚀 Повышение уровня ${card.id}: ${currentLevel}* → ${newLevel}*`);
@@ -1404,7 +1404,7 @@
         
         function addChildNode(parentCard) {
             const parentLevel = parseInt(parentCard.getAttribute('data-level'));
-            const childLevel = parentLevel + 1; // Создаем узлы уровня родителя + 1
+            const childLevel = 0; // ВСЕГДА создаем партнеров Level 0*
             
             console.log(`➕ Добавляем дочерний узел Level ${childLevel}* для родителя Level ${parentLevel}*:`, parentCard.id);
             console.log(`🎯 Родитель: Level ${parentLevel}, создаем дочерний: Level ${childLevel}`);
