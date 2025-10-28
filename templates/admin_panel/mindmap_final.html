@@ -1364,13 +1364,18 @@
                 // Обновляем атрибуты
                 card.setAttribute('data-level', newLevel.toString());
                 
-                // Обновляем отображение имени
+                // Обновляем отображение имени (обе строки)
                 const nameElement = card.querySelector('.user-name');
                 if (nameElement) {
                     const currentName = nameElement.textContent;
-                    // Обновляем имя, заменяя старый уровень на новый
                     const newName = currentName.replace(/\d+\*/g, `${newLevel}*`);
                     nameElement.textContent = newName;
+                }
+                const idElement = card.querySelector('.user-id');
+                if (idElement) {
+                    const currentId = idElement.textContent;
+                    const newId = currentId.replace(/\d+\*/g, `${newLevel}*`);
+                    idElement.textContent = newId;
                 }
                 
                 // Визуальная индикация повышения уровня
@@ -1480,6 +1485,8 @@
                 
                 // Проверяем и повышаем уровень родителя если нужно
                 checkAndUpgradeLevel(parentCard);
+                // Дополнительно проверяем всех партнеров, чтобы сработали каскадные повышения
+                checkAllPartners();
                 
                 // Обновляем статус
                 const statusElement = document.getElementById('statusMessage');
