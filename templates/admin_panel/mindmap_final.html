@@ -2674,7 +2674,73 @@
                 console.log(`✅ SVG связь добавлена: ${pathData}`);
             }
             
-            // Создаем связи только на основе data-parent атрибута
+            // Связи от PLAZMA (Level 4) к Level 3 - каждая PLAZMA ко всем Level 3
+            if (cardsByLevel['4'] && cardsByLevel['3']) {
+                cardsByLevel['4'].forEach((plazmaCard) => {
+                    // PLAZMA подключается ко всем Level 3 (1 → 3)
+                    cardsByLevel['3'].forEach((level3Card) => {
+                        createConnection(plazmaCard, level3Card); // 4 → 3
+                        console.log(`🔗 ${plazmaCard.id} → ${level3Card.id}`);
+                    });
+                });
+            }
+            
+            // Улучшенная логика связей для MLM структуры
+            
+            // Связи от Level 3 к Level 2 - MLM структура (1:3)
+            if (cardsByLevel['3'] && cardsByLevel['2']) {
+                cardsByLevel['3'].forEach((level3Card, index) => {
+                    // Каждый Level 3 подключается к 3 карточкам Level 2
+                    for (let i = 0; i < 3; i++) {
+                        const level2Index = index * 3 + i;
+                        if (cardsByLevel['2'][level2Index]) {
+                            const level2Card = cardsByLevel['2'][level2Index];
+                            createConnection(level3Card, level2Card); // 3 → 2
+                            console.log(`🔗 ${level3Card.id} → ${level2Card.id}`);
+                        }
+                    }
+                });
+            }
+            
+            // Связи от Level 2 к Level 1 - MLM структура (1:3)
+            if (cardsByLevel['2'] && cardsByLevel['1']) {
+                cardsByLevel['2'].forEach((level2Card, index) => {
+                    // Каждый Level 2 подключается к 3 карточкам Level 1
+                    for (let i = 0; i < 3; i++) {
+                        const level1Index = index * 3 + i;
+                        if (cardsByLevel['1'][level1Index]) {
+                            const level1Card = cardsByLevel['1'][level1Index];
+                            createConnection(level2Card, level1Card); // 2 → 1
+                            console.log(`🔗 ${level2Card.id} → ${level1Card.id}`);
+                        }
+                    }
+                });
+            }
+            
+            // Связи от Level 1 к Level 0 - MLM структура (1:3)
+            if (cardsByLevel['1'] && cardsByLevel['0']) {
+                console.log(`🔗 Создаем связи Level 1 → Level 0: ${cardsByLevel['1'].length} родителей, ${cardsByLevel['0'].length} детей`);
+                
+                cardsByLevel['1'].forEach((level1Card, index) => {
+                    // Каждый Level 1 подключается к 3 карточкам Level 0
+                for (let i = 0; i < 3; i++) {
+                        const level0Index = index * 3 + i;
+                        if (cardsByLevel['0'][level0Index]) {
+                            const level0Card = cardsByLevel['0'][level0Index];
+                            
+                            console.log(`🔗 Создаем связь: ${level1Card.id} → ${level0Card.id}`);
+                            
+                            createConnection(level1Card, level0Card); // 1 → 0
+                            
+                            console.log(`✅ Связь создана: ${level1Card.id} → ${level0Card.id}`);
+                        } else {
+                            console.log(`⚠️ Level 0 карточка не найдена для индекса ${level0Index}`);
+                        }
+                    }
+                });
+            }
+            
+            // Создаем связи только на основе data-parent атрибута (чтобы не дублировать связи)
             allCards.forEach(card => {
                 const parentId = card.getAttribute('data-parent');
                 if (!parentId) return;
