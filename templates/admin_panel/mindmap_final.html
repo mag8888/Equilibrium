@@ -932,9 +932,9 @@
                     }
                 }
             } else if (parentLevel !== 1 && directChildren.length >= 3) {
-                // Для узлов не 1* — стандартный поиск по ветке нужного уровня
-                console.log('🔄 Родитель не 1* и заполнен — ищем ближайший узел того же уровня по ветке...');
-                const bestNode = findBestPlacementInBranch(parentCard, parentLevel);
+                // Для узлов 2* и выше — 0* всегда должны уходить вниз на первый доступный уровень 1*
+                console.log('🔄 Родитель >=2* — ищем ближайший узел уровня 1* по ветке...');
+                const bestNode = findBestPlacementInBranch(parentCard, 1);
                 if (bestNode) {
                     targetParent = bestNode;
                     targetLevel = 0;
@@ -943,12 +943,13 @@
             
             // Создаем нового партнера
             const uniqueId = generateUniqueId();
-            const existingChildren = container.querySelectorAll(`.user-card[data-parent="${targetParent.id}"]`);
+            let existingChildren = container.querySelectorAll(`.user-card[data-parent="${targetParent.id}"]`);
             if (existingChildren.length >= 3) {
-                console.log('❌ У целевого родителя уже 3 ребенка – ищем другой узел');
-                const altNode = findBestPlacementInBranch(targetParent, targetParent.getAttribute('data-level')) || findBestPlacementInBranch(targetParent, 1);
+                console.log('❌ У целевого родителя уже 3 ребенка – ищем другой узел уровня 1*');
+                const altNode = findBestPlacementInBranch(targetParent, 1) || findBestPlacementInBranch(parentCard, 1);
                 if (altNode) {
                     targetParent = altNode;
+                    existingChildren = container.querySelectorAll(`.user-card[data-parent="${targetParent.id}"]`);
                 }
             }
             const childNumber = existingChildren.length + 1;
