@@ -11,6 +11,7 @@ from users.models import User, UserProfile
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from mlm.models import MLMStructure, Payment, Bonus, Withdrawal, MLMSettings, MLMPartner
+import traceback
 from .serializers import (
     UserSerializer, UserProfileSerializer, 
     MLMStructureSerializer, PaymentSerializer,
@@ -97,51 +98,65 @@ class MLMViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'], permission_classes=[AllowAny])
     def create_partner(self, request):
         """Создать нового партнера"""
-        data = request.data
-        user = self._get_root_user(request)
-        
-        # Создаем нового партнера
-        partner = MLMPartner.objects.create(
-            unique_id=data['unique_id'],
-            human_name=data['human_name'],
-            level=data.get('level', 0),
-            position_x=data.get('position_x', 0),
-            position_y=data.get('position_y', 0),
-            parent_id=data.get('parent_id'),
-            root_user=user
-        )
-        
-        return Response({
-            'id': partner.id,
-            'unique_id': partner.unique_id,
-            'human_name': partner.human_name,
-            'level': partner.level,
-            'position_x': partner.position_x,
-            'position_y': partner.position_y,
-            'parent_id': partner.parent_id,
-            'created_at': partner.created_at
-        }, status=status.HTTP_201_CREATED)
-    
-    @action(detail=False, methods=['get'], permission_classes=[AllowAny])
-    def partners(self, request):
-        """Получить всех партнеров пользователя"""
-        user = self._get_root_user(request)
-        partners = MLMPartner.objects.filter(root_user=user, is_active=True)
-        
-        data = []
-        for partner in partners:
-            data.append({
+        try:
+            data = request.data
+            user = self._get_root_user(request)
+            
+            # Создаем нового партнера
+            partner = MLMPartner.objects.create(
+                unique_id=data['unique_id'],
+                human_name=data['human_name'],
+                level=data.get('level', 0),
+                position_x=data.get('position_x', 0),
+                position_y=data.get('position_y', 0),
+                parent_id=data.get('parent_id'),
+                root_user=user
+            )
+            
+            return Response({
                 'id': partner.id,
                 'unique_id': partner.unique_id,
                 'human_name': partner.human_name,
                 'level': partner.level,
                 'position_x': partner.position_x,
                 'position_y': partner.position_y,
-                'parent_id': partner.parent_id,
-                'created_at': partner.created_at
-            })
-        
-        return Response(data)
+                'parent_id': partner.parent_id if partner.parent else None,
+                'created_at': partner.created_at.isoformat() if partner.created_at else None
+            }, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            import traceback
+            return Response({
+                'error': str(e),
+                'traceback': traceback.format_exc()
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    @action(detail=False, methods=['get'], permission_classes=[AllowAny])
+    def partners(self, request):
+        """Получить всех партнеров пользователя"""
+        try:
+            user = self._get_root_user(request)
+            partners = MLMPartner.objects.filter(root_user=user, is_active=True)
+            
+            data = []
+            for partner in partners:
+                data.append({
+                    'id': partner.id,
+                    'unique_id': partner.unique_id,
+                    'human_name': partner.human_name,
+                    'level': partner.level,
+                    'position_x': partner.position_x,
+                    'position_y': partner.position_y,
+                    'parent_id': partner.parent_id if partner.parent else None,
+                    'created_at': partner.created_at.isoformat() if partner.created_at else None
+                })
+            
+            return Response(data)
+        except Exception as e:
+            import traceback
+            return Response({
+                'error': str(e),
+                'traceback': traceback.format_exc()
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     @action(detail=False, methods=['post'], permission_classes=[AllowAny])
     def clear_partners(self, request):
