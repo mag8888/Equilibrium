@@ -425,7 +425,7 @@
 </head>
 <body>
     <div class="header">
-        <div class="title">🌐 MLM СТРУКТУРА - ПРОДВИНУТЫЙ СКРОЛЛИНГ v109 - ЗУМ + СТРЕЛКИ + БД</div>
+        <div class="title">🌐 MLM СТРУКТУРА - ИСПРАВЛЕНИЕ ПЕРЕТАСКИВАНИЯ v110 - РАБОЧАЯ РУКА</div>
         <div class="subtitle">Симметричное расположение узлов вверх и вниз от центра без пересечений</div>
     </div>
     
@@ -505,7 +505,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - VERSION v109 - ПРОДВИНУТЫЙ СКРОЛЛИНГ!');
+        console.log('🌐 MLM Mind Map Loading - VERSION v110 - ИСПРАВЛЕНИЕ ПЕРЕТАСКИВАНИЯ!');
         
         // Генератор человеческих имен для нижней строки
         function generateHumanName() {
@@ -1534,14 +1534,26 @@
             const MAX_ZOOM = 3.0;
             const ZOOM_STEP = 0.1;
 
+            // Удаляем старые обработчики если они есть
+            container.removeEventListener('mousedown', handleMouseDown);
+            container.removeEventListener('mousemove', handleMouseMove);
+            container.removeEventListener('mouseup', handleMouseUp);
+            container.removeEventListener('mouseleave', handleMouseLeave);
+
             // Обработчик начала перетаскивания
-            container.addEventListener('mousedown', (e) => {
-                // Проверяем, что клик не по карточке
+            function handleMouseDown(e) {
+                console.log('🖱️ Mouse down detected:', e.target);
+                
+                // Проверяем, что клик не по карточке или её элементам
                 if (e.target.classList.contains('user-card') || 
-                    e.target.closest('.user-card')) {
+                    e.target.closest('.user-card') ||
+                    e.target.tagName === 'svg' ||
+                    e.target.closest('svg')) {
+                    console.log('❌ Клик по карточке или SVG, пропускаем');
                     return;
                 }
 
+                console.log('✅ Начинаем перетаскивание фона');
                 isDragging = true;
                 startX = e.pageX - container.offsetLeft;
                 startY = e.pageY - container.offsetTop;
@@ -1550,13 +1562,16 @@
                 
                 container.style.cursor = 'grabbing';
                 e.preventDefault();
-            });
+                e.stopPropagation();
+            }
 
             // Обработчик движения мыши
-            container.addEventListener('mousemove', (e) => {
+            function handleMouseMove(e) {
                 if (!isDragging) return;
 
                 e.preventDefault();
+                e.stopPropagation();
+                
                 const x = e.pageX - container.offsetLeft;
                 const y = e.pageY - container.offsetTop;
                 const walkX = (x - startX) * 2;
@@ -1564,19 +1579,35 @@
                 
                 container.scrollLeft = scrollLeft - walkX;
                 container.scrollTop = scrollTop - walkY;
-            });
+                
+                console.log(`🔄 Скролл: X=${container.scrollLeft}, Y=${container.scrollTop}`);
+            }
 
             // Обработчик отпускания мыши
-            container.addEventListener('mouseup', () => {
+            function handleMouseUp(e) {
+                if (isDragging) {
+                    console.log('✅ Завершено перетаскивание фона');
+                }
                 isDragging = false;
                 container.style.cursor = 'grab';
-            });
+                e.preventDefault();
+                e.stopPropagation();
+            }
 
             // Обработчик выхода мыши за пределы контейнера
-            container.addEventListener('mouseleave', () => {
+            function handleMouseLeave(e) {
+                if (isDragging) {
+                    console.log('🚪 Мышь покинула контейнер');
+                }
                 isDragging = false;
                 container.style.cursor = 'grab';
-            });
+            }
+
+            // Добавляем обработчики с правильными параметрами
+            container.addEventListener('mousedown', handleMouseDown, { passive: false });
+            container.addEventListener('mousemove', handleMouseMove, { passive: false });
+            container.addEventListener('mouseup', handleMouseUp, { passive: false });
+            container.addEventListener('mouseleave', handleMouseLeave, { passive: false });
 
             // Обработчик колесика мыши для зума и скролла
             container.addEventListener('wheel', (e) => {
@@ -1653,7 +1684,61 @@
             container.style.overflow = 'auto';
             container.style.transform = 'scale(1)';
             
+            // Добавляем тестовый обработчик для отладки
+            container.addEventListener('click', (e) => {
+                console.log('🖱️ Клик по контейнеру:', e.target, 'isDragging:', isDragging);
+            });
+            
+            // Альтернативный способ - обработчик на document для гарантированного срабатывания
+            document.addEventListener('mousedown', (e) => {
+                // Проверяем, что клик именно по контейнеру или его пустой области
+                if (e.target === container || 
+                    (container.contains(e.target) && 
+                     !e.target.classList.contains('user-card') && 
+                     !e.target.closest('.user-card') &&
+                     e.target.tagName !== 'svg' &&
+                     !e.target.closest('svg'))) {
+                    
+                    console.log('🖱️ Альтернативный обработчик: начинаем перетаскивание');
+                    isDragging = true;
+                    startX = e.pageX - container.offsetLeft;
+                    startY = e.pageY - container.offsetTop;
+                    scrollLeft = container.scrollLeft;
+                    scrollTop = container.scrollTop;
+                    
+                    container.style.cursor = 'grabbing';
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const x = e.pageX - container.offsetLeft;
+                const y = e.pageY - container.offsetTop;
+                const walkX = (x - startX) * 2;
+                const walkY = (y - startY) * 2;
+                
+                container.scrollLeft = scrollLeft - walkX;
+                container.scrollTop = scrollTop - walkY;
+                
+                console.log(`🔄 Альтернативный скролл: X=${container.scrollLeft}, Y=${container.scrollTop}`);
+            });
+            
+            document.addEventListener('mouseup', (e) => {
+                if (isDragging) {
+                    console.log('✅ Альтернативный обработчик: завершено перетаскивание');
+                }
+                isDragging = false;
+                container.style.cursor = 'grab';
+            });
+            
             console.log('✅ Продвинутый скроллинг включен! Используйте: Ctrl+колесико для зума, стрелки для перемещения, +/- для зума');
+            console.log('🔍 Отладка: попробуйте кликнуть по пустому месту и перетащить');
         }
 
         // Функция для отключения продвинутого скроллинга
