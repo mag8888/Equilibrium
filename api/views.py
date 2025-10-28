@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from django.contrib.auth import authenticate
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from rest_framework.authtoken.models import Token
 from django.db.models import Q, Count, Sum
 from users.models import User, UserProfile
@@ -59,13 +59,18 @@ class MLMViewSet(viewsets.ViewSet):
         """Возвращает пользователя-владельца структуры. Если не авторизован — демо-пользователь."""
         if request.user and request.user.is_authenticated:
             return request.user
-        demo_user, _ = User.objects.get_or_create(
+        demo_user, created = User.objects.get_or_create(
             username='mlm_demo',
             defaults={
                 'email': 'mlm_demo@example.com',
-                'password': 'mlm_demo_password',
             },
         )
+        if created:
+            try:
+                demo_user.set_password('mlm_demo_password')
+                demo_user.save(update_fields=['password'])
+            except Exception:
+                pass
         return demo_user
 
     @action(detail=False, methods=['get'])
