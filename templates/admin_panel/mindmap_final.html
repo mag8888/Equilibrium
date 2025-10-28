@@ -902,42 +902,15 @@
             let targetParent = parentCard;
             let targetLevel = childLevel;
             
-            // Если у исходного родителя (например IVA 1*) уже 3 ребенка — кладем под первого подходящего 0* ребёнка (сверху-вниз, слева-направо) с <3 детьми
-            if (parentLevel === 1 && directChildren.length >= 3) {
-                const level0Children = directChildren.filter(c => (parseInt(c.getAttribute('data-level'))||0) === 0);
-                level0Children.sort((a,b)=>{
-                    const ac = getDirectChildren(container, a.id).length;
-                    const bc = getDirectChildren(container, b.id).length;
-                    if (ac !== bc) return ac - bc;
-                    const ay = parseInt(a.style.top)||0;
-                    const by = parseInt(b.style.top)||0;
-                    if (ay !== by) return ay - by;
-                    const ax = parseInt(a.style.left)||0;
-                    const bx = parseInt(b.style.left)||0;
-                    return ax - bx;
-                });
-                const firstSlot = level0Children.find(ch => getDirectChildren(container, ch.id).length < 3);
-                if (firstSlot) {
-                    targetParent = firstSlot;
+            // Новое правило: 0* всегда перенаправляем на ближайший узел уровня 0 с доступным слотом (<3)
+            // Если текущий родитель не 0 ИЛИ у него уже 3 детей — ищем ближайший 0*
+            if (parentLevel !== 0 || directChildren.length >= 3) {
+                console.log('🔄 Перенаправление: ищем ближайший 0* по ветке для размещения нового 0*...');
+                const bestZero = findBestPlacementInBranch(parentCard, 0);
+                if (bestZero) {
+                    targetParent = bestZero;
                     targetLevel = 0;
-                    console.log(`✅ Помещаем под первого 0* ребёнка: ${firstSlot.id}`);
-                } else {
-                    // иначе ищем ближайший узел уровня 1* по ветке (например, когда 0* дети тоже заполнены)
-                    console.log('🔄 Все 0* дети заполнены — ищем ближайший узел уровня 1* по ветке...');
-                    const bestNode = findBestPlacementInBranch(parentCard, 1);
-                    if (bestNode) {
-                        targetParent = bestNode;
-                        targetLevel = 0;
-                        console.log(`✅ Найден узел 1* для размещения: ${bestNode.id}`);
-                    }
-                }
-            } else if (parentLevel !== 1 && directChildren.length >= 3) {
-                // Для узлов 2* и выше — 0* всегда должны уходить вниз на первый доступный уровень 1*
-                console.log('🔄 Родитель >=2* — ищем ближайший узел уровня 1* по ветке...');
-                const bestNode = findBestPlacementInBranch(parentCard, 1);
-                if (bestNode) {
-                    targetParent = bestNode;
-                    targetLevel = 0;
+                    console.log(`✅ Найден ближайший 0*: ${bestZero.id}`);
                 }
             }
             
@@ -945,8 +918,8 @@
             const uniqueId = generateUniqueId();
             let existingChildren = container.querySelectorAll(`.user-card[data-parent="${targetParent.id}"]`);
             if (existingChildren.length >= 3) {
-                console.log('❌ У целевого родителя уже 3 ребенка – ищем другой узел уровня 1*');
-                const altNode = findBestPlacementInBranch(targetParent, 1) || findBestPlacementInBranch(parentCard, 1);
+                console.log('❌ У целевого родителя уже 3 ребенка – ищем другой узел уровня 0*');
+                const altNode = findBestPlacementInBranch(targetParent, 0) || findBestPlacementInBranch(parentCard, 0);
                 if (altNode) {
                     targetParent = altNode;
                     existingChildren = container.querySelectorAll(`.user-card[data-parent="${targetParent.id}"]`);
