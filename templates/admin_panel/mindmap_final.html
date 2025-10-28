@@ -758,7 +758,7 @@
             }
             
             // Создаем новый узел
-            const newChild = createNode(newChildId, `${newChildName}`, targetLevel, { x: childX, y: childY });
+            const newChild = createNode(newChildId, `${newChildName}`, targetLevel, { x: childX, y: childY }, { humanName, uniqueId });
             newChild.setAttribute('data-parent', targetParent.id);
             newChild.setAttribute('data-created-by-click', 'true');
             newChild.setAttribute('data-human-name', humanName);
@@ -1486,7 +1486,7 @@
             const humanName = generateHumanName();
             
             // Создаем новый узел
-            const newChild = createNode(newChildId, newChildName, childLevel, { x: childX, y: childY });
+            const newChild = createNode(newChildId, newChildName, childLevel, { x: childX, y: childY }, { humanName, uniqueId });
             newChild.setAttribute('data-parent', parentCard.id);
             newChild.setAttribute('data-human-name', humanName);
             
@@ -1520,7 +1520,7 @@
             }, 100);
         }
         
-        function createNode(id, name, level, position) {
+        function createNode(id, name, level, position, options) {
             const { x, y } = position;
             const node = document.createElement('div');
             node.className = 'user-card';
@@ -1529,11 +1529,12 @@
             node.style.left = x + 'px';
             node.style.top = y + 'px';
             
-            // Имя отображаем как человеко-читаемое (если есть), а идентификатор уровня/номера — ниже
-            const humanName = node.getAttribute('data-human-name') || '';
+            // Имя отображаем как человеко-читаемое (если есть), а идентификатор — ниже
+            const humanName = options && options.humanName ? options.humanName : (node.getAttribute('data-human-name') || '');
+            const uniqueId = options && options.uniqueId ? options.uniqueId : '';
             node.innerHTML = `
                 <div class="user-name">${humanName ? humanName : name}</div>
-                <div class="user-id">${name}</div>
+                <div class="user-id">${uniqueId ? uniqueId : name}</div>
             `;
             
             // Добавляем connection points (кружочки для связей)
@@ -2561,16 +2562,14 @@
                 });
             }
             
-            // Создаем связи на основе data-parent атрибута (для IVA структуры)
+            // Создаем связи только на основе data-parent атрибута (чтобы не дублировать связи)
             allCards.forEach(card => {
                 const parentId = card.getAttribute('data-parent');
-                if (parentId) {
-                    const parentCard = document.getElementById(parentId);
-                    if (parentCard) {
-                        createConnection(parentCard, card);
-                        console.log(`🔗 Связь через data-parent: ${parentId} → ${card.id}`);
-                    }
-                }
+                if (!parentId) return;
+                const parentCard = document.getElementById(parentId);
+                if (!parentCard) return;
+                createConnection(parentCard, card);
+                console.log(`🔗 Связь через data-parent: ${parentId} → ${card.id}`);
             });
             
             console.log(`✅ Перестроено связей: ${rebuiltConnections}`);
