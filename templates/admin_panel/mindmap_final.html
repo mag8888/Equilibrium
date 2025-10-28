@@ -425,7 +425,7 @@
 </head>
 <body>
     <div class="header">
-        <div class="title">🌐 MLM СТРУКТУРА - ИСПРАВЛЕНИЕ ПЕРЕТАСКИВАНИЯ v110 - РАБОЧАЯ РУКА</div>
+        <div class="title">🌐 MLM СТРУКТУРА - ИСПРАВЛЕНИЕ СКРОЛЛА v111 - РАБОЧИЙ ПЕРЕТАСКИВАНИЕ</div>
         <div class="subtitle">Симметричное расположение узлов вверх и вниз от центра без пересечений</div>
     </div>
     
@@ -505,7 +505,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - VERSION v110 - ИСПРАВЛЕНИЕ ПЕРЕТАСКИВАНИЯ!');
+        console.log('🌐 MLM Mind Map Loading - VERSION v111 - ИСПРАВЛЕНИЕ СКРОЛЛА!');
         
         // Генератор человеческих имен для нижней строки
         function generateHumanName() {
@@ -1577,10 +1577,15 @@
                 const walkX = (x - startX) * 2;
                 const walkY = (y - startY) * 2;
                 
-                container.scrollLeft = scrollLeft - walkX;
-                container.scrollTop = scrollTop - walkY;
+                const newScrollLeft = scrollLeft - walkX;
+                const newScrollTop = scrollTop - walkY;
                 
-                console.log(`🔄 Скролл: X=${container.scrollLeft}, Y=${container.scrollTop}`);
+                container.scrollLeft = newScrollLeft;
+                container.scrollTop = newScrollTop;
+                
+                console.log(`🔄 Скролл: X=${newScrollLeft}, Y=${newScrollTop}, walkX=${walkX}, walkY=${walkY}`);
+                console.log(`📏 Контейнер: offsetLeft=${container.offsetLeft}, offsetTop=${container.offsetTop}`);
+                console.log(`🖱️ Мышь: pageX=${e.pageX}, pageY=${e.pageY}`);
             }
 
             // Обработчик отпускания мыши
@@ -1684,12 +1689,40 @@
             container.style.overflow = 'auto';
             container.style.transform = 'scale(1)';
             
+            // Проверяем размеры контейнера
+            console.log(`📐 Размеры контейнера: ${container.offsetWidth}x${container.offsetHeight}`);
+            console.log(`📐 Scroll размеры: ${container.scrollWidth}x${container.scrollHeight}`);
+            console.log(`📐 Client размеры: ${container.clientWidth}x${container.clientHeight}`);
+            
+            // Принудительно создаем содержимое для скролла если его нет
+            if (container.scrollWidth <= container.clientWidth && container.scrollHeight <= container.clientHeight) {
+                console.log('⚠️ Нет содержимого для скролла, создаем временный элемент');
+                const tempDiv = document.createElement('div');
+                tempDiv.style.width = '5000px';
+                tempDiv.style.height = '5000px';
+                tempDiv.style.position = 'absolute';
+                tempDiv.style.top = '0';
+                tempDiv.style.left = '0';
+                tempDiv.style.backgroundColor = 'transparent';
+                tempDiv.style.pointerEvents = 'none';
+                tempDiv.style.zIndex = '-1';
+                container.appendChild(tempDiv);
+                
+                console.log(`📐 Новые Scroll размеры: ${container.scrollWidth}x${container.scrollHeight}`);
+            }
+            
             // Добавляем тестовый обработчик для отладки
             container.addEventListener('click', (e) => {
                 console.log('🖱️ Клик по контейнеру:', e.target, 'isDragging:', isDragging);
             });
             
-            // Альтернативный способ - обработчик на document для гарантированного срабатывания
+            // Альтернативный способ - перемещение содержимого вместо скролла
+            let alternativeDragging = false;
+            let altStartX = 0;
+            let altStartY = 0;
+            let altScrollLeft = 0;
+            let altScrollTop = 0;
+            
             document.addEventListener('mousedown', (e) => {
                 // Проверяем, что клик именно по контейнеру или его пустой области
                 if (e.target === container || 
@@ -1700,11 +1733,11 @@
                      !e.target.closest('svg'))) {
                     
                     console.log('🖱️ Альтернативный обработчик: начинаем перетаскивание');
-                    isDragging = true;
-                    startX = e.pageX - container.offsetLeft;
-                    startY = e.pageY - container.offsetTop;
-                    scrollLeft = container.scrollLeft;
-                    scrollTop = container.scrollTop;
+                    alternativeDragging = true;
+                    altStartX = e.pageX;
+                    altStartY = e.pageY;
+                    altScrollLeft = container.scrollLeft;
+                    altScrollTop = container.scrollTop;
                     
                     container.style.cursor = 'grabbing';
                     e.preventDefault();
@@ -1713,27 +1746,26 @@
             });
             
             document.addEventListener('mousemove', (e) => {
-                if (!isDragging) return;
+                if (!alternativeDragging) return;
                 
                 e.preventDefault();
                 e.stopPropagation();
                 
-                const x = e.pageX - container.offsetLeft;
-                const y = e.pageY - container.offsetTop;
-                const walkX = (x - startX) * 2;
-                const walkY = (y - startY) * 2;
+                const deltaX = e.pageX - altStartX;
+                const deltaY = e.pageY - altStartY;
                 
-                container.scrollLeft = scrollLeft - walkX;
-                container.scrollTop = scrollTop - walkY;
+                // Прямое изменение скролла
+                container.scrollLeft = altScrollLeft - deltaX;
+                container.scrollTop = altScrollTop - deltaY;
                 
-                console.log(`🔄 Альтернативный скролл: X=${container.scrollLeft}, Y=${container.scrollTop}`);
+                console.log(`🔄 Альтернативный скролл: deltaX=${deltaX}, deltaY=${deltaY}, scrollLeft=${container.scrollLeft}, scrollTop=${container.scrollTop}`);
             });
             
             document.addEventListener('mouseup', (e) => {
-                if (isDragging) {
+                if (alternativeDragging) {
                     console.log('✅ Альтернативный обработчик: завершено перетаскивание');
                 }
-                isDragging = false;
+                alternativeDragging = false;
                 container.style.cursor = 'grab';
             });
             
