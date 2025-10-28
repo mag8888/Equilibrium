@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>👑 ПРОФИЛЬ ПАРТНЕРА IVA v52 - ЦВЕТА ДЛЯ IVA</title>
+    <title>👑 ПРОФИЛЬ ПАРТНЕРА IVA v53 - ПРАВИЛЬНАЯ ПРОГРЕССИЯ</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -497,7 +497,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - VERSION v52 - ЦВЕТА ДЛЯ IVA!');
+        console.log('🌐 MLM Mind Map Loading - VERSION v53 - ПРАВИЛЬНАЯ ПРОГРЕССИЯ!');
         
         const CARD_WIDTH = 150;
         const CARD_HEIGHT = 70;
@@ -1355,12 +1355,13 @@
                 return;
             }
             
-            const targetLevel = currentLevel; // Ищем партнеров своего уровня
+            // Ищем партнеров СЛЕДУЮЩЕГО уровня (currentLevel + 1)
+            const targetLevel = currentLevel + 1;
             const partnerCount = countPartnersAtLevel(card, targetLevel);
             
             console.log(`🔍 Проверка уровня для ${card.id}: текущий = ${currentLevel}*, партнеров ${targetLevel}* = ${partnerCount}`);
             
-            // Если есть 3 партнера своего уровня, повышаем уровень
+            // Если есть 3 партнера СЛЕДУЮЩЕГО уровня, повышаем уровень
             if (partnerCount >= 3) {
                 const newLevel = currentLevel + 1;
                 console.log(`🚀 Повышение уровня ${card.id}: ${currentLevel}* → ${newLevel}*`);
@@ -1402,11 +1403,10 @@
         }
         
         function addChildNode(parentCard) {
-            console.log('➕ Добавляем дочерний узел уровня 0* для:', parentCard.id);
-            
             const parentLevel = parseInt(parentCard.getAttribute('data-level'));
-            const childLevel = 0; // Всегда создаем узлы уровня 0*
+            const childLevel = parentLevel + 1; // Создаем узлы уровня родителя + 1
             
+            console.log(`➕ Добавляем дочерний узел Level ${childLevel}* для родителя Level ${parentLevel}*:`, parentCard.id);
             console.log(`🎯 Родитель: Level ${parentLevel}, создаем дочерний: Level ${childLevel}`);
             
             // Подсчитываем существующих детей этого родителя
@@ -1439,10 +1439,10 @@
                 childY = parentY + 120; // Третий узел ниже родителя (было +36, стало +120)
             }
             
-            // Создаем уникальный ID для нового узла уровня 0*
+            // Создаем уникальный ID для нового узла
             const timestamp = Date.now();
-            const newChildId = `0-dynamic-${timestamp}-${childNumber}`;
-            const newChildName = `0*/${childNumber}`;
+            const newChildId = `${childLevel}-dynamic-${timestamp}-${childNumber}`;
+            const newChildName = `${childLevel}*/${childNumber}`;
             
             // Создаем новый узел
             const newChild = createNode(newChildId, newChildName, childLevel, { x: childX, y: childY });
