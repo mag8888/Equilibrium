@@ -844,6 +844,7 @@
             const queue = [startNode];
             let bestNode = null;
             let bestCount = Infinity;
+            let bestY = -Infinity; // предпочитаем более нижние узлы
             while (queue.length > 0) {
                 const node = queue.shift();
                 const level = parseInt(node.getAttribute('data-level')) || 0;
@@ -851,15 +852,18 @@
                 // Кандидаты только целевого уровня
                 if (level === targetLevel) {
                     const count = children.length;
-                    if (count < 3 && count < bestCount) {
-                        bestCount = count;
-                        bestNode = node;
-                        if (bestCount === 0) break; // лучше не будет
+                    const nodeY = parseInt(node.style.top) || 0;
+                    if (count < 3) {
+                        if (count < bestCount || (count === bestCount && nodeY > bestY)) {
+                            bestCount = count;
+                            bestNode = node;
+                            bestY = nodeY;
+                        }
                     }
                 }
                 // Продолжаем поиск вниз по ветке
-                // Сортируем по X (слева направо) для стабильности
-                children.sort((a, b) => (parseInt(a.style.left)||0) - (parseInt(b.style.left)||0));
+                // Сортируем по Y (снизу вверх), чтобы нижние получали приоритет
+                children.sort((a, b) => (parseInt(b.style.top)||0) - (parseInt(a.style.top)||0));
                 queue.push(...children);
             }
             return bestNode;
