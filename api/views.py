@@ -12,6 +12,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from mlm.models import MLMStructure, Payment, Bonus, Withdrawal, MLMSettings, MLMPartner
 from django.db.utils import ProgrammingError, OperationalError
+from django.core.management import call_command
 import traceback
 from .serializers import (
     UserSerializer, UserProfileSerializer, 
@@ -190,9 +191,19 @@ class MLMViewSet(viewsets.ViewSet):
                 })
             
             return Response(data)
-        except Exception:
-            # Любая ошибка на этом этапе не должна ломать фронт
-            return Response([], status=status.HTTP_200_OK)
+        except Exception as e:
+            # Любая ошибка на этом этапе не должна ломать фронт, но вернем деталь для диагностики
+            return Response({'error': str(e)}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post', 'get'], permission_classes=[AllowAny])
+    def migrate(self, request):
+        """Принудительно применить миграции на проде (Railway)."""
+        try:
+            call_command('migrate', interactive=False, verbosity=1)
+            return Response({'status': 'ok', 'message': 'Migrations applied'})
+        except Exception as e:
+            import traceback
+            return Response({'status': 'error', 'error': str(e), 'traceback': traceback.format_exc()}, status=500)
     
     @action(detail=False, methods=['post'], permission_classes=[AllowAny])
     def clear_partners(self, request):
