@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>👑 ПРОФИЛЬ ПАРТНЕРА IVA v45 - БЕЗ PLAZMA</title>
+    <title>👑 ПРОФИЛЬ ПАРТНЕРА IVA v46 - ИСПРАВЛЕНЫ СВЯЗИ</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -385,7 +385,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - VERSION v45 - ПРОФИЛЬ ПАРТНЕРА IVA БЕЗ PLAZMA!');
+        console.log('🌐 MLM Mind Map Loading - VERSION v46 - ИСПРАВЛЕНЫ СВЯЗИ!');
         
         const CARD_WIDTH = 150;
         const CARD_HEIGHT = 70;
@@ -1149,6 +1149,19 @@
                 return;
             }
             
+            // Удаляем старые связи от этого родителя к этим детям
+            const existingPaths = svg.querySelectorAll('.connection-line');
+            existingPaths.forEach(path => {
+                const pathParentId = path.getAttribute('data-parent-id');
+                const pathChildId = path.getAttribute('data-child-id');
+                
+                // Удаляем только связи от этого родителя к этому ребенку
+                if (pathParentId === parentCard.id && pathChildId === childCard.id) {
+                    path.remove();
+                    console.log(`🗑️ Удалена старая связь: ${pathParentId} → ${pathChildId}`);
+                }
+            });
+            
             const containerRect = document.getElementById('mindmapContainer').getBoundingClientRect();
             
             const parentRect = parentCard.getBoundingClientRect();
@@ -1193,6 +1206,8 @@
             path.setAttribute('fill', 'none');
             path.setAttribute('opacity', '1');
             path.setAttribute('class', 'connection-line dynamic-connection');
+            path.setAttribute('data-parent-id', parentCard.id); // Добавляем ID родителя
+            path.setAttribute('data-child-id', childCard.id); // Добавляем ID ребенка
             
             svg.appendChild(path);
             
