@@ -425,7 +425,7 @@
 </head>
 <body>
     <div class="header">
-        <div class="title">🌐 MLM СТРУКТУРА - РАССТАНОВКА 111 v107 - ЦЕНТРИРОВАНИЕ ПО ВЫСОТЕ</div>
+        <div class="title">🌐 MLM СТРУКТУРА - СКРОЛЛИНГ ПОДЛОЖКИ v108 - ПЕРЕТАСКИВАНИЕ В ЛЮБУЮ СТОРОНУ</div>
         <div class="subtitle">Симметричное расположение узлов вверх и вниз от центра без пересечений</div>
     </div>
     
@@ -460,7 +460,8 @@
         <button class="btn" onclick="autoLayoutNoOverlap(); rebuildConnections(); resolveCollisions();" style="background: linear-gradient(135deg, #10B981, #059669); color: white; font-weight: bold;">🎨 КРАСИВАЯ РАСКЛАДКА</button>
         <button class="btn" onclick="recalculatePositionsOnChange();" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: white; font-weight: bold;">🎯 ПЕРЕСЧЕТ ПОЗИЦИЙ</button>
         <button class="btn" onclick="autoLayoutNoOverlap(); rebuildConnections();" style="background: linear-gradient(135deg, #EF4444, #DC2626); color: white; font-weight: bold;">🚫 ИСПРАВИТЬ НАЛОЖЕНИЯ</button>
-        <button class="btn" onclick="autoLayout111();" style="background: linear-gradient(135deg, #10B981, #059669); color: white; font-weight: bold;">🎯 РАССТАНОВКА 111</button>
+        <button class="btn" onclick="enableBackgroundScrolling();" style="background: linear-gradient(135deg, #8B5CF6, #7C3AED); color: white; font-weight: bold;">🖱️ ВКЛЮЧИТЬ СКРОЛЛИНГ</button>
+        <button class="btn" onclick="disableBackgroundScrolling();" style="background: linear-gradient(135deg, #6B7280, #4B5563); color: white; font-weight: bold;">🚫 ОТКЛЮЧИТЬ СКРОЛЛИНГ</button>
     </div>
     
     <div class="structure-container">
@@ -504,7 +505,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - VERSION v107 - ЦЕНТРИРОВАНИЕ ПО ВЫСОТЕ!');
+        console.log('🌐 MLM Mind Map Loading - VERSION v108 - СКРОЛЛИНГ ПОДЛОЖКИ!');
         
         // Генератор человеческих имен для нижней строки
         function generateHumanName() {
@@ -1489,6 +1490,106 @@
             console.log('✅ autoLayout111 завершена с центрированием по высоте!');
         }
 
+        // Функция для включения скроллинга подложки
+        function enableBackgroundScrolling() {
+            console.log('🖱️ Включаем скроллинг подложки...');
+            
+            const container = document.getElementById('mindmapContainer');
+            if (!container) return;
+
+            let isDragging = false;
+            let startX = 0;
+            let startY = 0;
+            let scrollLeft = 0;
+            let scrollTop = 0;
+
+            // Обработчик начала перетаскивания
+            container.addEventListener('mousedown', (e) => {
+                // Проверяем, что клик не по карточке
+                if (e.target.classList.contains('user-card') || 
+                    e.target.closest('.user-card')) {
+                    return;
+                }
+
+                isDragging = true;
+                startX = e.pageX - container.offsetLeft;
+                startY = e.pageY - container.offsetTop;
+                scrollLeft = container.scrollLeft;
+                scrollTop = container.scrollTop;
+                
+                container.style.cursor = 'grabbing';
+                e.preventDefault();
+            });
+
+            // Обработчик движения мыши
+            container.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+
+                e.preventDefault();
+                const x = e.pageX - container.offsetLeft;
+                const y = e.pageY - container.offsetTop;
+                const walkX = (x - startX) * 2; // коэффициент скорости скролла
+                const walkY = (y - startY) * 2;
+                
+                container.scrollLeft = scrollLeft - walkX;
+                container.scrollTop = scrollTop - walkY;
+            });
+
+            // Обработчик отпускания мыши
+            container.addEventListener('mouseup', () => {
+                isDragging = false;
+                container.style.cursor = 'grab';
+            });
+
+            // Обработчик выхода мыши за пределы контейнера
+            container.addEventListener('mouseleave', () => {
+                isDragging = false;
+                container.style.cursor = 'grab';
+            });
+
+            // Обработчик колесика мыши для зума
+            container.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                
+                // Горизонтальный скролл при зажатом Shift
+                if (e.shiftKey) {
+                    container.scrollLeft += e.deltaY;
+                } else {
+                    // Вертикальный скролл
+                    container.scrollTop += e.deltaY;
+                }
+            }, { passive: false });
+
+            // Устанавливаем курсор
+            container.style.cursor = 'grab';
+            
+            // Увеличиваем размер контейнера для скролла
+            container.style.width = '200vw';
+            container.style.height = '200vh';
+            container.style.overflow = 'auto';
+            
+            console.log('✅ Скроллинг подложки включен!');
+        }
+
+        // Функция для отключения скроллинга подложки
+        function disableBackgroundScrolling() {
+            console.log('🖱️ Отключаем скроллинг подложки...');
+            
+            const container = document.getElementById('mindmapContainer');
+            if (!container) return;
+
+            // Сбрасываем размеры
+            container.style.width = '100%';
+            container.style.height = '100%';
+            container.style.overflow = 'hidden';
+            container.style.cursor = 'default';
+            
+            // Сбрасываем позицию скролла
+            container.scrollLeft = 0;
+            container.scrollTop = 0;
+            
+            console.log('✅ Скроллинг подложки отключен!');
+        }
         
         
         // Функция для добавления IVA как первого партнера Level 0*
