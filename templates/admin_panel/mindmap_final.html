@@ -20,6 +20,19 @@
             min-height: 100vh;
         }
         
+        // Генератор человеческих имен для нижней строки
+        function generateHumanName() {
+            const names = [
+                'Иван', 'Роман', 'Елена', 'Анна', 'Мария', 'Ольга', 'Наталья', 'София', 'Полина', 'Ксения',
+                'Дмитрий', 'Алексей', 'Сергей', 'Павел', 'Андрей', 'Виктор', 'Руслан', 'Евгений', 'Максим', 'Игорь',
+                'Татьяна', 'Алина', 'Юлия', 'Валерия', 'Катерина', 'Вероника', 'Лилия', 'Оксана', 'Алёна', 'Ирина'
+            ];
+            const surname = ['Иванов', 'Петров', 'Сидоров', 'Кузнецов', 'Смирнов', 'Васильев', 'Морозов', 'Егоров', 'Орлов', 'Громов'];
+            const n = names[Math.floor(Math.random() * names.length)];
+            const s = surname[Math.floor(Math.random() * surname.length)];
+            return `${n} ${s}`;
+        }
+        
         .header {
             text-align: center;
             margin-bottom: 30px;
@@ -714,6 +727,7 @@
             
             const newChildId = `partner-${targetLevel}-${timestamp}-${childNumber}`;
             const newChildName = `${targetLevel}*/${childNumber}`;
+            const humanName = generateHumanName();
             
             // Вычисляем позицию нового партнера
             const parentRect = targetParent.getBoundingClientRect();
@@ -738,9 +752,10 @@
             }
             
             // Создаем новый узел
-            const newChild = createNode(newChildId, newChildName, targetLevel, { x: childX, y: childY });
+            const newChild = createNode(newChildId, `${newChildName}`, targetLevel, { x: childX, y: childY });
             newChild.setAttribute('data-parent', targetParent.id);
             newChild.setAttribute('data-created-by-click', 'true');
+            newChild.setAttribute('data-human-name', humanName);
             
             container.appendChild(newChild);
             
@@ -749,7 +764,7 @@
                 createSingleConnection(targetParent, newChild);
                 updateStats();
                 
-                console.log(`✅ Добавлен партнер: ${newChildName} к родителю ${targetParent.id}`);
+                console.log(`✅ Добавлен партнер: ${newChildName} (${humanName}) к родителю ${targetParent.id}`);
                 
                 // Визуальная анимация
                 newChild.style.animation = 'fadeIn 0.5s ease-in';
@@ -757,14 +772,15 @@
                 // Обновляем статус
                 const statusElement = document.getElementById('statusMessage');
                 if (statusElement) {
-                    statusElement.textContent = `✅ Добавлен партнер ${newChildName}! Всего узлов: ${container.querySelectorAll('.user-card').length}`;
+                    statusElement.textContent = `✅ Добавлен партнер ${humanName} (${newChildName})! Всего узлов: ${container.querySelectorAll('.user-card').length}`;
                 }
                 
                 // Сохраняем в localStorage для персистентности
                 savePartnerStructure();
                 
-                // Обновляем уровень IVA после добавления партнера
-                updateIVALevel();
+                // Проверяем повышение для всех
+                checkAndUpgradeLevel(targetParent);
+                checkAllPartners();
                 
             }, 100);
         }
@@ -1505,8 +1521,10 @@
             node.style.left = x + 'px';
             node.style.top = y + 'px';
             
+            // Имя отображаем как человеко-читаемое (если есть), а идентификатор уровня/номера — ниже
+            const humanName = node.getAttribute('data-human-name') || '';
             node.innerHTML = `
-                <div class="user-name">${name}</div>
+                <div class="user-name">${humanName ? humanName : name}</div>
                 <div class="user-id">${name}</div>
             `;
             
