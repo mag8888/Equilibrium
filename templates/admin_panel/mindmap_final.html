@@ -672,11 +672,11 @@
             
             // Перестраиваем связи
             setTimeout(() => {
+                autoLayoutNoOverlap();
                 rebuildConnections();
                 addGreenPointsToAll();
-                // Без аргумента выполнит отталкивание для всех пар карточек
                 resolveCollisions();
-                console.log('✅ Партнеры загружены и отображены');
+                console.log('✅ Партнеры загружены и отображены (авто-раскладка без перекрытий)');
             }, 100);
         }
         
@@ -1026,6 +1026,59 @@
             
             localStorage.setItem('mlm_partner_structure', JSON.stringify(structure));
             console.log(`💾 Сохранена структура: ${structure.length} партнеров`);
+        }
+
+        // Автоматическая раскладка без наложений (колонки по глубине от IVA)
+        function autoLayoutNoOverlap() {
+            const container = document.getElementById('mindmapContainer');
+            const nodes = Array.from(container.querySelectorAll('.user-card'));
+            if (nodes.length === 0) return;
+
+            // Определяем корень (IVA) либо первый узел без data-parent
+            let root = container.querySelector('#iva-main-partner') || nodes.find(n => !n.getAttribute('data-parent'));
+            if (!root) root = nodes[0];
+
+            // Карта по id
+            const byId = new Map(nodes.map(n => [n.id, n]));
+
+            // BFS для глубины
+            const depth = new Map();
+            const groups = new Map();
+            const q = [root];
+            depth.set(root.id, 0);
+            while (q.length) {
+                const cur = q.shift();
+                const d = depth.get(cur.id) || 0;
+                if (!groups.has(d)) groups.set(d, []);
+                groups.get(d).push(cur);
+                // дети
+                nodes.forEach(n => {
+                    if (n.getAttribute('data-parent') === cur.id && !depth.has(n.id)) {
+                        depth.set(n.id, d + 1);
+                        q.push(n);
+                    }
+                });
+            }
+
+            // Раскладка: колонки по глубине, внутри колонки равномерный шаг по Y
+            const COLUMN_GAP_LAYOUT = 220;
+            const ROW_GAP_LAYOUT = 110;
+            const START_X = 0; // IVA слева
+            const START_Y = 120; // верхний отсчёт
+
+            const maxDepth = Math.max(...Array.from(depth.values()));
+            for (let d = 0; d <= maxDepth; d++) {
+                const group = groups.get(d) || [];
+                // Стабильный порядок: по текущему Y, затем по id
+                group.sort((a, b) => (parseInt(a.style.top)||0) - (parseInt(b.style.top)||0) || a.id.localeCompare(b.id));
+                for (let i = 0; i < group.length; i++) {
+                    const card = group[i];
+                    const x = START_X + d * COLUMN_GAP_LAYOUT;
+                    const y = START_Y + i * ROW_GAP_LAYOUT;
+                    card.style.left = x + 'px';
+                    card.style.top = y + 'px';
+                }
+            }
         }
         
         
