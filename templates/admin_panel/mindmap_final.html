@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v41 - IVA ПРОГРЕССИЯ УРОВНЕЙ</title>
+    <title>🌐 MLM СТРУКТУРА - СИММЕТРИЧНАЯ МАЙНД-КАРТА ВВЕРХ И ВНИЗ - БЕЗ ПЕРЕКРЫТИЙ v42 - IVA ОТЛАДКА</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -385,7 +385,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - FINAL VERSION v41 - IVA ПРОГРЕССИЯ УРОВНЕЙ!');
+        console.log('🌐 MLM Mind Map Loading - FINAL VERSION v42 - IVA ОТЛАДКА!');
         
         const CARD_WIDTH = 150;
         const CARD_HEIGHT = 70;
@@ -688,6 +688,11 @@
             
             const container = document.getElementById('mindmapContainer');
             
+            if (!container) {
+                console.error('❌ Контейнер не найден!');
+                return;
+            }
+            
             // Проверяем, не добавлена ли уже IVA
             const existingIVA = container.querySelector('#iva-main-partner');
             if (existingIVA) {
@@ -696,12 +701,22 @@
                 return;
             }
             
+            console.log('📦 Контейнер найден, создаем IVA...');
+            
             // Находим подходящую позицию для IVA (справа от структуры)
             const ivaX = 1000; // Справа от всей структуры
             const ivaY = 700;  // По центру по высоте
             
+            console.log(`📍 Позиция IVA: x=${ivaX}, y=${ivaY}`);
+            
             // Создаем карточку IVA
             const ivaCard = createNode('iva-main-partner', 'IVA (0*)', 0, { x: ivaX, y: ivaY });
+            
+            if (!ivaCard) {
+                console.error('❌ Не удалось создать карточку IVA');
+                return;
+            }
+            
             ivaCard.setAttribute('data-is-iva', 'true');
             ivaCard.setAttribute('data-iva-level', '0');
             ivaCard.setAttribute('data-created-by-click', 'true');
@@ -715,6 +730,7 @@
             ivaCard.style.minWidth = '140px';
             ivaCard.style.minHeight = '70px';
             
+            console.log('📝 IVA карточка создана, добавляем в контейнер...');
             container.appendChild(ivaCard);
             
             console.log('✅ IVA добавлена как Level 0* партнер');
@@ -726,6 +742,7 @@
             setTimeout(() => {
                 savePartnerStructure();
                 updateStats();
+                console.log('💾 IVA сохранена в localStorage');
             }, 100);
         }
         
@@ -1790,15 +1807,17 @@
             updateStats();
             
             // Перестраиваем связи и проверяем их
-            // Добавляем IVA как первого партнера Level 0*
-            addIVAPartner();
-            
             setTimeout(() => {
                 rebuildConnections();
                 setTimeout(() => {
                     checkAndRedrawConnections();
                     // Принудительно добавляем зеленые точки ко всем узлам
                     addGreenPointsToAll();
+                    
+                    // Добавляем IVA как первого партнера Level 0*
+                    console.log('🔄 Вызываем addIVAPartner после загрузки...');
+                    addIVAPartner();
+                    
                     // Загружаем сохраненную структуру партнеров
                     loadPartnerStructure();
                 }, 200);
