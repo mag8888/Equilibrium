@@ -659,8 +659,8 @@
                     { humanName: partner.human_name, uniqueId: partner.unique_id }
                 );
                 
-                if (partner.parent_id) {
-                    card.setAttribute('data-parent', partner.parent_id);
+                if (partner.parent_uid) {
+                    card.setAttribute('data-parent', partner.parent_uid);
                 }
                 
                 container.appendChild(card);
@@ -670,6 +670,7 @@
             setTimeout(() => {
                 rebuildConnections();
                 addGreenPointsToAll();
+                resolveCollisions();
                 console.log('✅ Партнеры загружены и отображены');
             }, 100);
         }
@@ -941,13 +942,14 @@
                 savePartnerStructure();
                 
                 // Сохраняем партнера в БД
+                const parentUid = targetParent.getAttribute('data-uid') || targetParent.id;
                 const partnerData = {
                     unique_id: uniqueId,
                     human_name: humanName,
                     level: targetLevel,
                     position_x: childX,
                     position_y: childY,
-                    parent_id: targetParent.id
+                    parent_id: parentUid
                 };
                 savePartnerToDB(partnerData);
                 
@@ -2583,6 +2585,8 @@
             while (svg.firstChild) {
                 svg.removeChild(svg.firstChild);
             }
+            // Сбрасываем реестр уже нарисованных связей
+            window._drawnConnections = new Set();
             
             console.log(`✅ SVG очищен (осталось элементов: ${svg.children.length})`);
             
@@ -2613,6 +2617,14 @@
             // Функция для создания связи между двумя карточками
             function createConnection(parentCard, childCard) {
                 console.log(`🔗 Создаем связь: ${parentCard.id} → ${childCard.id}`);
+                // Не дублируем одну и ту же связь
+                if (!window._drawnConnections) window._drawnConnections = new Set();
+                const key = parentCard.id + '>' + childCard.id;
+                if (window._drawnConnections.has(key)) {
+                    console.log('⏭️ Пропускаем дублирующую связь', key);
+                    return;
+                }
+                window._drawnConnections.add(key);
                 const parentRect = parentCard.getBoundingClientRect();
                 const childRect = childCard.getBoundingClientRect();
                 

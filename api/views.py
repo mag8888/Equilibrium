@@ -107,6 +107,12 @@ class MLMViewSet(viewsets.ViewSet):
             data = request.data
             user = self._get_root_user(request)
             
+            # Разрешаем parent_id как unique_id родителя
+            parent_uid = data.get('parent_id')
+            parent_obj = None
+            if parent_uid:
+                parent_obj = MLMPartner.objects.filter(unique_id=parent_uid, root_user=user).first()
+
             # Создаем нового партнера
             partner = MLMPartner.objects.create(
                 unique_id=data['unique_id'],
@@ -114,7 +120,7 @@ class MLMViewSet(viewsets.ViewSet):
                 level=data.get('level', 0),
                 position_x=data.get('position_x', 0),
                 position_y=data.get('position_y', 0),
-                parent_id=data.get('parent_id'),
+                parent=parent_obj,
                 root_user=user
             )
             
@@ -125,7 +131,7 @@ class MLMViewSet(viewsets.ViewSet):
                 'level': partner.level,
                 'position_x': partner.position_x,
                 'position_y': partner.position_y,
-                'parent_id': partner.parent_id if partner.parent else None,
+                'parent_uid': partner.parent.unique_id if partner.parent else None,
                 'created_at': partner.created_at.isoformat() if partner.created_at else None
             }, status=status.HTTP_201_CREATED)
         except Exception as e:
@@ -151,7 +157,7 @@ class MLMViewSet(viewsets.ViewSet):
                     'level': partner.level,
                     'position_x': partner.position_x,
                     'position_y': partner.position_y,
-                    'parent_id': partner.parent_id if partner.parent else None,
+                    'parent_uid': partner.parent.unique_id if partner.parent else None,
                     'created_at': partner.created_at.isoformat() if partner.created_at else None
                 })
             
