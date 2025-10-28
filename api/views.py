@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from django.db.models import Q, Count, Sum
 from users.models import User, UserProfile
-from mlm.models import MLMStructure, Payment, Bonus, Withdrawal, MLMSettings
+from mlm.models import MLMStructure, Payment, Bonus, Withdrawal, MLMSettings, MLMPartner
 from .serializers import (
     UserSerializer, UserProfileSerializer, 
     MLMStructureSerializer, PaymentSerializer,
@@ -78,6 +78,67 @@ class MLMViewSet(viewsets.ViewSet):
             user.save()
             return Response({'status': 'success', 'message': 'Статус обновлен до партнера'})
         return Response({'status': 'error', 'message': 'Нельзя обновить статус'})
+    
+    @action(detail=False, methods=['post'])
+    def create_partner(self, request):
+        """Создать нового партнера"""
+        data = request.data
+        user = request.user
+        
+        # Создаем нового партнера
+        partner = MLMPartner.objects.create(
+            unique_id=data['unique_id'],
+            human_name=data['human_name'],
+            level=data.get('level', 0),
+            position_x=data.get('position_x', 0),
+            position_y=data.get('position_y', 0),
+            parent_id=data.get('parent_id'),
+            root_user=user
+        )
+        
+        return Response({
+            'id': partner.id,
+            'unique_id': partner.unique_id,
+            'human_name': partner.human_name,
+            'level': partner.level,
+            'position_x': partner.position_x,
+            'position_y': partner.position_y,
+            'parent_id': partner.parent_id,
+            'created_at': partner.created_at
+        }, status=status.HTTP_201_CREATED)
+    
+    @action(detail=False, methods=['get'])
+    def partners(self, request):
+        """Получить всех партнеров пользователя"""
+        user = request.user
+        partners = MLMPartner.objects.filter(root_user=user, is_active=True)
+        
+        data = []
+        for partner in partners:
+            data.append({
+                'id': partner.id,
+                'unique_id': partner.unique_id,
+                'human_name': partner.human_name,
+                'level': partner.level,
+                'position_x': partner.position_x,
+                'position_y': partner.position_y,
+                'parent_id': partner.parent_id,
+                'created_at': partner.created_at
+            })
+        
+        return Response(data)
+    
+    @action(detail=False, methods=['post'])
+    def clear_partners(self, request):
+        """Очистить всех партнеров пользователя (для тестирования)"""
+        user = request.user
+        deleted_count = MLMPartner.objects.filter(root_user=user).count()
+        MLMPartner.objects.filter(root_user=user).delete()
+        
+        return Response({
+            'message': f'Удалено {deleted_count} партнеров',
+            'deleted_count': deleted_count
+        })
 
 
 class AdminViewSet(viewsets.ViewSet):

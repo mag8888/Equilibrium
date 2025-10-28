@@ -145,6 +145,33 @@ class MLMSettings(models.Model):
         verbose_name_plural = 'Настройки MLM'
 
 
+class MLMPartner(models.Model):
+    """Модель для хранения партнеров в MLM структуре"""
+    
+    # Основные поля
+    unique_id = models.CharField(max_length=7, unique=True, help_text="7-значный уникальный ID")
+    human_name = models.CharField(max_length=100, help_text="Человеко-читаемое имя")
+    level = models.IntegerField(default=0, help_text="Уровень партнера (0-7)")
+    position_x = models.IntegerField(default=0, help_text="X координата на карте")
+    position_y = models.IntegerField(default=0, help_text="Y координата на карте")
+    
+    # Связи
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
+    root_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='mlm_partners')
+    
+    # Метаданные
+    created_at = models.DateTimeField(default=timezone.now)
+    is_active = models.BooleanField(default=True)
+    
+    def __str__(self):
+        return f"{self.human_name} ({self.level}*) - ID: {self.unique_id}"
+    
+    class Meta:
+        verbose_name = 'MLM Партнер'
+        verbose_name_plural = 'MLM Партнеры'
+        ordering = ['level', 'created_at']
+
+
 class Withdrawal(models.Model):
     """Модель для выводов средств"""
     
