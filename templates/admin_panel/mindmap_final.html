@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>👑 ПРОФИЛЬ ПАРТНЕРА IVA v47 - СВЯЗИ НЕ ИСЧЕЗАЮТ</title>
+    <title>👑 ПРОФИЛЬ ПАРТНЕРА IVA v48 - КЛИК VS ПЕРЕТАСКИВАНИЕ</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -385,7 +385,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - VERSION v47 - СВЯЗИ НЕ ИСЧЕЗАЮТ!');
+        console.log('🌐 MLM Mind Map Loading - VERSION v48 - КЛИК VS ПЕРЕТАСКИВАНИЕ!');
         
         const CARD_WIDTH = 150;
         const CARD_HEIGHT = 70;
@@ -1330,18 +1330,39 @@
             }
             
                    mindMapNodes.push({ id, name, level, x, y });
-            // Добавляем drag & drop функциональность
-            makeDraggable(node);
-            
             // Добавляем обработчик клика для создания дочерних узлов
-            node.addEventListener('click', function(e) {
-                // Проверяем, что кликнули не на connection point
+            let isDragging = false; // Флаг для отслеживания перетаскивания
+            let dragStartX, dragStartY;
+            
+            node.addEventListener('mousedown', function(e) {
+                // Не начинаем обработку если кликнули на connection point
                 if (e.target.classList.contains('connection-point')) {
                     return;
                 }
-                e.stopPropagation();
-                addPartnerToCard(node);
+                
+                // Запоминаем начальную позицию для определения, было ли перетаскивание
+                dragStartX = e.clientX;
+                dragStartY = e.clientY;
+                isDragging = false;
+                
+                // Через небольшую задержку проверяем, не началось ли перетаскивание
+                setTimeout(() => {
+                    if (!isDragging && Math.abs(e.clientX - dragStartX) < 5 && Math.abs(e.clientY - dragStartY) < 5) {
+                        // Если не было перетаскивания, создаем партнера
+                        addPartnerToCard(node);
+                    }
+                }, 200); // Небольшая задержка для проверки
             });
+            
+            node.addEventListener('mousemove', function(e) {
+                // Если мышь двигается, значит идет перетаскивание
+                if (Math.abs(e.clientX - dragStartX) > 5 || Math.abs(e.clientY - dragStartY) > 5) {
+                    isDragging = true;
+                }
+            });
+            
+            // Добавляем drag & drop функциональность
+            makeDraggable(node);
             
             return node;
         }
@@ -2278,7 +2299,7 @@
                 
                 cardsByLevel['1'].forEach((level1Card, index) => {
                     // Каждый Level 1 подключается к 3 карточкам Level 0
-                    for (let i = 0; i < 3; i++) {
+                for (let i = 0; i < 3; i++) {
                         const level0Index = index * 3 + i;
                         if (cardsByLevel['0'][level0Index]) {
                             const level0Card = cardsByLevel['0'][level0Index];
@@ -2447,7 +2468,7 @@
             input.value = '';
             
             // Имитируем ответ бота
-            setTimeout(() => {
+                setTimeout(() => {
                 const botMessage = document.createElement('div');
                 botMessage.style.cssText = `
                     margin-bottom: 10px;
