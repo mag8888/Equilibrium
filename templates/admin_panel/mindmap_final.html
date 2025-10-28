@@ -645,9 +645,13 @@
             
             console.log(`📊 Найдено ${partners.length} партнеров в БД`);
             
-            // Очищаем контейнер
+            // Очищаем контейнер (и обязательно восстанавливаем SVG слой для связей)
             const container = document.getElementById('mindmapContainer');
             container.innerHTML = '';
+            const svgLayer = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svgLayer.setAttribute('class', 'connection-svg');
+            svgLayer.setAttribute('id', 'connectionSvg');
+            container.appendChild(svgLayer);
             
             // Создаем карточки для каждого партнера
             partners.forEach(partner => {
@@ -670,6 +674,7 @@
             setTimeout(() => {
                 rebuildConnections();
                 addGreenPointsToAll();
+                // Без аргумента выполнит отталкивание для всех пар карточек
                 resolveCollisions();
                 console.log('✅ Партнеры загружены и отображены');
             }, 100);
@@ -1916,9 +1921,9 @@
             const containerRect = container.getBoundingClientRect();
             
             allCards.forEach(card => {
-                if (card === draggedElement) return;
+                if (draggedElement && card === draggedElement) return;
                 
-                const draggedRect = draggedElement.getBoundingClientRect();
+                const draggedRect = draggedElement ? draggedElement.getBoundingClientRect() : card.getBoundingClientRect();
                 const cardRect = card.getBoundingClientRect();
                 
                 // Проверяем пересечение
@@ -1971,7 +1976,7 @@
                 card.classList.remove('collision');
             });
             
-            draggedElement.classList.remove('collision');
+            if (draggedElement) draggedElement.classList.remove('collision');
             
             // НЕ перестраиваем связи - они уже созданы через createSingleConnection
             // rebuildConnections() удаляет все связи, включая только что созданные
