@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>👑 ПРОФИЛЬ ПАРТНЕРА IVA v51 - ПРОГРЕССИЯ УРОВНЕЙ</title>
+    <title>👑 ПРОФИЛЬ ПАРТНЕРА IVA v52 - ЦВЕТА ДЛЯ IVA</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -178,6 +178,55 @@
             background: linear-gradient(135deg, #B39DDB, #9C27B0); /* Фиолетовый - Level 7* */
             border: 2px solid #7B1FA2;
             color: white;
+        }
+        
+        /* Специальный стиль для IVA с учетом уровня */
+        .user-card[data-is-iva="true"][data-level="0"] {
+            background: linear-gradient(135deg, #FFFFFF, #F5F5F5) !important; /* Белый - Level 0* */
+            border: 3px solid #10B981 !important; /* Зеленая граница для выделения IVA */
+            color: #10B981 !important;
+        }
+        
+        .user-card[data-is-iva="true"][data-level="1"] {
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB) !important; /* Голубой - Level 1* */
+            border: 3px solid #059669 !important;
+            color: #1565C0 !important;
+        }
+        
+        .user-card[data-is-iva="true"][data-level="2"] {
+            background: linear-gradient(135deg, #C8E6C9, #A5D6A7) !important; /* Зеленый - Level 2* */
+            border: 3px solid #059669 !important;
+            color: #2E7D32 !important;
+        }
+        
+        .user-card[data-is-iva="true"][data-level="3"] {
+            background: linear-gradient(135deg, #FFF9C4, #FFF59D) !important; /* Желтый - Level 3* */
+            border: 3px solid #059669 !important;
+            color: #F57F17 !important;
+        }
+        
+        .user-card[data-is-iva="true"][data-level="4"] {
+            background: linear-gradient(135deg, #FFCCBC, #FFAB91) !important; /* Оранжевый - Level 4* */
+            border: 3px solid #059669 !important;
+            color: #D84315 !important;
+        }
+        
+        .user-card[data-is-iva="true"][data-level="5"] {
+            background: linear-gradient(135deg, #F8BBD0, #F48FB1) !important; /* Розовый - Level 5* */
+            border: 3px solid #059669 !important;
+            color: #C2185B !important;
+        }
+        
+        .user-card[data-is-iva="true"][data-level="6"] {
+            background: linear-gradient(135deg, #E1BEE7, #CE93D8) !important; /* Сиреневый - Level 6* */
+            border: 3px solid #059669 !important;
+            color: #7B1FA2 !important;
+        }
+        
+        .user-card[data-is-iva="true"][data-level="7"] {
+            background: linear-gradient(135deg, #B39DDB, #9C27B0) !important; /* Фиолетовый - Level 7* */
+            border: 3px solid #059669 !important;
+            color: white !important;
         }
         
         .user-card:hover {
@@ -448,7 +497,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - VERSION v51 - ПРОГРЕССИЯ УРОВНЕЙ!');
+        console.log('🌐 MLM Mind Map Loading - VERSION v52 - ЦВЕТА ДЛЯ IVA!');
         
         const CARD_WIDTH = 150;
         const CARD_HEIGHT = 70;
@@ -784,11 +833,10 @@
             ivaCard.setAttribute('data-iva-level', '0');
             ivaCard.setAttribute('data-created-by-click', 'true');
             
-            // Специальный стиль для IVA
-            ivaCard.style.background = 'linear-gradient(135deg, #10B981, #059669)';
-            ivaCard.style.color = 'white';
+            // Специальный стиль для IVA (но с учетом уровня)
+            // Цвет определяется автоматически по data-level через CSS
             ivaCard.style.fontWeight = 'bold';
-            ivaCard.style.border = '3px solid rgba(255, 255, 255, 0.5)';
+            ivaCard.style.border = '3px solid rgba(0, 0, 0, 0.3)';
             ivaCard.style.fontSize = '16px';
             ivaCard.style.minWidth = '140px';
             ivaCard.style.minHeight = '70px';

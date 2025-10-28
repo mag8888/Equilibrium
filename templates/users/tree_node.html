@@ -1,20 +1,5 @@
 <div class="tree-node level-{{ level }} tree-lines">
-    <div class="user-card {{ node.user.status }}">
-        <div class="user-avatar">
-            <i class="fas fa-user"></i>
-        </div>
-        <div class="user-name">{{ node.user.username }}</div>
-        <div class="user-status badge bg-{% if node.user.status == 'partner' %}success{% elif node.user.status == 'participant' %}warning{% else %}danger{% endif %}">
-            {{ node.user.get_status_display }}
-        </div>
-        <div class="user-rank">{{ node.user.get_rank_display }}</div>
-        <div class="user-balance">${{ node.user.balance }}</div>
-        <div class="mt-2">
-            <small class="text-muted">
-                Рефералов: {{ node.user.referrals.count }}
-            </small>
-        </div>
-    </div>
+    {% include 'users/_user_card.html' with node=node %}
     
     {% if node.children %}
         <div class="children-container mt-3">

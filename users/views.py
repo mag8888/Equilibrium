@@ -1,9 +1,11 @@
 from datetime import timedelta
+from collections import deque
 
 from django.contrib import messages
 from django.contrib.auth import authenticate
 from django.contrib.auth import login
 from django.contrib.auth.forms import AuthenticationForm
+from django.db import transaction
 from django.db.models import Avg, Sum
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
@@ -17,6 +19,8 @@ from mlm.services import place_user_in_structure
 
 from .models import User, UserProfile
 import json
+
+TEST_USER_PREFIX = "testuser_"
 
 
 def home(request):
@@ -619,12 +623,202 @@ def referrals(request):
     return render(request, 'users/referrals.html', context)
 
 
+def _ensure_structure_root(user):
+    """Гарантирует наличие узла структуры для переданного пользователя."""
+    structure, created = MLMStructure.objects.get_or_create(
+        user=user,
+        defaults={
+            'parent': None,
+            'position': 0,
+            'level': 0,
+            'created_at': timezone.now(),
+        },
+    )
+
+    if not created and (structure.parent_id is not None or structure.level != 0):
+        structure.parent = None
+        structure.level = 0
+        structure.position = 0
+        structure.save(update_fields=['parent', 'level', 'position'])
+
+    return structure
+
+
+def _build_structure_tree(user, current_level=0, max_depth=10):
+    """Рекурсивно строит дерево структуры для отображения."""
+    if current_level > max_depth:
+        return None
+
+    try:
+        mlm_structure = user.mlm_structure
+    except MLMStructure.DoesNotExist:
+        return None
+
+    children_nodes = []
+    children_structures = (
+        user.children.select_related('user')
+        .order_by('position', 'created_at')
+    )
+
+    if current_level < max_depth:
+        for child_structure in children_structures:
+            child_tree = _build_structure_tree(
+                child_structure.user,
+                current_level=current_level + 1,
+                max_depth=max_depth,
+            )
+            if child_tree:
+                children_nodes.append(child_tree)
+
+    return {
+        'user': user,
+        'mlm_structure': mlm_structure,
+        'children': children_nodes,
+        'level': current_level,
+    }
+
+
+def _flatten_structure_levels(root_node):
+    """Преобразует дерево структуры в список уровней для визуализации."""
+    if not root_node:
+        return []
+
+    levels = []
+    queue = deque([(root_node, 0)])
+
+    while queue:
+        node, level = queue.popleft()
+        if level >= len(levels):
+            levels.append([])
+        levels[level].append(node)
+
+        for child in node.get('children', []):
+            queue.append((child, level + 1))
+
+    return levels
+
+
+def _create_test_partner(root_user):
+    """Создает тестового партнера и размещает его в структуре."""
+    username = f"{TEST_USER_PREFIX}{get_random_string(8).lower()}"
+    email = f"{username}@example.com"
+    password = get_random_string(12)
+
+    with transaction.atomic():
+        new_user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            invited_by=root_user,
+            status='partner',
+            rank=0,
+        )
+        UserProfile.objects.get_or_create(user=new_user)
+        place_user_in_structure(new_user, root_user)
+
+    return new_user
+
+
+def _clear_structure_history(root_user):
+    """Удаляет тестовых партнеров и очищает структуру до корневого пользователя."""
+    queue = deque([root_user])
+    visited = {root_user.id}
+    descendants = []
+
+    while queue:
+        current_user = queue.popleft()
+        child_structures = (
+            current_user.children.select_related('user')
+            .order_by('position', 'created_at')
+        )
+
+        for child_structure in child_structures:
+            child_user = child_structure.user
+            if child_user.id in visited:
+                continue
+            visited.add(child_user.id)
+            descendants.append(child_user)
+            queue.append(child_user)
+
+    if not descendants:
+        return {'deleted_users': 0, 'removed_nodes': 0}
+
+    test_user_ids = [
+        user.id for user in descendants
+        if user.username.startswith(TEST_USER_PREFIX)
+    ]
+    remaining_user_ids = [
+        user.id for user in descendants
+        if user.id not in test_user_ids
+    ]
+
+    stats = {'deleted_users': 0, 'removed_nodes': 0}
+
+    with transaction.atomic():
+        if test_user_ids:
+            deleted_count, _ = User.objects.filter(id__in=test_user_ids).delete()
+            stats['deleted_users'] = deleted_count
+
+        if remaining_user_ids:
+            removed_count, _ = MLMStructure.objects.filter(user_id__in=remaining_user_ids).delete()
+            stats['removed_nodes'] = removed_count
+
+    return stats
+
+
 def structure(request):
     """Структура пользователя"""
     if not request.user.is_authenticated:
         return redirect('users:login')
-    
-    return render(request, 'users/structure.html')
+
+    root_user = request.user
+    root_structure = _ensure_structure_root(root_user)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'generate_test_user':
+            try:
+                new_partner = _create_test_partner(root_user)
+                messages.success(
+                    request,
+                    f'Добавлен тестовый партнер {new_partner.username}',
+                )
+            except Exception as exc:  # noqa: BLE001
+                messages.error(
+                    request,
+                    f'Не удалось создать партнера: {exc}',
+                )
+        elif action == 'clear_history':
+            stats = _clear_structure_history(root_user)
+            if stats['deleted_users'] or stats['removed_nodes']:
+                messages.success(
+                    request,
+                    (
+                        'Структура очищена. '
+                        f"Удалено тестовых пользователей: {stats['deleted_users']}, "
+                        f"очищено связей: {stats['removed_nodes']}."
+                    ),
+                )
+            else:
+                messages.info(request, 'Структура уже пуста.')
+        else:
+            messages.warning(request, 'Неизвестное действие.')
+
+        return redirect('users:structure')
+
+    direct_children = root_user.children.select_related('user').order_by('position', 'created_at')
+    structure_tree = _build_structure_tree(root_user)
+    level_rows = _flatten_structure_levels(structure_tree) if structure_tree else []
+
+    context = {
+        'mlm_structure': root_structure,
+        'children': direct_children,
+        'structure_tree': structure_tree,
+        'level_rows': level_rows,
+    }
+
+    return render(request, 'users/structure.html', context)
 
 
 def upgrade_to_partner(request):
@@ -652,4 +846,3 @@ def get_referral_link(request):
         'referral_code': referral_code,
         'referral_link': referral_link
     })
-
