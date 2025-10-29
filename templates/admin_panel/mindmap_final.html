@@ -173,6 +173,100 @@
             transform: scale(1.05);
         }
         
+        /* Фиксированная сетка по уровням */
+        .level-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .level-column {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            border-left: 3px solid rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .level-column.level-0 { left: 50px; width: 200px; border-color: #FF6B6B; }
+        .level-column.level-1 { left: 250px; width: 200px; border-color: #4ECDC4; }
+        .level-column.level-2 { left: 450px; width: 200px; border-color: #45B7D1; }
+        .level-column.level-3 { left: 650px; width: 200px; border-color: #96CEB4; }
+        .level-column.level-4 { left: 850px; width: 200px; border-color: #FFEAA7; }
+        .level-column.level-5 { left: 1050px; width: 200px; border-color: #DDA0DD; }
+        .level-column.level-6 { left: 1250px; width: 200px; border-color: #98D8C8; }
+        .level-column.level-7 { left: 1450px; width: 200px; border-color: #F7DC6F; }
+        
+        .level-label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 14px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Перетаскиваемые карточки */
+        .user-card.draggable {
+            cursor: move;
+            transition: transform 0.2s ease;
+        }
+        
+        .user-card.draggable:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .user-card.dragging {
+            z-index: 1000;
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Шаблоны уровней */
+        .template-buttons {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .template-btn {
+            background: #3B82F6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+        
+        .template-btn:hover {
+            background: #2563EB;
+            transform: scale(1.05);
+        }
+        
+        .template-btn.active {
+            background: #10B981;
+        }
+        
         .controls {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
@@ -536,7 +630,7 @@
 </head>
 <body>
     <div class="header">
-        <div class="title">🌐 MLM СТРУКТУРА - ИСПРАВЛЕНИЕ СКРОЛЛА v123 - СТАБИЛЬНОЕ ПОЗИЦИОНИРОВАНИЕ</div>
+        <div class="title">🌐 MLM СТРУКТУРА - 7 УРОВНЕЙ С ШАБЛОНАМИ v124 - ФИКСИРОВАННАЯ СЕТКА</div>
         <div class="subtitle">Симметричное расположение узлов вверх и вниз от центра без пересечений</div>
     </div>
     
@@ -580,6 +674,34 @@
     
     <div class="structure-container">
         <div class="mindmap-container" id="mindmapContainer">
+            <!-- Фиксированная сетка уровней -->
+            <div class="level-grid" id="levelGrid">
+                <div class="level-column level-0">
+                    <div class="level-label">Уровень 0*</div>
+                </div>
+                <div class="level-column level-1">
+                    <div class="level-label">Уровень 1*</div>
+                </div>
+                <div class="level-column level-2">
+                    <div class="level-label">Уровень 2*</div>
+                </div>
+                <div class="level-column level-3">
+                    <div class="level-label">Уровень 3*</div>
+                </div>
+                <div class="level-column level-4">
+                    <div class="level-label">Уровень 4*</div>
+                </div>
+                <div class="level-column level-5">
+                    <div class="level-label">Уровень 5*</div>
+                </div>
+                <div class="level-column level-6">
+                    <div class="level-label">Уровень 6*</div>
+                </div>
+                <div class="level-column level-7">
+                    <div class="level-label">Уровень 7*</div>
+                </div>
+            </div>
+            
             <!-- SVG для изогнутых линий -->
             <svg class="connection-svg" id="connectionSvg"></svg>
         </div>
@@ -634,6 +756,16 @@
         </div>
     </div>
     
+    <!-- Шаблоны уровней -->
+    <div class="template-buttons">
+        <div style="font-weight: bold; margin-bottom: 8px; color: #374151;">📋 ШАБЛОНЫ УРОВНЕЙ</div>
+        <button class="template-btn" onclick="applyTemplate('levels-1-2')">Уровни 1-2</button>
+        <button class="template-btn" onclick="applyTemplate('levels-3-4')">Уровни 3-4</button>
+        <button class="template-btn" onclick="applyTemplate('levels-5-6')">Уровни 5-6</button>
+        <button class="template-btn" onclick="applyTemplate('levels-6-7')">Уровни 6-7</button>
+        <button class="template-btn" onclick="createFullStructure()" style="background: #10B981;">🏗️ ПОЛНАЯ СТРУКТУРА</button>
+    </div>
+    
     <!-- Переключатель сетки -->
     <div class="grid-toggle">
         <button onclick="toggleGrid()" id="gridToggleBtn">📐 ПОКАЗАТЬ СЕТКУ</button>
@@ -656,7 +788,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - VERSION v123 - ИСПРАВЛЕНИЕ СКРОЛЛА!');
+        console.log('🌐 MLM Mind Map Loading - VERSION v124 - 7 УРОВНЕЙ С ШАБЛОНАМИ!');
         
         // Генератор человеческих имен для нижней строки
         function generateHumanName() {
@@ -687,6 +819,47 @@
         let gridCells = [];
         let gridPositions = new Map(); // Хранит позиции для каждого уровня
         const GRID_SIZE = 150; // Размер ячейки сетки
+        
+        // Переменные для перетаскивания
+        let isDragging = false;
+        let dragOffset = { x: 0, y: 0 };
+        let draggedCard = null;
+        
+        // Шаблоны уровней
+        const levelTemplates = {
+            'levels-1-2': {
+                name: 'Уровни 1-2',
+                levels: [1, 2],
+                positions: {
+                    1: [{ x: 300, y: 200 }, { x: 300, y: 350 }, { x: 300, y: 500 }],
+                    2: [{ x: 500, y: 150 }, { x: 500, y: 300 }, { x: 500, y: 450 }, { x: 500, y: 600 }]
+                }
+            },
+            'levels-3-4': {
+                name: 'Уровни 3-4',
+                levels: [3, 4],
+                positions: {
+                    3: [{ x: 700, y: 200 }, { x: 700, y: 350 }, { x: 700, y: 500 }],
+                    4: [{ x: 900, y: 150 }, { x: 900, y: 300 }, { x: 900, y: 450 }, { x: 900, y: 600 }]
+                }
+            },
+            'levels-5-6': {
+                name: 'Уровни 5-6',
+                levels: [5, 6],
+                positions: {
+                    5: [{ x: 1100, y: 200 }, { x: 1100, y: 350 }, { x: 1100, y: 500 }],
+                    6: [{ x: 1300, y: 150 }, { x: 1300, y: 300 }, { x: 1300, y: 450 }, { x: 1300, y: 600 }]
+                }
+            },
+            'levels-6-7': {
+                name: 'Уровни 6-7',
+                levels: [6, 7],
+                positions: {
+                    6: [{ x: 1300, y: 200 }, { x: 1300, y: 350 }, { x: 1300, y: 500 }],
+                    7: [{ x: 1500, y: 150 }, { x: 1500, y: 300 }, { x: 1500, y: 450 }, { x: 1500, y: 600 }]
+                }
+            }
+        };
         
         // Функции управления структурой
         function moveStructure(direction) {
@@ -750,6 +923,183 @@
             
             // Перестраиваем связи после трансформации
             rebuildConnections();
+        }
+        
+        // Функции для работы с шаблонами
+        function applyTemplate(templateKey) {
+            console.log(`📋 Применяем шаблон: ${templateKey}`);
+            
+            const template = levelTemplates[templateKey];
+            if (!template) {
+                console.log('❌ Шаблон не найден');
+                return;
+            }
+            
+            // Очищаем существующие карточки указанных уровней
+            const container = document.getElementById('mindmapContainer');
+            template.levels.forEach(level => {
+                const existingCards = container.querySelectorAll(`.user-card[data-level="${level}"]`);
+                existingCards.forEach(card => card.remove());
+            });
+            
+            // Создаем карточки по шаблону
+            template.levels.forEach(level => {
+                const positions = template.positions[level];
+                positions.forEach((pos, index) => {
+                    const uniqueId = generateUniqueId();
+                    const humanName = generateHumanName();
+                    const cardId = `partner-${level}-${uniqueId}`;
+                    const cardName = `${level}*/${index + 1}`;
+                    
+                    const card = createNode(cardId, cardName, level, pos, { humanName, uniqueId });
+                    card.classList.add('draggable');
+                    card.setAttribute('data-human-name', humanName);
+                    
+                    // Добавляем обработчики перетаскивания
+                    addDragHandlers(card);
+                    
+                    container.appendChild(card);
+                });
+            });
+            
+            // Перестраиваем связи
+            rebuildConnections();
+            
+            // Обновляем статистику
+            updateStats();
+            
+            console.log(`✅ Шаблон ${template.name} применен`);
+            
+            // Обновляем статус
+            const statusElement = document.getElementById('statusMessage');
+            if (statusElement) {
+                statusElement.textContent = `✅ Применен шаблон: ${template.name}`;
+            }
+        }
+        
+        function createFullStructure() {
+            console.log('🏗️ Создаем полную структуру 7 уровней...');
+            
+            // Очищаем все карточки кроме IVA
+            const container = document.getElementById('mindmapContainer');
+            const allCards = container.querySelectorAll('.user-card');
+            allCards.forEach(card => {
+                if (card.id !== 'iva-main-partner') {
+                    card.remove();
+                }
+            });
+            
+            // Создаем полную структуру
+            const fullStructure = {
+                0: [{ x: 100, y: 300 }], // IVA уже есть
+                1: [{ x: 300, y: 200 }, { x: 300, y: 300 }, { x: 300, y: 400 }],
+                2: [{ x: 500, y: 150 }, { x: 500, y: 250 }, { x: 500, y: 350 }, { x: 500, y: 450 }, { x: 500, y: 550 }],
+                3: [{ x: 700, y: 100 }, { x: 700, y: 200 }, { x: 700, y: 300 }, { x: 700, y: 400 }, { x: 700, y: 500 }, { x: 700, y: 600 }],
+                4: [{ x: 900, y: 80 }, { x: 900, y: 180 }, { x: 900, y: 280 }, { x: 900, y: 380 }, { x: 900, y: 480 }, { x: 900, y: 580 }],
+                5: [{ x: 1100, y: 60 }, { x: 1100, y: 160 }, { x: 1100, y: 260 }, { x: 1100, y: 360 }, { x: 1100, y: 460 }, { x: 1100, y: 560 }],
+                6: [{ x: 1300, y: 40 }, { x: 1300, y: 140 }, { x: 1300, y: 240 }, { x: 1300, y: 340 }, { x: 1300, y: 440 }, { x: 1300, y: 540 }],
+                7: [{ x: 1500, y: 20 }, { x: 1500, y: 120 }, { x: 1500, y: 220 }, { x: 1500, y: 320 }, { x: 1500, y: 420 }, { x: 1500, y: 520 }]
+            };
+            
+            // Создаем карточки для всех уровней кроме 0 (IVA уже есть)
+            for (let level = 1; level <= 7; level++) {
+                const positions = fullStructure[level];
+                positions.forEach((pos, index) => {
+                    const uniqueId = generateUniqueId();
+                    const humanName = generateHumanName();
+                    const cardId = `partner-${level}-${uniqueId}`;
+                    const cardName = `${level}*/${index + 1}`;
+                    
+                    const card = createNode(cardId, cardName, level, pos, { humanName, uniqueId });
+                    card.classList.add('draggable');
+                    card.setAttribute('data-human-name', humanName);
+                    
+                    // Добавляем обработчики перетаскивания
+                    addDragHandlers(card);
+                    
+                    container.appendChild(card);
+                });
+            }
+            
+            // Перестраиваем связи
+            rebuildConnections();
+            
+            // Обновляем статистику
+            updateStats();
+            
+            console.log('✅ Полная структура 7 уровней создана');
+            
+            // Обновляем статус
+            const statusElement = document.getElementById('statusMessage');
+            if (statusElement) {
+                statusElement.textContent = '✅ Полная структура 7 уровней создана!';
+            }
+        }
+        
+        // Функции для перетаскивания карточек
+        function addDragHandlers(card) {
+            card.addEventListener('mousedown', handleDragStart);
+            card.addEventListener('mousemove', handleDragMove);
+            card.addEventListener('mouseup', handleDragEnd);
+            card.addEventListener('mouseleave', handleDragEnd);
+        }
+        
+        function handleDragStart(e) {
+            if (e.target.classList.contains('connection-point')) return;
+            
+            isDragging = true;
+            draggedCard = e.currentTarget;
+            
+            const rect = draggedCard.getBoundingClientRect();
+            const containerRect = document.getElementById('mindmapContainer').getBoundingClientRect();
+            
+            dragOffset.x = e.clientX - rect.left;
+            dragOffset.y = e.clientY - rect.top;
+            
+            draggedCard.classList.add('dragging');
+            e.preventDefault();
+        }
+        
+        function handleDragMove(e) {
+            if (!isDragging || !draggedCard) return;
+            
+            const containerRect = document.getElementById('mindmapContainer').getBoundingClientRect();
+            const newX = e.clientX - containerRect.left - dragOffset.x;
+            const newY = e.clientY - containerRect.top - dragOffset.y;
+            
+            draggedCard.style.left = newX + 'px';
+            draggedCard.style.top = newY + 'px';
+            
+            // Перестраиваем связи в реальном времени
+            rebuildConnections();
+        }
+        
+        function handleDragEnd(e) {
+            if (!isDragging || !draggedCard) return;
+            
+            isDragging = false;
+            draggedCard.classList.remove('dragging');
+            draggedCard = null;
+            
+            // Обновляем сетку если она видима
+            if (gridVisible) {
+                updateGridOccupancy();
+            }
+        }
+        
+        // Инициализация обработчиков перетаскивания
+        function initializeDragHandlers() {
+            const container = document.getElementById('mindmapContainer');
+            const cards = container.querySelectorAll('.user-card');
+            
+            cards.forEach(card => {
+                if (!card.classList.contains('draggable')) {
+                    card.classList.add('draggable');
+                    addDragHandlers(card);
+                }
+            });
+            
+            console.log(`🖱️ Инициализировано перетаскивание для ${cards.length} карточек`);
         }
         
         // Функции для работы с сеткой
@@ -4855,6 +5205,12 @@
             setTimeout(() => {
                 // Создаем базовую структуру и добавляем IVA
                 generateIndividualStructures();
+                
+                // Инициализируем перетаскивание для всех карточек
+                setTimeout(() => {
+                    initializeDragHandlers();
+                    console.log('🖱️ Обработчики перетаскивания инициализированы');
+                }, 500);
                 
                 // Включаем улучшенную систему перемещения подложки автоматически
                 setTimeout(() => {
