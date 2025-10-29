@@ -536,7 +536,7 @@
 </head>
 <body>
     <div class="header">
-        <div class="title">🌐 MLM СТРУКТУРА - СЕТКА ДЛЯ КАРТОЧЕК v122 - АВТОМАТИЧЕСКОЕ РАЗМЕЩЕНИЕ</div>
+        <div class="title">🌐 MLM СТРУКТУРА - ИСПРАВЛЕНИЕ СКРОЛЛА v123 - СТАБИЛЬНОЕ ПОЗИЦИОНИРОВАНИЕ</div>
         <div class="subtitle">Симметричное расположение узлов вверх и вниз от центра без пересечений</div>
     </div>
     
@@ -656,7 +656,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - VERSION v122 - СЕТКА ДЛЯ КАРТОЧЕК!');
+        console.log('🌐 MLM Mind Map Loading - VERSION v123 - ИСПРАВЛЕНИЕ СКРОЛЛА!');
         
         // Генератор человеческих имен для нижней строки
         function generateHumanName() {
@@ -731,9 +731,22 @@
             const container = document.getElementById('mindmapContainer');
             if (!container) return;
             
-            // Применяем трансформацию ко всему контейнеру
-            container.style.transform = `translate(${structureOffsetX}px, ${structureOffsetY}px) scale(${structureScale})`;
-            container.style.transformOrigin = 'center center';
+            // НЕ применяем трансформацию к контейнеру - это ломает позиционирование
+            // Вместо этого перемещаем карточки напрямую
+            
+            const cards = Array.from(container.querySelectorAll('.user-card'));
+            cards.forEach(card => {
+                const currentLeft = parseInt(card.style.left) || 0;
+                const currentTop = parseInt(card.style.top) || 0;
+                
+                // Применяем смещение и масштаб к каждой карточке
+                const newLeft = (currentLeft + structureOffsetX) * structureScale;
+                const newTop = (currentTop + structureOffsetY) * structureScale;
+                
+                card.style.left = newLeft + 'px';
+                card.style.top = newTop + 'px';
+                card.style.transform = `scale(${structureScale})`;
+            });
             
             // Перестраиваем связи после трансформации
             rebuildConnections();
@@ -933,7 +946,11 @@
             structureOffsetX = 0;
             structureOffsetY = 0;
             structureScale = 1;
-            container.style.transform = 'none';
+            
+            // Сбрасываем трансформации всех карточек
+            cards.forEach(card => {
+                card.style.transform = 'none';
+            });
             
             // Параметры расстановки (уменьшены для лучшего размещения)
             const ROOT_X = 100;
@@ -989,11 +1006,10 @@
                 return;
             }
             
-            // Сбрасываем все трансформации контейнера
+            // Сбрасываем все трансформации
             structureOffsetX = 0;
             structureOffsetY = 0;
             structureScale = 1;
-            container.style.transform = 'none';
             
             // Сбрасываем позиции всех карточек
             cards.forEach(card => {
@@ -1005,6 +1021,11 @@
             
             // Перестраиваем связи
             rebuildConnections();
+            
+            // Обновляем сетку если она видима
+            if (gridVisible) {
+                updateGridOccupancy();
+            }
             
             console.log(`✅ Сброшены позиции ${cards.length} карточек`);
             
