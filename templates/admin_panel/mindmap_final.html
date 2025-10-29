@@ -62,6 +62,56 @@
             color: #059669;
         }
         
+        /* Фиксированные кнопки управления */
+        .fixed-controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid #e5e7eb;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .control-group {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .control-btn {
+            width: 45px;
+            height: 45px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            background: #ffffff;
+            font-size: 18px;
+            font-weight: bold;
+            color: #374151;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .control-btn:hover {
+            background: #f3f4f6;
+            border-color: #9ca3af;
+            transform: scale(1.05);
+        }
+        
+        .control-btn:active {
+            background: #e5e7eb;
+            transform: scale(0.95);
+        }
+        
         .controls {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
@@ -425,7 +475,7 @@
 </head>
 <body>
     <div class="header">
-        <div class="title">🌐 MLM СТРУКТУРА - МГНОВЕННЫЕ СВЯЗИ v120 - БЕЗ ЗАДЕРЖЕК</div>
+        <div class="title">🌐 MLM СТРУКТУРА - СТАТИЧНАЯ СИСТЕМА v121 - ФИКСИРОВАННЫЕ КНОПКИ</div>
         <div class="subtitle">Симметричное расположение узлов вверх и вниз от центра без пересечений</div>
     </div>
     
@@ -456,18 +506,14 @@
         <button class="btn" onclick="resetToIVAOnly()" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: white; font-weight: bold;">👑 СБРОС к IVA</button>
         <button class="btn" onclick="clearAllPartners()" style="background: linear-gradient(135deg, #EF4444, #DC2626); color: white; font-weight: bold;">🗑️ ОЧИСТИТЬ ПАРТНЕРОВ</button>
         <button class="btn" onclick="showIVAProgression()" style="background: linear-gradient(135deg, #8B5CF6, #7C3AED); color: white; font-weight: bold;">📈 ПРОГРЕССИЯ IVA</button>
-        <button class="btn" onclick="autoLayout111();" style="background: linear-gradient(135deg, #3B82F6, #2563EB); color: white; font-weight: bold;">расстановка 111</button>
+        <button class="btn" onclick="autoLayout111();" style="background: linear-gradient(135deg, #3B82F6, #2563EB); color: white; font-weight: bold;">🎯 РАССТАНОВКА 111 (КАРТОЧКИ)</button>
         <button class="btn" onclick="autoLayoutNoOverlap(); rebuildConnections(); resolveCollisions();" style="background: linear-gradient(135deg, #10B981, #059669); color: white; font-weight: bold;">🎨 КРАСИВАЯ РАСКЛАДКА</button>
         <button class="btn" onclick="recalculatePositionsOnChange();" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: white; font-weight: bold;">🎯 ПЕРЕСЧЕТ ПОЗИЦИЙ</button>
         <button class="btn" onclick="autoLayoutNoOverlap(); rebuildConnections();" style="background: linear-gradient(135deg, #EF4444, #DC2626); color: white; font-weight: bold;">🚫 ИСПРАВИТЬ НАЛОЖЕНИЯ</button>
-        <button class="btn" onclick="enableAdvancedScrolling();" style="background: linear-gradient(135deg, #8B5CF6, #7C3AED); color: white; font-weight: bold;">🖱️ ПРОДВИНУТЫЙ СКРОЛЛИНГ</button>
-        <button class="btn" onclick="resetAllTransforms();" style="background: linear-gradient(135deg, #EF4444, #DC2626); color: white; font-weight: bold;">🔄 СБРОС ЭФФЕКТОВ</button>
         <button class="btn" onclick="centerTreeToMainAccount();" style="background: linear-gradient(135deg, #10B981, #059669); color: white; font-weight: bold;">🎯 ОТЦЕНТРИРОВАТЬ ДРЕВО</button>
         <button class="btn" onclick="savePositionsToDB();" style="background: linear-gradient(135deg, #3B82F6, #2563EB); color: white; font-weight: bold;">💾 СОХРАНИТЬ ПОЗИЦИИ</button>
-        <button class="btn" onclick="enableBackgroundMovement();" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: white; font-weight: bold;">🎯 ПЕРЕМЕЩЕНИЕ ПОДЛОЖКИ</button>
         <button class="btn" onclick="cardManager.resolveCollisions(); statsManager.update();" style="background: linear-gradient(135deg, #8B5CF6, #7C3AED); color: white; font-weight: bold;">🔧 ИСПРАВИТЬ СТОЛКНОВЕНИЯ</button>
         <button class="btn" onclick="statsManager.update();" style="background: linear-gradient(135deg, #10B981, #059669); color: white; font-weight: bold;">📊 ОБНОВИТЬ СТАТИСТИКУ</button>
-        <button class="btn" onclick="disableAdvancedScrolling();" style="background: linear-gradient(135deg, #6B7280, #4B5563); color: white; font-weight: bold;">🚫 ОТКЛЮЧИТЬ СКРОЛЛИНГ</button>
     </div>
     
     <div class="structure-container">
@@ -526,8 +572,24 @@
         </div>
     </div>
     
+    <!-- Фиксированные кнопки управления внизу экрана -->
+    <div class="fixed-controls">
+        <div class="control-group">
+            <button class="control-btn" onclick="moveStructure('up')" title="Переместить вверх">↑</button>
+        </div>
+        <div class="control-group">
+            <button class="control-btn" onclick="moveStructure('left')" title="Переместить влево">←</button>
+            <button class="control-btn" onclick="moveStructure('right')" title="Переместить вправо">→</button>
+        </div>
+        <div class="control-group">
+            <button class="control-btn" onclick="zoomStructure('out')" title="Уменьшить">−</button>
+            <button class="control-btn" onclick="moveStructure('down')" title="Переместить вниз">↓</button>
+            <button class="control-btn" onclick="zoomStructure('in')" title="Увеличить">+</button>
+        </div>
+    </div>
+    
     <script>
-        console.log('🌐 MLM Mind Map Loading - VERSION v120 - МГНОВЕННЫЕ СВЯЗИ!');
+        console.log('🌐 MLM Mind Map Loading - VERSION v121 - СТАТИЧНАЯ СИСТЕМА!');
         
         // Генератор человеческих имен для нижней строки
         function generateHumanName() {
@@ -545,6 +607,139 @@
         // Генератор уникального 7-значного ID
         function generateUniqueId() {
             return Math.floor(1000000 + Math.random() * 9000000).toString();
+        }
+        
+        // Переменные для управления структурой
+        let structureOffsetX = 0;
+        let structureOffsetY = 0;
+        let structureScale = 1;
+        let layoutMode = 'cards'; // 'cards' или 'connections'
+        
+        // Функции управления структурой
+        function moveStructure(direction) {
+            const step = 50; // Шаг перемещения в пикселях
+            
+            switch(direction) {
+                case 'up':
+                    structureOffsetY -= step;
+                    break;
+                case 'down':
+                    structureOffsetY += step;
+                    break;
+                case 'left':
+                    structureOffsetX -= step;
+                    break;
+                case 'right':
+                    structureOffsetX += step;
+                    break;
+            }
+            
+            applyStructureTransform();
+            console.log(`🔄 Структура перемещена: ${direction}, X=${structureOffsetX}, Y=${structureOffsetY}`);
+        }
+        
+        function zoomStructure(action) {
+            const step = 0.1;
+            
+            switch(action) {
+                case 'in':
+                    structureScale = Math.min(structureScale + step, 3.0);
+                    break;
+                case 'out':
+                    structureScale = Math.max(structureScale - step, 0.3);
+                    break;
+            }
+            
+            applyStructureTransform();
+            console.log(`🔍 Зум изменен: ${action}, масштаб=${structureScale.toFixed(1)}`);
+        }
+        
+        function applyStructureTransform() {
+            const container = document.getElementById('mindmapContainer');
+            if (!container) return;
+            
+            // Применяем трансформацию ко всему контейнеру
+            container.style.transform = `translate(${structureOffsetX}px, ${structureOffsetY}px) scale(${structureScale})`;
+            container.style.transformOrigin = 'center center';
+            
+            // Перестраиваем связи после трансформации
+            rebuildConnections();
+        }
+        
+        // Модифицированная функция autoLayout111 с двумя режимами
+        function autoLayout111() {
+            console.log(`🎯 Расстановка 111 - режим: ${layoutMode}`);
+            
+            if (layoutMode === 'cards') {
+                // Первое нажатие - расставляем карточки
+                layoutCards();
+                layoutMode = 'connections';
+                updateLayoutButton();
+                console.log('✅ Карточки расставлены! Следующее нажатие расставит связи.');
+            } else {
+                // Второе нажатие - расставляем связи
+                rebuildConnections();
+                layoutMode = 'cards';
+                updateLayoutButton();
+                console.log('✅ Связи расставлены! Следующее нажатие расставит карточки.');
+            }
+        }
+        
+        function updateLayoutButton() {
+            const button = document.querySelector('button[onclick="autoLayout111();"]');
+            if (button) {
+                if (layoutMode === 'cards') {
+                    button.textContent = '🎯 РАССТАНОВКА 111 (КАРТОЧКИ)';
+                } else {
+                    button.textContent = '🔗 РАССТАНОВКА 111 (СВЯЗИ)';
+                }
+            }
+        }
+        
+        function layoutCards() {
+            const container = document.getElementById('mindmapContainer');
+            const cards = Array.from(container.querySelectorAll('.user-card'));
+            
+            if (cards.length === 0) {
+                console.log('❌ Нет карточек для расстановки');
+                return;
+            }
+            
+            // Сбрасываем смещения
+            structureOffsetX = 0;
+            structureOffsetY = 0;
+            structureScale = 1;
+            
+            // Параметры расстановки
+            const ROOT_X = 50;
+            const ROOT_Y = 300;
+            const HORIZONTAL_GAP = 300;
+            const VERTICAL_GAP = 150;
+            
+            // Группируем карточки по уровням
+            const levels = {};
+            cards.forEach(card => {
+                const level = parseInt(card.getAttribute('data-level')) || 0;
+                if (!levels[level]) levels[level] = [];
+                levels[level].push(card);
+            });
+            
+            // Расставляем карточки по уровням
+            Object.keys(levels).sort((a, b) => parseInt(a) - parseInt(b)).forEach(level => {
+                const levelCards = levels[level];
+                const levelNum = parseInt(level);
+                
+                levelCards.forEach((card, index) => {
+                    const x = ROOT_X + (levelNum * HORIZONTAL_GAP);
+                    const y = ROOT_Y + (index * VERTICAL_GAP) - ((levelCards.length - 1) * VERTICAL_GAP / 2);
+                    
+                    card.style.left = x + 'px';
+                    card.style.top = y + 'px';
+                    card.style.position = 'absolute';
+                });
+            });
+            
+            console.log(`✅ Расставлено ${cards.length} карточек по ${Object.keys(levels).length} уровням`);
         }
         
         // Функция для сохранения партнера в БД
