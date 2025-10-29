@@ -425,7 +425,7 @@
 </head>
 <body>
     <div class="header">
-        <div class="title">🌐 MLM СТРУКТУРА - ИСПРАВЛЕНИЕ ВИДИМОСТИ v112 - ВСЕ ЭЛЕМЕНТЫ ДОСТУПНЫ</div>
+        <div class="title">🌐 MLM СТРУКТУРА - СТАТИСТИКА ДО 7 УРОВНЯ v113 - ИСПРАВЛЕННЫЙ СКРОЛЛ</div>
         <div class="subtitle">Симметричное расположение узлов вверх и вниз от центра без пересечений</div>
     </div>
     
@@ -499,6 +499,22 @@
                 <div class="stat-number" id="level3Count">0</div>
                 <div class="stat-label">Партнеры (3-й)</div>
             </div>
+            <div class="stat-item">
+                <div class="stat-number" id="level4Count">0</div>
+                <div class="stat-label">Партнеры (4-й)</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="level5Count">0</div>
+                <div class="stat-label">Партнеры (5-й)</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="level6Count">0</div>
+                <div class="stat-label">Партнеры (6-й)</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="level7Count">0</div>
+                <div class="stat-label">Партнеры (7-й)</div>
+            </div>
         </div>
         <div style="text-align: center; margin-top: 20px; font-size: 1.2rem; font-weight: 600; color: #059669;">
             <span id="statusMessage">✅ ГОРИЗОНТАЛЬНАЯ МАЙНД-КАРТА готова!</span>
@@ -506,7 +522,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - VERSION v112 - ИСПРАВЛЕНИЕ ВИДИМОСТИ!');
+        console.log('🌐 MLM Mind Map Loading - VERSION v113 - СТАТИСТИКА ДО 7 УРОВНЯ!');
         
         // Генератор человеческих имен для нижней строки
         function generateHumanName() {
@@ -1639,9 +1655,9 @@
             }
         }
 
-        // Улучшенная функция скроллинга с зумом и стрелками
+        // Исправленная функция скроллинга
         function enableAdvancedScrolling() {
-            console.log('🖱️ Включаем продвинутый скроллинг с зумом и стрелками...');
+            console.log('🖱️ Включаем исправленный скроллинг...');
             
             const container = document.getElementById('mindmapContainer');
             if (!container) return;
@@ -1656,85 +1672,57 @@
             const MAX_ZOOM = 3.0;
             const ZOOM_STEP = 0.1;
 
-            // Удаляем старые обработчики если они есть
-            container.removeEventListener('mousedown', handleMouseDown);
-            container.removeEventListener('mousemove', handleMouseMove);
-            container.removeEventListener('mouseup', handleMouseUp);
-            container.removeEventListener('mouseleave', handleMouseLeave);
+            // Очищаем все старые обработчики
+            container.onmousedown = null;
+            container.onmousemove = null;
+            container.onmouseup = null;
+            document.onmousemove = null;
+            document.onmouseup = null;
 
-            // Обработчик начала перетаскивания
-            function handleMouseDown(e) {
-                console.log('🖱️ Mouse down detected:', e.target);
-                
-                // Проверяем, что клик не по карточке или её элементам
+            // Простой обработчик перетаскивания
+            container.onmousedown = function(e) {
+                // Проверяем, что клик не по карточке
                 if (e.target.classList.contains('user-card') || 
                     e.target.closest('.user-card') ||
                     e.target.tagName === 'svg' ||
                     e.target.closest('svg')) {
-                    console.log('❌ Клик по карточке или SVG, пропускаем');
                     return;
                 }
 
                 console.log('✅ Начинаем перетаскивание фона');
                 isDragging = true;
-                startX = e.pageX - container.offsetLeft;
-                startY = e.pageY - container.offsetTop;
+                startX = e.clientX;
+                startY = e.clientY;
                 scrollLeft = container.scrollLeft;
                 scrollTop = container.scrollTop;
                 
                 container.style.cursor = 'grabbing';
                 e.preventDefault();
-                e.stopPropagation();
-            }
+            };
 
-            // Обработчик движения мыши
-            function handleMouseMove(e) {
+            // Обработчик движения мыши на document
+            document.onmousemove = function(e) {
                 if (!isDragging) return;
 
                 e.preventDefault();
-                e.stopPropagation();
                 
-                const x = e.pageX - container.offsetLeft;
-                const y = e.pageY - container.offsetTop;
-                const walkX = (x - startX) * 2;
-                const walkY = (y - startY) * 2;
+                const deltaX = e.clientX - startX;
+                const deltaY = e.clientY - startY;
                 
-                const newScrollLeft = scrollLeft - walkX;
-                const newScrollTop = scrollTop - walkY;
+                container.scrollLeft = scrollLeft - deltaX;
+                container.scrollTop = scrollTop - deltaY;
                 
-                container.scrollLeft = newScrollLeft;
-                container.scrollTop = newScrollTop;
-                
-                console.log(`🔄 Скролл: X=${newScrollLeft}, Y=${newScrollTop}, walkX=${walkX}, walkY=${walkY}`);
-                console.log(`📏 Контейнер: offsetLeft=${container.offsetLeft}, offsetTop=${container.offsetTop}`);
-                console.log(`🖱️ Мышь: pageX=${e.pageX}, pageY=${e.pageY}`);
-            }
+                console.log(`🔄 Скролл: X=${container.scrollLeft}, Y=${container.scrollTop}`);
+            };
 
-            // Обработчик отпускания мыши
-            function handleMouseUp(e) {
+            // Обработчик отпускания мыши на document
+            document.onmouseup = function(e) {
                 if (isDragging) {
                     console.log('✅ Завершено перетаскивание фона');
                 }
                 isDragging = false;
                 container.style.cursor = 'grab';
-                e.preventDefault();
-                e.stopPropagation();
-            }
-
-            // Обработчик выхода мыши за пределы контейнера
-            function handleMouseLeave(e) {
-                if (isDragging) {
-                    console.log('🚪 Мышь покинула контейнер');
-                }
-                isDragging = false;
-                container.style.cursor = 'grab';
-            }
-
-            // Добавляем обработчики с правильными параметрами
-            container.addEventListener('mousedown', handleMouseDown, { passive: false });
-            container.addEventListener('mousemove', handleMouseMove, { passive: false });
-            container.addEventListener('mouseup', handleMouseUp, { passive: false });
-            container.addEventListener('mouseleave', handleMouseLeave, { passive: false });
+            };
 
             // Обработчик колесика мыши для зума и скролла
             container.addEventListener('wheel', (e) => {
@@ -1833,66 +1821,7 @@
                 console.log(`📐 Новые Scroll размеры: ${container.scrollWidth}x${container.scrollHeight}`);
             }
             
-            // Добавляем тестовый обработчик для отладки
-            container.addEventListener('click', (e) => {
-                console.log('🖱️ Клик по контейнеру:', e.target, 'isDragging:', isDragging);
-            });
-            
-            // Альтернативный способ - перемещение содержимого вместо скролла
-            let alternativeDragging = false;
-            let altStartX = 0;
-            let altStartY = 0;
-            let altScrollLeft = 0;
-            let altScrollTop = 0;
-            
-            document.addEventListener('mousedown', (e) => {
-                // Проверяем, что клик именно по контейнеру или его пустой области
-                if (e.target === container || 
-                    (container.contains(e.target) && 
-                     !e.target.classList.contains('user-card') && 
-                     !e.target.closest('.user-card') &&
-                     e.target.tagName !== 'svg' &&
-                     !e.target.closest('svg'))) {
-                    
-                    console.log('🖱️ Альтернативный обработчик: начинаем перетаскивание');
-                    alternativeDragging = true;
-                    altStartX = e.pageX;
-                    altStartY = e.pageY;
-                    altScrollLeft = container.scrollLeft;
-                    altScrollTop = container.scrollTop;
-                    
-                    container.style.cursor = 'grabbing';
-                    e.preventDefault();
-                    e.stopPropagation();
-                }
-            });
-            
-            document.addEventListener('mousemove', (e) => {
-                if (!alternativeDragging) return;
-                
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const deltaX = e.pageX - altStartX;
-                const deltaY = e.pageY - altStartY;
-                
-                // Прямое изменение скролла
-                container.scrollLeft = altScrollLeft - deltaX;
-                container.scrollTop = altScrollTop - deltaY;
-                
-                console.log(`🔄 Альтернативный скролл: deltaX=${deltaX}, deltaY=${deltaY}, scrollLeft=${container.scrollLeft}, scrollTop=${container.scrollTop}`);
-            });
-            
-            document.addEventListener('mouseup', (e) => {
-                if (alternativeDragging) {
-                    console.log('✅ Альтернативный обработчик: завершено перетаскивание');
-                }
-                alternativeDragging = false;
-                container.style.cursor = 'grab';
-            });
-            
-            console.log('✅ Продвинутый скроллинг включен! Используйте: Ctrl+колесико для зума, стрелки для перемещения, +/- для зума');
-            console.log('🔍 Отладка: попробуйте кликнуть по пустому месту и перетащить');
+            console.log('✅ Исправленный скроллинг включен! Используйте: Ctrl+колесико для зума, стрелки для перемещения, +/- для зума');
         }
 
         // Функция для отключения продвинутого скроллинга
@@ -3235,6 +3164,10 @@
             const level1Count = document.querySelectorAll('.user-card[data-level="1"]').length;
             const level2Count = document.querySelectorAll('.user-card[data-level="2"]').length;
             const level3Count = document.querySelectorAll('.user-card[data-level="3"]').length;
+            const level4Count = document.querySelectorAll('.user-card[data-level="4"]').length;
+            const level5Count = document.querySelectorAll('.user-card[data-level="5"]').length;
+            const level6Count = document.querySelectorAll('.user-card[data-level="6"]').length;
+            const level7Count = document.querySelectorAll('.user-card[data-level="7"]').length;
             const totalNodes = document.querySelectorAll('.user-card').length;
             const totalConnections = document.querySelectorAll('path').length;
             
@@ -3242,6 +3175,10 @@
             document.getElementById('level1Count').textContent = level1Count;
             document.getElementById('level2Count').textContent = level2Count;
             document.getElementById('level3Count').textContent = level3Count;
+            document.getElementById('level4Count').textContent = level4Count;
+            document.getElementById('level5Count').textContent = level5Count;
+            document.getElementById('level6Count').textContent = level6Count;
+            document.getElementById('level7Count').textContent = level7Count;
             document.getElementById('totalNodes').textContent = totalNodes;
             document.getElementById('totalConnections').textContent = totalConnections;
             
