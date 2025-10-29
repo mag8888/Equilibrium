@@ -425,7 +425,7 @@
 </head>
 <body>
     <div class="header">
-        <div class="title">🌐 MLM СТРУКТУРА - РЕФАКТОРИНГ v115 - ЕДИНЫЕ МЕНЕДЖЕРЫ</div>
+        <div class="title">🌐 MLM СТРУКТУРА - ЦЕНТРИРОВАНИЕ И СОХРАНЕНИЕ v116 - БАЗА ДАННЫХ</div>
         <div class="subtitle">Симметричное расположение узлов вверх и вниз от центра без пересечений</div>
     </div>
     
@@ -461,6 +461,8 @@
         <button class="btn" onclick="recalculatePositionsOnChange();" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: white; font-weight: bold;">🎯 ПЕРЕСЧЕТ ПОЗИЦИЙ</button>
         <button class="btn" onclick="autoLayoutNoOverlap(); rebuildConnections();" style="background: linear-gradient(135deg, #EF4444, #DC2626); color: white; font-weight: bold;">🚫 ИСПРАВИТЬ НАЛОЖЕНИЯ</button>
         <button class="btn" onclick="enableAdvancedScrolling();" style="background: linear-gradient(135deg, #8B5CF6, #7C3AED); color: white; font-weight: bold;">🖱️ ПРОДВИНУТЫЙ СКРОЛЛИНГ</button>
+        <button class="btn" onclick="centerTreeToMainAccount();" style="background: linear-gradient(135deg, #10B981, #059669); color: white; font-weight: bold;">🎯 ОТЦЕНТРИРОВАТЬ ДРЕВО</button>
+        <button class="btn" onclick="savePositionsToDB();" style="background: linear-gradient(135deg, #3B82F6, #2563EB); color: white; font-weight: bold;">💾 СОХРАНИТЬ ПОЗИЦИИ</button>
         <button class="btn" onclick="enableBackgroundMovement();" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: white; font-weight: bold;">🎯 ПЕРЕМЕЩЕНИЕ ПОДЛОЖКИ</button>
         <button class="btn" onclick="cardManager.resolveCollisions(); statsManager.update();" style="background: linear-gradient(135deg, #8B5CF6, #7C3AED); color: white; font-weight: bold;">🔧 ИСПРАВИТЬ СТОЛКНОВЕНИЯ</button>
         <button class="btn" onclick="statsManager.update();" style="background: linear-gradient(135deg, #10B981, #059669); color: white; font-weight: bold;">📊 ОБНОВИТЬ СТАТИСТИКУ</button>
@@ -524,7 +526,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - VERSION v115 - РЕФАКТОРИНГ!');
+        console.log('🌐 MLM Mind Map Loading - VERSION v116 - ЦЕНТРИРОВАНИЕ И СОХРАНЕНИЕ!');
         
         // Генератор человеческих имен для нижней строки
         function generateHumanName() {
@@ -2554,6 +2556,9 @@
                 const uniqueId = card.getAttribute('data-uid') || card.id;
                 updatePartnerLevelInDB(uniqueId, newLevel);
                 
+                // Автоматически сохраняем уровни
+                autoSaveLevels();
+                
                 // Визуальная индикация повышения уровня
                 card.style.animation = 'none';
                 setTimeout(() => {
@@ -3521,9 +3526,191 @@
             }
         }
 
-        // Создаем глобальный экземпляр менеджера карточек
-        const cardManager = new CardManager();
+        // Функция центрирования дерева относительно главного аккаунта
+        function centerTreeToMainAccount() {
+            console.log('🎯 Центрируем дерево относительно главного аккаунта...');
+            
+            const container = document.getElementById('mindmapContainer');
+            const cards = Array.from(container.querySelectorAll('.user-card'));
+            
+            if (cards.length === 0) {
+                console.log('❌ Нет карточек для центрирования');
+                return;
+            }
+            
+            // Находим главный аккаунт (IVA)
+            let mainAccount = container.querySelector('#iva-main-partner');
+            if (!mainAccount) {
+                // Если IVA не найдена, берем первую карточку без родителя
+                mainAccount = cards.find(card => !card.getAttribute('data-parent'));
+                if (!mainAccount) {
+                    mainAccount = cards[0];
+                }
+            }
+            
+            if (!mainAccount) {
+                console.log('❌ Главный аккаунт не найден');
+                return;
+            }
+            
+            console.log(`👑 Главный аккаунт: ${mainAccount.id}`);
+            
+            // Получаем размеры контейнера
+            const containerRect = container.getBoundingClientRect();
+            const containerCenterX = containerRect.width / 2;
+            const containerCenterY = containerRect.height / 2;
+            
+            // Получаем текущую позицию главного аккаунта
+            const mainRect = mainAccount.getBoundingClientRect();
+            const mainCenterX = mainRect.left + mainRect.width / 2;
+            const mainCenterY = mainRect.top + mainRect.height / 2;
+            
+            // Вычисляем смещение для центрирования
+            const offsetX = containerCenterX - mainCenterX;
+            const offsetY = containerCenterY - mainCenterY;
+            
+            console.log(`📐 Смещение: X=${offsetX}, Y=${offsetY}`);
+            
+            // Применяем смещение ко всем карточкам
+            cards.forEach(card => {
+                const currentLeft = parseInt(card.style.left) || 0;
+                const currentTop = parseInt(card.style.top) || 0;
+                
+                card.style.left = (currentLeft + offsetX) + 'px';
+                card.style.top = (currentTop + offsetY) + 'px';
+            });
+            
+            // Перестраиваем связи
+            rebuildConnections();
+            
+            // Обновляем статистику
+            statsManager.update();
+            
+            console.log('✅ Дерево отцентрировано относительно главного аккаунта');
+            
+            // Обновляем статус
+            const statusElement = document.getElementById('statusMessage');
+            if (statusElement) {
+                statusElement.textContent = '✅ Дерево отцентрировано относительно главного аккаунта!';
+            }
+        }
 
+        // Функция сохранения позиций в базу данных
+        async function savePositionsToDB() {
+            console.log('💾 Сохраняем позиции карточек в базу данных...');
+            
+            const container = document.getElementById('mindmapContainer');
+            const cards = Array.from(container.querySelectorAll('.user-card'));
+            
+            if (cards.length === 0) {
+                console.log('❌ Нет карточек для сохранения');
+                return;
+            }
+            
+            const positions = [];
+            
+            cards.forEach(card => {
+                const uniqueId = card.getAttribute('data-uid') || card.id;
+                const level = parseInt(card.getAttribute('data-level')) || 0;
+                const x = parseInt(card.style.left) || 0;
+                const y = parseInt(card.style.top) || 0;
+                
+                positions.push({
+                    unique_id: uniqueId,
+                    level: level,
+                    x: x,
+                    y: y
+                });
+            });
+            
+            try {
+                const response = await fetch('/api/mlm/save_positions/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        positions: positions
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('✅ Позиции сохранены в БД:', result);
+                    
+                    // Обновляем статус
+                    const statusElement = document.getElementById('statusMessage');
+                    if (statusElement) {
+                        statusElement.textContent = `✅ Сохранено ${positions.length} позиций в БД!`;
+                    }
+                } else {
+                    console.error('❌ Ошибка сохранения позиций:', response.statusText);
+                }
+            } catch (error) {
+                console.error('❌ Ошибка при сохранении позиций:', error);
+            }
+        }
+
+        // Функция сохранения уровней партнеров в базу данных
+        async function saveLevelsToDB() {
+            console.log('📈 Сохраняем уровни партнеров в базу данных...');
+            
+            const container = document.getElementById('mindmapContainer');
+            const cards = Array.from(container.querySelectorAll('.user-card'));
+            
+            if (cards.length === 0) {
+                console.log('❌ Нет карточек для сохранения уровней');
+                return;
+            }
+            
+            let savedCount = 0;
+            
+            for (const card of cards) {
+                const uniqueId = card.getAttribute('data-uid') || card.id;
+                const level = parseInt(card.getAttribute('data-level')) || 0;
+                
+                try {
+                    const response = await fetch('/api/mlm/update_partner_level/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: JSON.stringify({
+                            unique_id: uniqueId,
+                            level: level
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        savedCount++;
+                        console.log(`✅ Уровень ${level} сохранен для ${uniqueId}`);
+                    } else {
+                        console.error(`❌ Ошибка сохранения уровня для ${uniqueId}:`, response.statusText);
+                    }
+                } catch (error) {
+                    console.error(`❌ Ошибка при сохранении уровня для ${uniqueId}:`, error);
+                }
+            }
+            
+            console.log(`📈 Сохранено ${savedCount} из ${cards.length} уровней в БД`);
+            
+            // Обновляем статус
+            const statusElement = document.getElementById('statusMessage');
+            if (statusElement) {
+                statusElement.textContent = `📈 Сохранено ${savedCount} уровней в БД!`;
+            }
+        }
+
+        // Автоматическое сохранение уровней при изменении
+        function autoSaveLevels() {
+            console.log('🔄 Автоматическое сохранение уровней...');
+            setTimeout(() => {
+                saveLevelsToDB();
+            }, 1000);
+        }
+        
         // Функции управления
         function clearMindMap() {
             const svg = document.getElementById('connectionSvg');
