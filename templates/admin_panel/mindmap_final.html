@@ -66,8 +66,7 @@
         .fixed-controls {
             position: fixed;
             bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
+            right: 20px;
             background: rgba(255, 255, 255, 0.95);
             border: 2px solid #e5e7eb;
             border-radius: 15px;
@@ -110,6 +109,68 @@
         .control-btn:active {
             background: #e5e7eb;
             transform: scale(0.95);
+        }
+        
+        /* Сетка для карточек */
+        .grid-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .grid-cell {
+            position: absolute;
+            border: 1px dashed rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .grid-cell:hover {
+            background: rgba(0, 123, 255, 0.1);
+            border-color: rgba(0, 123, 255, 0.3);
+        }
+        
+        .grid-cell.occupied {
+            background: rgba(40, 167, 69, 0.1);
+            border-color: rgba(40, 167, 69, 0.3);
+        }
+        
+        .grid-cell.reserved {
+            background: rgba(255, 193, 7, 0.1);
+            border-color: rgba(255, 193, 7, 0.3);
+        }
+        
+        /* Индикатор сетки */
+        .grid-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        
+        .grid-toggle button {
+            background: #3B82F6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+        
+        .grid-toggle button:hover {
+            background: #2563EB;
+            transform: scale(1.05);
         }
         
         .controls {
@@ -475,7 +536,7 @@
 </head>
 <body>
     <div class="header">
-        <div class="title">🌐 MLM СТРУКТУРА - СТАТИЧНАЯ СИСТЕМА v121 - ФИКСИРОВАННЫЕ КНОПКИ</div>
+        <div class="title">🌐 MLM СТРУКТУРА - СЕТКА ДЛЯ КАРТОЧЕК v122 - АВТОМАТИЧЕСКОЕ РАЗМЕЩЕНИЕ</div>
         <div class="subtitle">Симметричное расположение узлов вверх и вниз от центра без пересечений</div>
     </div>
     
@@ -510,6 +571,7 @@
         <button class="btn" onclick="autoLayoutNoOverlap(); rebuildConnections(); resolveCollisions();" style="background: linear-gradient(135deg, #10B981, #059669); color: white; font-weight: bold;">🎨 КРАСИВАЯ РАСКЛАДКА</button>
         <button class="btn" onclick="recalculatePositionsOnChange();" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: white; font-weight: bold;">🎯 ПЕРЕСЧЕТ ПОЗИЦИЙ</button>
         <button class="btn" onclick="autoLayoutNoOverlap(); rebuildConnections();" style="background: linear-gradient(135deg, #EF4444, #DC2626); color: white; font-weight: bold;">🚫 ИСПРАВИТЬ НАЛОЖЕНИЯ</button>
+        <button class="btn" onclick="resetCardsPositions();" style="background: linear-gradient(135deg, #EF4444, #DC2626); color: white; font-weight: bold;">🔄 СБРОСИТЬ ПОЗИЦИИ</button>
         <button class="btn" onclick="centerTreeToMainAccount();" style="background: linear-gradient(135deg, #10B981, #059669); color: white; font-weight: bold;">🎯 ОТЦЕНТРИРОВАТЬ ДРЕВО</button>
         <button class="btn" onclick="savePositionsToDB();" style="background: linear-gradient(135deg, #3B82F6, #2563EB); color: white; font-weight: bold;">💾 СОХРАНИТЬ ПОЗИЦИИ</button>
         <button class="btn" onclick="cardManager.resolveCollisions(); statsManager.update();" style="background: linear-gradient(135deg, #8B5CF6, #7C3AED); color: white; font-weight: bold;">🔧 ИСПРАВИТЬ СТОЛКНОВЕНИЯ</button>
@@ -572,6 +634,11 @@
         </div>
     </div>
     
+    <!-- Переключатель сетки -->
+    <div class="grid-toggle">
+        <button onclick="toggleGrid()" id="gridToggleBtn">📐 ПОКАЗАТЬ СЕТКУ</button>
+    </div>
+    
     <!-- Фиксированные кнопки управления внизу экрана -->
     <div class="fixed-controls">
         <div class="control-group">
@@ -589,7 +656,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - VERSION v121 - СТАТИЧНАЯ СИСТЕМА!');
+        console.log('🌐 MLM Mind Map Loading - VERSION v122 - СЕТКА ДЛЯ КАРТОЧЕК!');
         
         // Генератор человеческих имен для нижней строки
         function generateHumanName() {
@@ -614,6 +681,12 @@
         let structureOffsetY = 0;
         let structureScale = 1;
         let layoutMode = 'cards'; // 'cards' или 'connections'
+        
+        // Переменные для сетки
+        let gridVisible = false;
+        let gridCells = [];
+        let gridPositions = new Map(); // Хранит позиции для каждого уровня
+        const GRID_SIZE = 150; // Размер ячейки сетки
         
         // Функции управления структурой
         function moveStructure(direction) {
@@ -666,6 +739,157 @@
             rebuildConnections();
         }
         
+        // Функции для работы с сеткой
+        function toggleGrid() {
+            gridVisible = !gridVisible;
+            const button = document.getElementById('gridToggleBtn');
+            
+            if (gridVisible) {
+                createGrid();
+                button.textContent = '📐 СКРЫТЬ СЕТКУ';
+                console.log('📐 Сетка показана');
+            } else {
+                removeGrid();
+                button.textContent = '📐 ПОКАЗАТЬ СЕТКУ';
+                console.log('📐 Сетка скрыта');
+            }
+        }
+        
+        function createGrid() {
+            const container = document.getElementById('mindmapContainer');
+            if (!container) return;
+            
+            // Удаляем существующую сетку
+            removeGrid();
+            
+            // Создаем overlay для сетки
+            const gridOverlay = document.createElement('div');
+            gridOverlay.className = 'grid-overlay';
+            gridOverlay.id = 'gridOverlay';
+            
+            // Получаем размеры контейнера
+            const containerRect = container.getBoundingClientRect();
+            const containerWidth = container.offsetWidth;
+            const containerHeight = container.offsetHeight;
+            
+            // Создаем ячейки сетки
+            const cols = Math.ceil(containerWidth / GRID_SIZE);
+            const rows = Math.ceil(containerHeight / GRID_SIZE);
+            
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'grid-cell';
+                    cell.style.left = (col * GRID_SIZE) + 'px';
+                    cell.style.top = (row * GRID_SIZE) + 'px';
+                    cell.style.width = GRID_SIZE + 'px';
+                    cell.style.height = GRID_SIZE + 'px';
+                    
+                    // Добавляем обработчик клика для резервирования позиции
+                    cell.addEventListener('click', () => reserveGridPosition(row, col));
+                    
+                    gridOverlay.appendChild(cell);
+                    gridCells.push(cell);
+                }
+            }
+            
+            container.appendChild(gridOverlay);
+            updateGridOccupancy();
+        }
+        
+        function removeGrid() {
+            const gridOverlay = document.getElementById('gridOverlay');
+            if (gridOverlay) {
+                gridOverlay.remove();
+            }
+            gridCells = [];
+        }
+        
+        function reserveGridPosition(row, col) {
+            const cell = gridCells.find(c => {
+                const cellRow = Math.floor(parseInt(c.style.top) / GRID_SIZE);
+                const cellCol = Math.floor(parseInt(c.style.left) / GRID_SIZE);
+                return cellRow === row && cellCol === col;
+            });
+            
+            if (cell) {
+                if (cell.classList.contains('reserved')) {
+                    cell.classList.remove('reserved');
+                    console.log(`🔓 Позиция (${row}, ${col}) освобождена`);
+                } else {
+                    cell.classList.add('reserved');
+                    console.log(`🔒 Позиция (${row}, ${col}) зарезервирована`);
+                }
+            }
+        }
+        
+        function updateGridOccupancy() {
+            const cards = Array.from(document.querySelectorAll('.user-card'));
+            
+            // Сбрасываем все занятые ячейки
+            gridCells.forEach(cell => {
+                cell.classList.remove('occupied');
+            });
+            
+            // Отмечаем занятые ячейки
+            cards.forEach(card => {
+                const cardRect = card.getBoundingClientRect();
+                const containerRect = document.getElementById('mindmapContainer').getBoundingClientRect();
+                
+                const relativeX = cardRect.left - containerRect.left;
+                const relativeY = cardRect.top - containerRect.top;
+                
+                const gridCol = Math.floor(relativeX / GRID_SIZE);
+                const gridRow = Math.floor(relativeY / GRID_SIZE);
+                
+                const cell = gridCells.find(c => {
+                    const cellRow = Math.floor(parseInt(c.style.top) / GRID_SIZE);
+                    const cellCol = Math.floor(parseInt(c.style.left) / GRID_SIZE);
+                    return cellRow === gridRow && cellCol === gridCol;
+                });
+                
+                if (cell) {
+                    cell.classList.add('occupied');
+                }
+            });
+        }
+        
+        function getNextAvailablePosition(level) {
+            // Ищем первую доступную позицию для указанного уровня
+            for (let i = 0; i < gridCells.length; i++) {
+                const cell = gridCells[i];
+                if (!cell.classList.contains('occupied') && !cell.classList.contains('reserved')) {
+                    const cellRow = Math.floor(parseInt(cell.style.top) / GRID_SIZE);
+                    const cellCol = Math.floor(parseInt(cell.style.left) / GRID_SIZE);
+                    
+                    // Проверяем, подходит ли позиция для уровня
+                    if (isPositionSuitableForLevel(cellRow, cellCol, level)) {
+                        return {
+                            x: parseInt(cell.style.left),
+                            y: parseInt(cell.style.top),
+                            row: cellRow,
+                            col: cellCol
+                        };
+                    }
+                }
+            }
+            
+            // Если не найдено, возвращаем позицию по умолчанию
+            return {
+                x: 100 + (level * 200),
+                y: 200,
+                row: 1,
+                col: Math.floor(level * 200 / GRID_SIZE)
+            };
+        }
+        
+        function isPositionSuitableForLevel(row, col, level) {
+            // Логика определения подходящей позиции для уровня
+            // Например, уровень 0 должен быть справа от уровня 1
+            const minCol = level * 2; // Минимальная колонка для уровня
+            return col >= minCol;
+        }
+        
         // Модифицированная функция autoLayout111 с двумя режимами
         function autoLayout111() {
             console.log(`🎯 Расстановка 111 - режим: ${layoutMode}`);
@@ -705,16 +929,17 @@
                 return;
             }
             
-            // Сбрасываем смещения
+            // Сбрасываем смещения и трансформации
             structureOffsetX = 0;
             structureOffsetY = 0;
             structureScale = 1;
+            container.style.transform = 'none';
             
-            // Параметры расстановки
-            const ROOT_X = 50;
-            const ROOT_Y = 300;
-            const HORIZONTAL_GAP = 300;
-            const VERTICAL_GAP = 150;
+            // Параметры расстановки (уменьшены для лучшего размещения)
+            const ROOT_X = 100;
+            const ROOT_Y = 200;
+            const HORIZONTAL_GAP = 200; // Уменьшено с 300 до 200
+            const VERTICAL_GAP = 120;   // Уменьшено с 150 до 120
             
             // Группируем карточки по уровням
             const levels = {};
@@ -724,6 +949,9 @@
                 levels[level].push(card);
             });
             
+            // Находим максимальное количество карточек на одном уровне для центрирования
+            const maxCardsInLevel = Math.max(...Object.values(levels).map(levelCards => levelCards.length));
+            
             // Расставляем карточки по уровням
             Object.keys(levels).sort((a, b) => parseInt(a) - parseInt(b)).forEach(level => {
                 const levelCards = levels[level];
@@ -731,15 +959,60 @@
                 
                 levelCards.forEach((card, index) => {
                     const x = ROOT_X + (levelNum * HORIZONTAL_GAP);
-                    const y = ROOT_Y + (index * VERTICAL_GAP) - ((levelCards.length - 1) * VERTICAL_GAP / 2);
+                    // Центрируем карточки относительно максимального количества
+                    const totalHeight = (maxCardsInLevel - 1) * VERTICAL_GAP;
+                    const startY = ROOT_Y - totalHeight / 2;
+                    const y = startY + (index * VERTICAL_GAP);
                     
                     card.style.left = x + 'px';
                     card.style.top = y + 'px';
                     card.style.position = 'absolute';
+                    card.style.zIndex = '10';
                 });
             });
             
+            // Перестраиваем связи после расстановки карточек
+            rebuildConnections();
+            
             console.log(`✅ Расставлено ${cards.length} карточек по ${Object.keys(levels).length} уровням`);
+        }
+        
+        // Функция для сброса позиций карточек
+        function resetCardsPositions() {
+            console.log('🔄 Сбрасываем позиции карточек...');
+            
+            const container = document.getElementById('mindmapContainer');
+            const cards = Array.from(container.querySelectorAll('.user-card'));
+            
+            if (cards.length === 0) {
+                console.log('❌ Нет карточек для сброса');
+                return;
+            }
+            
+            // Сбрасываем все трансформации контейнера
+            structureOffsetX = 0;
+            structureOffsetY = 0;
+            structureScale = 1;
+            container.style.transform = 'none';
+            
+            // Сбрасываем позиции всех карточек
+            cards.forEach(card => {
+                card.style.left = '0px';
+                card.style.top = '0px';
+                card.style.position = 'absolute';
+                card.style.transform = 'none';
+            });
+            
+            // Перестраиваем связи
+            rebuildConnections();
+            
+            console.log(`✅ Сброшены позиции ${cards.length} карточек`);
+            
+            // Обновляем статус
+            const statusElement = document.getElementById('statusMessage');
+            if (statusElement) {
+                statusElement.textContent = '✅ Позиции карточек сброшены!';
+            }
         }
         
         // Функция для сохранения партнера в БД
@@ -1186,26 +1459,36 @@
             const newChildName = `${targetLevel}*/${childNumber}`;
             const humanName = generateHumanName();
             
-            // Вычисляем позицию нового партнера
-            const parentRect = targetParent.getBoundingClientRect();
-            const containerRect = container.getBoundingClientRect();
+            // Вычисляем позицию нового партнера с использованием сетки
+            let childX, childY;
             
-            const parentX = parentRect.left - containerRect.left;
-            const parentY = parentRect.top - containerRect.top;
-            
-            // Размещаем детей сверху вниз с увеличенным расстоянием
-            const childX = parentX + 200; // Смещение вправо
-            let childY;
-            
-            if (childNumber === 1) {
-                childY = parentY - 120; // Первый ребенок выше
-            } else if (childNumber === 2) {
-                childY = parentY; // Второй ребенок на уровне родителя
-            } else if (childNumber === 3) {
-                childY = parentY + 120; // Третий ребенок ниже
+            if (gridVisible && gridCells.length > 0) {
+                // Используем сетку для автоматического размещения
+                const position = getNextAvailablePosition(targetLevel);
+                childX = position.x;
+                childY = position.y;
+                console.log(`📐 Размещение по сетке: (${position.row}, ${position.col}) -> (${childX}, ${childY})`);
             } else {
-                // Если детей больше 3, размещаем их дальше вниз
-                childY = parentY + 120 + ((childNumber - 3) * 80);
+                // Стандартное размещение без сетки
+                const parentRect = targetParent.getBoundingClientRect();
+                const containerRect = container.getBoundingClientRect();
+                
+                const parentX = parentRect.left - containerRect.left;
+                const parentY = parentRect.top - containerRect.top;
+                
+                // Размещаем детей сверху вниз с увеличенным расстоянием
+                childX = parentX + 200; // Смещение вправо
+                
+                if (childNumber === 1) {
+                    childY = parentY - 120; // Первый ребенок выше
+                } else if (childNumber === 2) {
+                    childY = parentY; // Второй ребенок на уровне родителя
+                } else if (childNumber === 3) {
+                    childY = parentY + 120; // Третий ребенок ниже
+                } else {
+                    // Если детей больше 3, размещаем их дальше вниз
+                    childY = parentY + 120 + ((childNumber - 3) * 80);
+                }
             }
             
             // Создаем новый узел
@@ -1215,6 +1498,11 @@
             newChild.setAttribute('data-human-name', humanName);
             
             container.appendChild(newChild);
+            
+            // Обновляем сетку если она видима
+            if (gridVisible) {
+                updateGridOccupancy();
+            }
             
             // Создаем связь МГНОВЕННО
             createSingleConnection(targetParent, newChild);
