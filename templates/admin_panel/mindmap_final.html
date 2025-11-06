@@ -904,11 +904,27 @@
             if (!container) return;
             
             // Двигаем и зумим только трансформацией, не трогаем left/top
+            const isDefaultTransform = structureOffsetX === 0 && structureOffsetY === 0 && structureScale === 1;
+            const transformValue = isDefaultTransform
+                ? 'none'
+                : `translate(${structureOffsetX}px, ${structureOffsetY}px) scale(${structureScale})`;
             const cards = Array.from(container.querySelectorAll('.user-card'));
             cards.forEach(card => {
-                card.style.transform = `translate(${structureOffsetX}px, ${structureOffsetY}px) scale(${structureScale})`;
+                card.style.transform = transformValue;
                 card.style.transformOrigin = 'top left';
             });
+            
+            const levelGrid = document.getElementById('levelGrid');
+            if (levelGrid) {
+                levelGrid.style.transform = transformValue;
+                levelGrid.style.transformOrigin = 'top left';
+            }
+            
+            const gridOverlay = document.getElementById('gridOverlay');
+            if (gridOverlay) {
+                gridOverlay.style.transform = transformValue;
+                gridOverlay.style.transformOrigin = 'top left';
+            }
             
             // Перестраиваем связи после трансформации
             rebuildConnections();
@@ -1196,8 +1212,10 @@
             if (!isDragging || !draggedCard) return;
             
             const containerRect = document.getElementById('mindmapContainer').getBoundingClientRect();
-            const newX = e.clientX - containerRect.left - dragOffset.x;
-            const newY = e.clientY - containerRect.top - dragOffset.y;
+            const pointerX = e.clientX - containerRect.left;
+            const pointerY = e.clientY - containerRect.top;
+            const newX = pointerX - dragOffset.x - structureOffsetX;
+            const newY = pointerY - dragOffset.y - structureOffsetY;
             
             draggedCard.style.left = newX + 'px';
             draggedCard.style.top = newY + 'px';
@@ -1311,6 +1329,13 @@
             
             container.appendChild(gridOverlay);
             updateGridOccupancy();
+            
+            // Учитываем текущие смещения/масштаб
+            const gridTransformDefault = structureOffsetX === 0 && structureOffsetY === 0 && structureScale === 1;
+            gridOverlay.style.transform = gridTransformDefault
+                ? 'none'
+                : `translate(${structureOffsetX}px, ${structureOffsetY}px) scale(${structureScale})`;
+            gridOverlay.style.transformOrigin = 'top left';
         }
         
         function removeGrid() {
@@ -1340,7 +1365,10 @@
         }
         
         function updateGridOccupancy() {
-            const cards = Array.from(document.querySelectorAll('.user-card'));
+            const container = document.getElementById('mindmapContainer');
+            if (!container || gridCells.length === 0) return;
+            
+            const cards = Array.from(container.querySelectorAll('.user-card'));
             
             // Сбрасываем все занятые ячейки
             gridCells.forEach(cell => {
@@ -1349,14 +1377,18 @@
             
             // Отмечаем занятые ячейки
             cards.forEach(card => {
-                const cardRect = card.getBoundingClientRect();
-                const containerRect = document.getElementById('mindmapContainer').getBoundingClientRect();
+                let baseLeft = parseFloat(card.style.left);
+                let baseTop = parseFloat(card.style.top);
                 
-                const relativeX = cardRect.left - containerRect.left;
-                const relativeY = cardRect.top - containerRect.top;
+                if (Number.isNaN(baseLeft) || Number.isNaN(baseTop)) {
+                    const cardRect = card.getBoundingClientRect();
+                    const containerRect = container.getBoundingClientRect();
+                    baseLeft = cardRect.left - containerRect.left - structureOffsetX;
+                    baseTop = cardRect.top - containerRect.top - structureOffsetY;
+                }
                 
-                const gridCol = Math.floor(relativeX / GRID_SIZE);
-                const gridRow = Math.floor(relativeY / GRID_SIZE);
+                const gridCol = Math.floor(baseLeft / GRID_SIZE);
+                const gridRow = Math.floor(baseTop / GRID_SIZE);
                 
                 const cell = gridCells.find(c => {
                     const cellRow = Math.floor(parseInt(c.style.top) / GRID_SIZE);
@@ -1368,6 +1400,9 @@
                     cell.classList.add('occupied');
                 }
             });
+
+            // Применяем текущую трансформацию после перерасчета занятости
+            applyStructureTransform();
         }
         
         function getNextAvailablePosition(level) {
@@ -1431,8 +1466,8 @@
                 card.style.transform = 'none';
             });
             
-            // Перестраиваем связи
-            rebuildConnections();
+            // Применяем сброшенные трансформации
+            applyStructureTransform();
             
             // Обновляем сетку если она видима
             if (gridVisible) {
