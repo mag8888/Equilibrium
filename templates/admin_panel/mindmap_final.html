@@ -5190,34 +5190,35 @@
         
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('📄 DOM Content Loaded - PROFILE IVA v61 - СОХРАНЕНИЕ В БД!');
-            console.log('🔍 Debug: DOM загружен, начинаем инициализацию горизонтальной майнд-карты...');
+            console.log('📄 DOM Content Loaded - GRID ONLY MODE (0..5)');
             
-            // Автоматически загружаем профиль партнера IVA
-            console.log('👑 Загружаем профиль партнера IVA...');
-            setTimeout(() => {
-                // Создаем базовую структуру и добавляем IVA
-                generateIndividualStructures();
-                
-                // Инициализируем перетаскивание для всех карточек
-                setTimeout(() => {
-                    initializeDragHandlers();
-                    console.log('🖱️ Обработчики перетаскивания инициализированы');
-            }, 500);
-        
-                // Включаем улучшенную систему перемещения подложки автоматически
-        setTimeout(() => {
-                    enableBackgroundMovement();
-                    console.log('🎯 Система перемещения подложки включена автоматически!');
-                    
-                    // Исправляем видимость элементов
-                setTimeout(() => {
-                        ensureAllElementsVisible();
-                        console.log('👁️ Видимость элементов исправлена автоматически!');
-                    }, 500);
-                }, 1000);
-            }, 1000);
-            console.log('✅ Страница готова! Профиль партнера IVA будет загружен автоматически.');
+            // Скрываем старые панели
+            const controls = document.querySelector('.controls');
+            if (controls) controls.style.display = 'none';
+            const templates = document.querySelector('.template-buttons');
+            if (templates) templates.style.display = 'none';
+            
+            // Обеспечиваем видимость переключателя сетки
+            const gridToggle = document.querySelector('.grid-toggle');
+            if (gridToggle) gridToggle.style.display = 'block';
+            
+            // Строим сетку 0..5 уровней и показываем overlay
+            if (typeof createEmptyGrid5Levels === 'function') {
+                createEmptyGrid5Levels();
+            }
+            if (typeof gridVisible !== 'undefined' && !gridVisible) {
+                toggleGrid();
+            } else {
+                // Если уже включена, приведем transform в соответствие
+                applyStructureTransform();
+            }
+            
+            // Активируем перетаскивание
+            if (typeof initializeDragHandlers === 'function') {
+                initializeDragHandlers();
+            }
+            
+            console.log('✅ GRID ONLY готова: 0..5 уровней с фиксированной сеткой');
         });
         
         // Дополнительная инициализация отключена - пользователь выбирает структуру кнопками
