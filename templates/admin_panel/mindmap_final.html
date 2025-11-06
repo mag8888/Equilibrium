@@ -903,43 +903,11 @@
             const container = document.getElementById('mindmapContainer');
             if (!container) return;
             
-            // НЕ применяем трансформацию к контейнеру - это ломает позиционирование
-            // Вместо этого перемещаем карточки напрямую
-            
+            // Двигаем и зумим только трансформацией, не трогаем left/top
             const cards = Array.from(container.querySelectorAll('.user-card'));
             cards.forEach(card => {
-                // Если карточка зафиксирована на сетке, сохраняем её позицию относительно сетки
-                const isGridFixed = card.getAttribute('data-grid-fixed') === 'true';
-                
-                if (isGridFixed && gridVisible) {
-                    // Для зафиксированных карточек применяем только смещение, сохраняя привязку к сетке
-                    const currentLeft = parseInt(card.style.left) || 0;
-                    const currentTop = parseInt(card.style.top) || 0;
-                    
-                    // Вычисляем позицию на сетке
-                    const gridCol = Math.round((currentLeft + structureOffsetX) / GRID_SIZE);
-                    const gridRow = Math.round((currentTop + structureOffsetY) / GRID_SIZE);
-                    
-                    // Применяем масштаб к смещению сетки
-                    const newLeft = (gridCol * GRID_SIZE) * structureScale;
-                    const newTop = (gridRow * GRID_SIZE) * structureScale;
-                    
-                    card.style.left = newLeft + 'px';
-                    card.style.top = newTop + 'px';
-                    card.style.transform = `scale(${structureScale})`;
-                } else {
-                    // Для обычных карточек применяем стандартную трансформацию
-                    const currentLeft = parseInt(card.style.left) || 0;
-                    const currentTop = parseInt(card.style.top) || 0;
-                    
-                    // Применяем смещение и масштаб к каждой карточке
-                    const newLeft = (currentLeft + structureOffsetX) * structureScale;
-                    const newTop = (currentTop + structureOffsetY) * structureScale;
-                    
-                    card.style.left = newLeft + 'px';
-                    card.style.top = newTop + 'px';
-                    card.style.transform = `scale(${structureScale})`;
-                }
+                card.style.transform = `translate(${structureOffsetX}px, ${structureOffsetY}px) scale(${structureScale})`;
+                card.style.transformOrigin = 'top left';
             });
             
             // Перестраиваем связи после трансформации
