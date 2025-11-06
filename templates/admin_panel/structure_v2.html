@@ -199,20 +199,22 @@
                         card.className = 'card';
                         card.dataset.id = item.id;
                         canvas.appendChild(card);
-                        enableDrag(card);
                     }
+                    // Устанавливаем все атрибуты
                     if (item.parent) card.dataset.parent = item.parent;
                     if (typeof item.level === 'number') card.dataset.level = String(item.level);
                     if (item.name) card.dataset.name = item.name;
                     if (item.uid) card.dataset.uid = item.uid;
                     card.style.left = item.left + 'px';
                     card.style.top = item.top + 'px';
+                    // Рендерим содержимое
                     renderCardContents(card);
+                    // Включаем drag и точки
+                    enableDrag(card);
                     cardMap.set(item.id, card);
                 });
-                // Обновляем точки и связи
+                // Обновляем состояние точек
                 cardMap.forEach(card => {
-                    attachPoints(card);
                     updatePointsState(card);
                 });
                 updateAllConnections();
@@ -233,7 +235,8 @@
             card.querySelectorAll('.point').forEach(p => p.classList.toggle('disabled', disabled));
         }
         function attachPoints(card) {
-            if (card.querySelector('.point')) return;
+            // Удаляем старые точки если есть
+            card.querySelectorAll('.point').forEach(p => p.remove());
             const left = document.createElement('div'); left.className = 'point left'; left.title = 'Добавить слева';
             const right = document.createElement('div'); right.className = 'point right'; right.title = 'Добавить справа';
             left.addEventListener('click', (e) => { e.stopPropagation(); createChild(card, 'left'); });
@@ -348,15 +351,27 @@
             canvas.querySelectorAll('.card').forEach(card => {
                 if (card.dataset.id !== 'root') {
                     card.remove();
-                } else {
-                    // Подготавливаем root карточку
-                    renderCardContents(card);
-                    enableDrag(card);
                 }
             });
             // Очищаем childMap
             childMap.clear();
+            // Подготавливаем root карточку
+            const root = canvas.querySelector('.card[data-id="root"]');
+            if (root) {
+                // Убеждаемся, что у root есть правильные атрибуты
+                if (!root.dataset.level) root.dataset.level = '0';
+                if (!root.dataset.name) root.dataset.name = 'IVA';
+                if (!root.dataset.uid) root.dataset.uid = '0000001';
+                renderCardContents(root);
+                enableDrag(root);
+            }
         }
+        // Убеждаемся, что все карточки отрендерены
+        canvas.querySelectorAll('.card').forEach(card => {
+            if (!card.querySelector('.badge')) {
+                renderCardContents(card);
+            }
+        });
         btnCenter.click();
 
         // ----- Связи (как в Miro): гибкие кривые, следуют за карточками -----
