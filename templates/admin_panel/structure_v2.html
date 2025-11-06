@@ -19,6 +19,9 @@
         .card { position: absolute; min-width: 140px; min-height: 64px; padding: 10px 12px; background: white; border: 2px solid #cbd5e1; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); cursor: grab; user-select: none; transition: box-shadow 0.15s ease; }
         .card:hover { box-shadow: 0 6px 18px rgba(0,0,0,0.1); }
         .card.dragging { cursor: grabbing; z-index: 2000; }
+        .card .badge { position: absolute; top: -10px; left: -10px; background: #1f2937; color: #fff; font-size: 11px; padding: 2px 6px; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+        .card .name { font-weight: 600; }
+        .card .uid { font-size: 12px; opacity: 0.6; }
         .point { position: absolute; width: 12px; height: 12px; border-radius: 50%; background: #22c55e; border: 2px solid #16a34a; top: 50%; transform: translateY(-50%); cursor: pointer; }
         .point.left { left: -8px; }
         .point.right { right: -8px; }
@@ -38,13 +41,31 @@
             <div class="grid heavy" id="grid"></div>
             <svg class="links" id="links" width="5000" height="5000"></svg>
             <!-- Авто-раскладка примера по уровням -->
-            <div class="card" data-id="root" data-level="0" style="left: 2400px; top: 200px;">IVA • Level 0</div>
+            <div class="card" data-id="root" data-level="0" data-name="IVA" data-uid="0000001" style="left: 2400px; top: 200px;"></div>
         </div>
     </div>
 
     <script>
         const GRID_SIZE = 40;
         const viewport = document.getElementById('viewport');
+        // Рендер содержимого карточки (имя, id, бейдж уровня)
+        function renderCardContents(card) {
+            const depth = parseInt(card.dataset.level || '0');
+            const displayLevel = Math.max(0, 5 - depth); // 5 у корня, до 0 у нижних
+            if (!card.dataset.name) card.dataset.name = generateRandomName();
+            if (!card.dataset.uid) card.dataset.uid = generateRandomId();
+            card.innerHTML = `
+                <div class="badge">${displayLevel}</div>
+                <div class="name">${card.dataset.name}</div>
+                <div class="uid">ID${card.dataset.uid}</div>
+            `;
+        }
+        function generateRandomId() { return String(Math.floor(1000000 + Math.random()*9000000)); }
+        function generateRandomName() {
+            const first = ['Alex','Ivan','Olga','Anna','Max','Nina','Oleg','Ilya','Vera','Mira','Dima','Pavel'];
+            const last = ['Petrov','Sidorov','Morozov','Kuznetsov','Smirnov','Volkov','Lebedev','Antonov'];
+            return first[Math.floor(Math.random()*first.length)] + ' ' + last[Math.floor(Math.random()*last.length)];
+        }
         const canvas = document.getElementById('canvas');
         const grid = document.getElementById('grid');
         const links = document.getElementById('links');
@@ -146,7 +167,9 @@
                     parent: card.dataset.parent || null,
                     left: parseInt(card.style.left) || 0,
                     top: parseInt(card.style.top) || 0,
-                    text: card.textContent.trim()
+                    level: parseInt(card.dataset.level || '0'),
+                    name: card.dataset.name || '',
+                    uid: card.dataset.uid || ''
                 })),
                 childMap: Array.from(childMap.entries()).map(([parent, children]) => [parent, Array.from(children)])
             };
@@ -179,9 +202,12 @@
                         enableDrag(card);
                     }
                     if (item.parent) card.dataset.parent = item.parent;
+                    if (typeof item.level === 'number') card.dataset.level = String(item.level);
+                    if (item.name) card.dataset.name = item.name;
+                    if (item.uid) card.dataset.uid = item.uid;
                     card.style.left = item.left + 'px';
                     card.style.top = item.top + 'px';
-                    if (item.text) card.textContent = item.text;
+                    renderCardContents(card);
                     cardMap.set(item.id, card);
                 });
                 // Обновляем точки и связи
@@ -226,13 +252,22 @@
             child.className = 'card';
             child.dataset.id = id;
             child.dataset.parent = parentId;
+            child.dataset.level = String((parseInt(parentCard.dataset.level || '0')) + 1);
             const px = parseInt(parentCard.style.left) || 0;
             const py = parseInt(parentCard.style.top) || 0;
             const index = children.size; // 0..2
             // Горизонтальное расположение слева/справа от родителя
             const horizontalOffset = side === 'left' ? -240 : 240;
-            // Вертикальные уровни: выше / по центру / ниже относительно базовой линии
-            const verticalLevels = [-120, 0, 120];
+            // Вертикальные уровни: берём из уже существующих детей у этого родителя, если есть, иначе дефолт
+            let verticalLevels = [-120, 0, 120];
+            const existing = Array.from(canvas.querySelectorAll(`.card[data-parent="${parentId}"]`));
+            if (existing.length > 0) {
+                const base = py + 200;
+                // Ищем ненулевое смещение по Y у любого существующего ребёнка
+                const sample = existing.map(c => (parseInt(c.style.top) || 0) - base).find(dy => Math.abs(dy) > 0) || 120;
+                const dy = Math.max(40, Math.min(240, Math.abs(sample)));
+                verticalLevels = [-dy, 0, dy];
+            }
             const baseY = py + 200;
             const vy = verticalLevels[Math.min(index, 2)];
             const nx = px + horizontalOffset + (side === 'left' ? -index * 0 : 0);
@@ -242,7 +277,7 @@
             const snappedY = Math.round(ny / GRID_SIZE) * GRID_SIZE;
             child.style.left = snappedX + 'px';
             child.style.top = snappedY + 'px';
-            child.textContent = `Child ${index + 1}`;
+            renderCardContents(child);
             canvas.appendChild(child);
             attachPoints(child);
             enableDrag(child);
@@ -309,7 +344,9 @@
 
         // Старт: загружаем сохранённые позиции или используем дефолтные
         if (!loadPositions()) {
-            // Если нет сохранённых данных, используем дефолтную карточку root
+            // Если нет сохранённых данных, подготовим root
+            const root = canvas.querySelector('.card[data-id="root"]');
+            if (root) { renderCardContents(root); }
             canvas.querySelectorAll('.card').forEach(enableDrag);
         }
         btnCenter.click();
