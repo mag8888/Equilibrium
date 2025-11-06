@@ -13,6 +13,9 @@
         .canvas { position: absolute; top: 0; left: 0; width: 5000px; height: 5000px; transform-origin: 0 0; }
         .grid { position: absolute; inset: 0; background-image: linear-gradient(#eee 1px, transparent 1px), linear-gradient(90deg, #eee 1px, transparent 1px); background-size: 40px 40px, 40px 40px; pointer-events: none; }
         .grid.heavy { background-image: linear-gradient(#eee 1px, transparent 1px), linear-gradient(90deg, #eee 1px, transparent 1px), linear-gradient(#e2e8f0 1px, transparent 1px), linear-gradient(90deg, #e2e8f0 1px, transparent 1px); background-size: 40px 40px, 40px 40px, 200px 200px, 200px 200px; }
+        .links { position: absolute; inset: 0; pointer-events: none; }
+        .link-path { fill: none; stroke: #2563eb; stroke-width: 4; opacity: 0.9; }
+        .link-shadow { fill: none; stroke: rgba(37,99,235,0.25); stroke-width: 8; }
         .card { position: absolute; min-width: 140px; min-height: 64px; padding: 10px 12px; background: white; border: 2px solid #cbd5e1; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); cursor: grab; user-select: none; transition: box-shadow 0.15s ease; }
         .card:hover { box-shadow: 0 6px 18px rgba(0,0,0,0.1); }
         .card.dragging { cursor: grabbing; z-index: 2000; }
@@ -33,6 +36,7 @@
     <div class="viewport" id="viewport">
         <div class="canvas" id="canvas">
             <div class="grid heavy" id="grid"></div>
+            <svg class="links" id="links" width="5000" height="5000"></svg>
             <!-- Авто-раскладка примера по уровням -->
             <div class="card" data-id="root" data-level="0" style="left: 2400px; top: 200px;">IVA • Level 0</div>
         </div>
@@ -43,6 +47,7 @@
         const viewport = document.getElementById('viewport');
         const canvas = document.getElementById('canvas');
         const grid = document.getElementById('grid');
+        const links = document.getElementById('links');
         const btnGrid = document.getElementById('toggleGrid');
         const btnCenter = document.getElementById('center');
         const btnSnap = document.getElementById('snap');
@@ -155,6 +160,7 @@
             enableDrag(child);
             children.add(id);
             updatePointsState(parentCard);
+            updateConnectionFor(child);
         }
 
         // Drag карточек
@@ -193,6 +199,7 @@
             const ny = y - dragOffsetY;
             dragging.style.left = nx + 'px';
             dragging.style.top = ny + 'px';
+            updateConnectionsForCardAndRelatives(dragging);
         });
         window.addEventListener('mouseup', () => {
             if (!dragging) return;
@@ -203,11 +210,72 @@
                 dragging.style.top = ny + 'px';
             }
             dragging.classList.remove('dragging');
+            const finished = dragging;
             dragging = null;
+            if (finished) updateConnectionsForCardAndRelatives(finished);
         });
 
         // Старт
         btnCenter.click();
+
+        // ----- Связи (как в Miro): гибкие кривые, следуют за карточками -----
+        function getAnchorRight(card) {
+            const left = parseInt(card.style.left) || 0;
+            const top = parseInt(card.style.top) || 0;
+            const w = Math.max(card.offsetWidth, 140);
+            const h = Math.max(card.offsetHeight, 64);
+            return { x: left + w, y: top + h / 2 };
+        }
+        function getAnchorLeft(card) {
+            const left = parseInt(card.style.left) || 0;
+            const top = parseInt(card.style.top) || 0;
+            return { x: left, y: top + (Math.max(card.offsetHeight, 64) / 2) };
+        }
+        function pathCubic(start, end) {
+            const dx = Math.max(40, Math.abs(end.x - start.x) * 0.5);
+            const c1 = { x: start.x + dx, y: start.y };
+            const c2 = { x: end.x - dx, y: end.y };
+            return `M ${start.x} ${start.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${end.x} ${end.y}`;
+        }
+        function ensureLinkPath(id) {
+            let g = document.getElementById('link-' + id);
+            if (!g) {
+                g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                g.setAttribute('id', 'link-' + id);
+                const shadow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                shadow.setAttribute('class', 'link-shadow');
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('class', 'link-path');
+                g.appendChild(shadow);
+                g.appendChild(path);
+                links.appendChild(g);
+            }
+            return g;
+        }
+        function updateConnectionFor(childCard) {
+            const parentId = childCard.dataset.parent;
+            if (!parentId) return;
+            const parentCard = canvas.querySelector(`.card[data-id="${parentId}"]`);
+            if (!parentCard) return;
+            const start = getAnchorRight(parentCard);
+            const end = getAnchorLeft(childCard);
+            const d = pathCubic(start, end);
+            const g = ensureLinkPath(childCard.dataset.id);
+            g.firstChild.setAttribute('d', d);
+            g.lastChild.setAttribute('d', d);
+        }
+        function updateConnectionsForCardAndRelatives(card) {
+            // Обновляем связь к родителю
+            updateConnectionFor(card);
+            // И связи ко всем детям
+            const id = card.dataset.id;
+            canvas.querySelectorAll(`.card[data-parent="${id}"]`).forEach(updateConnectionFor);
+        }
+        function updateAllConnections() {
+            canvas.querySelectorAll('.card[data-parent]').forEach(updateConnectionFor);
+        }
+        // начальное построение (для root детей пока нет)
+        updateAllConnections();
     </script>
 </body>
 </html>
