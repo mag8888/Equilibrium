@@ -9,4 +9,5 @@ urlpatterns = [
     path('users/', demo_views.admin_demo_users, name='users_list'),
     path('structure/', demo_views.admin_demo_structure_v6, name='structure_view'),  # Новая горизонтальная майнд-карта
     path('structure-v3/', demo_views.admin_demo_structure_v3, name='structure_v3_view'),
+    path('structure-v2/', demo_views.admin_demo_structure_v2, name='structure_v2_view'),
 ]

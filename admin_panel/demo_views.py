@@ -208,6 +208,11 @@ def admin_demo_structure_v6(request):
     return render(request, 'admin_panel/mindmap_final.html', context)
 
 
+def admin_demo_structure_v2(request):
+    """Новая страница структуры v2: сетка, панорама, drag карточек"""
+    return render(request, 'admin_panel/structure_v2.html', {})
+
+
 def build_structure_tree(user, level=0):
     """Рекурсивно строит дерево структуры"""
     
