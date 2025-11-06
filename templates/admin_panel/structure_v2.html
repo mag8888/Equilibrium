@@ -35,7 +35,7 @@
         <button class="btn" id="snap">Привязка к сетке: Вкл</button>
         <button class="btn" id="zoomOut">−</button>
         <button class="btn" id="zoomIn">+</button>
-        <button class="btn" id="resetRoot">Сбросить: только root</button>
+        <button class="btn" id="resetRoot" style="background: #ef4444; color: white;">🗑️ Удалить все кроме первой</button>
     </div>
     <div class="viewport" id="viewport">
         <div class="canvas" id="canvas">
@@ -438,24 +438,40 @@
 
         // Удалить все карточки кроме root и сбросить сохранение
         function resetToRoot() {
+            // Сначала очищаем localStorage, чтобы при следующей загрузке не восстановились карточки
+            localStorage.removeItem(STORAGE_KEY);
+            
+            // Находим root карточку
             const root = canvas.querySelector('.card[data-id="root"]');
-            canvas.querySelectorAll('.card').forEach(card => {
-                if (!card || card === root) return;
-                card.remove();
+            const rootId = root ? root.dataset.id : null;
+            
+            // Удаляем ВСЕ карточки кроме root
+            const allCards = Array.from(canvas.querySelectorAll('.card'));
+            allCards.forEach(card => {
+                if (card && card.dataset.id !== rootId) {
+                    card.remove();
+                }
             });
-            // Очистить связи
+            
+            // Очистить все связи
             links.innerHTML = '';
+            
             // Сбросить состояние
             childMap.clear();
             uidCounter = 1;
+            
+            // Восстановить root карточку
             if (root) {
                 root.dataset.level = '0';
+                root.dataset.parent = '';
                 renderCardContents(root);
+                // Удалить старые точки и добавить новые
+                root.querySelectorAll('.point').forEach(p => p.remove());
                 attachPoints(root);
                 enableDrag(root);
             }
-            // Стереть сохранения и пересохранить текущее состояние
-            localStorage.removeItem(STORAGE_KEY);
+            
+            // Сохранить текущее состояние (только root)
             savePositions();
             updateAllConnections();
         }
