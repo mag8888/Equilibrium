@@ -1051,21 +1051,6 @@
                 return;
             }
             
-            // Очищаем все карточки кроме IVA
-            const allCards = container.querySelectorAll('.user-card');
-            allCards.forEach(card => {
-                if (card.id !== 'iva-main-partner') {
-                    card.remove();
-                }
-            });
-            
-            // Убеждаемся, что IVA существует
-            let ivaCard = document.getElementById('iva-main-partner');
-            if (!ivaCard) {
-                addIVAPartner();
-                ivaCard = document.getElementById('iva-main-partner');
-            }
-            
             // Показываем сетку если она не видна
             if (!gridVisible) {
                 toggleGrid();
@@ -1079,17 +1064,26 @@
             // Уровень 4: 81 карточка (3^4)
             
             // Параметры сетки
-            const START_X = 100; // Начальная позиция по X
+            const START_X = 100; // Начальная позиция по X (крайняя левая колонка)
             const START_Y = 100; // Начальная позиция по Y
             const LEVEL_GAP = 200; // Расстояние между уровнями по X
             const CARD_GAP_Y = 80; // Расстояние между карточками по Y
             const CENTER_OFFSET = 0; // Смещение для центрирования
             
-            // Позиционируем IVA
-            ivaCard.style.left = START_X + 'px';
-            ivaCard.style.top = (START_Y + 500) + 'px'; // IVA в центре по вертикали
-            ivaCard.style.position = 'absolute';
-            ivaCard.setAttribute('data-grid-fixed', 'true'); // Флаг фиксации
+            // Полностью очищаем и создаем IVA как уровень 5 слева
+            const allCardsBefore = container.querySelectorAll('.user-card');
+            allCardsBefore.forEach(c => c.remove());
+            
+            // Создаем IVA (уровень 5) на крайней левой колонке
+            const ivaLevel = 5;
+            const ivaX = START_X + 0 * LEVEL_GAP; // самая левая колонка
+            const ivaY = START_Y + 500;
+            const ivaUniqueId = 'IVA';
+            const ivaDisplayName = 'IVA (5*)';
+            const ivaNode = createNode('iva-main-partner', ivaDisplayName, ivaLevel, { x: ivaX, y: ivaY }, { humanName: 'IVA', uniqueId: ivaUniqueId });
+            ivaNode.setAttribute('data-grid-fixed', 'true');
+            ivaNode.setAttribute('data-is-iva', 'true');
+            container.appendChild(ivaNode);
             
             // Создаем карточки для каждого уровня (ИНВЕРСИЯ):
             // 5-й уровень: 1, 4-й: 3, 3-й: 9, 2-й: 27, 1-й: 81, 0-й: 243
@@ -1105,19 +1099,25 @@
             let totalCreated = 0;
             const cardsByLevel = {}; // Храним карточки по уровням для установки связей
             
-            // Создаем карточки для уровней 0-5
-            for (let level = 0; level <= 5; level++) {
+            // Добавляем IVA в карту уровней
+            cardsByLevel[ivaLevel] = [ivaNode];
+
+            // Функция вычисления X по уровню: слева направо 5→4→3→2→1→0
+            function getLevelX(level) {
+                const columnIndex = 5 - level; // 5 -> 0, 4 -> 1, ..., 0 -> 5
+                return START_X + (columnIndex * LEVEL_GAP);
+            }
+            
+            // Создаем карточки для уровней 4..0 (правее)
+            for (let level = 4; level >= 0; level--) {
                 const count = levelStructure[level];
-                // Для уровня 0 рисуем левее IVA, чтобы соблюсти последовательность 0→1→…→5 слева направо
-                const levelX = level === 0 ? (START_X - LEVEL_GAP) : (START_X + (level * LEVEL_GAP));
+                const levelX = getLevelX(level);
                 
                 // Вычисляем начальную позицию Y для центрирования
                 const totalHeight = (count - 1) * CARD_GAP_Y;
                 const startY = START_Y + (500 - totalHeight / 2);
                 
-                if (!cardsByLevel[level]) {
-                    cardsByLevel[level] = [];
-                }
+                if (!cardsByLevel[level]) cardsByLevel[level] = [];
                 
                 for (let i = 0; i < count; i++) {
                     const uniqueId = generateUniqueId();
@@ -1140,17 +1140,13 @@
                     card.setAttribute('data-empty', 'true'); // Флаг пустой карточки
                     card.style.opacity = '0.6'; // Полупрозрачность для пустых карточек
                     
-                    // Устанавливаем родителя для MLM структуры (родитель в следующем уровне справа)
-                    // Для уровня 5 родителя нет (вершина), для уровней 0-4 родитель = уровень+1
-                    if (level < 5) {
-                        const parentLevel = level + 1;
-                        const parentCards = cardsByLevel[parentLevel] || [];
-                        if (parentCards.length > 0) {
-                            // Каждый родитель имеет до 3 детей слева
-                            const parentIndex = Math.floor(i / 3);
-                            if (parentIndex < parentCards.length) {
-                                card.setAttribute('data-parent', parentCards[parentIndex].id);
-                            }
+                    // Родитель слева: для уровня L родитель на уровне L+1 (кроме L=5)
+                    const parentLevel = level + 1;
+                    const parentCards = cardsByLevel[parentLevel] || [];
+                    if (parentCards.length > 0) {
+                        const parentIndex = Math.floor(i / 3);
+                        if (parentIndex < parentCards.length) {
+                            card.setAttribute('data-parent', parentCards[parentIndex].id);
                         }
                     }
                     
@@ -1169,7 +1165,7 @@
                 updateGridOccupancy();
             }
             
-            // Перестраиваем связи (только для IVA и первого уровня)
+            // Перестраиваем связи
             rebuildConnections();
             
             // Обновляем статистику
