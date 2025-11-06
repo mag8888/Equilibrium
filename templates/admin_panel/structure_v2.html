@@ -62,7 +62,18 @@
         let canvasStartX = 0, canvasStartY = 0;
         let snapEnabled = true;
 
+        function clampOffsets() {
+            const canvasW = 5000 * scale;
+            const canvasH = 5000 * scale;
+            const minX = Math.min(0, viewport.clientWidth - canvasW);
+            const minY = Math.min(0, viewport.clientHeight - canvasH);
+            const maxX = 0;
+            const maxY = 0;
+            offsetX = Math.max(minX, Math.min(maxX, offsetX));
+            offsetY = Math.max(minY, Math.min(maxY, offsetY));
+        }
         function applyTransform() {
+            clampOffsets();
             canvas.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
         }
 
@@ -100,7 +111,7 @@
 
         btnZoomIn.onclick = () => { scale = Math.min(2, scale * 1.1); applyTransform(); };
         btnZoomOut.onclick = () => { scale = Math.max(0.5, scale * 0.9); applyTransform(); };
-        btnCenter.onclick = () => { offsetX = (viewport.clientWidth - 5000) / 2; offsetY = 120; applyTransform(); };
+        btnCenter.onclick = () => { offsetX = (viewport.clientWidth - 5000 * scale) / 2; offsetY = 120; applyTransform(); };
 
         // Переключатель сетки
         let gridVisible = true;
