@@ -1076,8 +1076,9 @@
             ivaCard.setAttribute('data-grid-fixed', 'true'); // Флаг фиксации
             
             // Создаем карточки для каждого уровня (ИНВЕРСИЯ):
-            // 5-й уровень: 1, 4-й: 3, 3-й: 9, 2-й: 27, 1-й: 81
+            // 5-й уровень: 1, 4-й: 3, 3-й: 9, 2-й: 27, 1-й: 81, 0-й: 243
             const levelStructure = {
+                0: 243,
                 1: 81,
                 2: 27,
                 3: 9,
@@ -1088,10 +1089,11 @@
             let totalCreated = 0;
             const cardsByLevel = {}; // Храним карточки по уровням для установки связей
             
-            // Создаем карточки для уровней 1-5
-            for (let level = 1; level <= 5; level++) {
+            // Создаем карточки для уровней 0-5
+            for (let level = 0; level <= 5; level++) {
                 const count = levelStructure[level];
-                const levelX = START_X + (level * LEVEL_GAP);
+                // Для уровня 0 рисуем левее IVA, чтобы соблюсти последовательность 0→1→…→5 слева направо
+                const levelX = level === 0 ? (START_X - LEVEL_GAP) : (START_X + (level * LEVEL_GAP));
                 
                 // Вычисляем начальную позицию Y для центрирования
                 const totalHeight = (count - 1) * CARD_GAP_Y;
@@ -1123,7 +1125,7 @@
                     card.style.opacity = '0.6'; // Полупрозрачность для пустых карточек
                     
                     // Устанавливаем родителя для MLM структуры (родитель в следующем уровне справа)
-                    // Для уровня 5 родителя нет (вершина), для уровней 1-4 родитель = уровень+1
+                    // Для уровня 5 родителя нет (вершина), для уровней 0-4 родитель = уровень+1
                     if (level < 5) {
                         const parentLevel = level + 1;
                         const parentCards = cardsByLevel[parentLevel] || [];
