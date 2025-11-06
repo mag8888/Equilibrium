@@ -111,7 +111,12 @@
 
         btnZoomIn.onclick = () => { scale = Math.min(2, scale * 1.1); applyTransform(); };
         btnZoomOut.onclick = () => { scale = Math.max(0.5, scale * 0.9); applyTransform(); };
-        btnCenter.onclick = () => { offsetX = (viewport.clientWidth - 5000 * scale) / 2; offsetY = 120; applyTransform(); };
+        btnCenter.onclick = () => {
+            // Центрируем полотно по горизонтали и вертикали относительно видимой области
+            offsetX = (viewport.clientWidth - 5000 * scale) / 2;
+            offsetY = (viewport.clientHeight - 5000 * scale) / 2;
+            applyTransform();
+        };
 
         // Переключатель сетки
         let gridVisible = true;
@@ -224,9 +229,19 @@
             const px = parseInt(parentCard.style.left) || 0;
             const py = parseInt(parentCard.style.top) || 0;
             const index = children.size; // 0..2
-            const horizontalOffset = side === 'left' ? (-240 - index * 160) : (240 + index * 160);
-            child.style.left = (px + horizontalOffset) + 'px';
-            child.style.top = (py + 200) + 'px';
+            // Горизонтальное расположение слева/справа от родителя
+            const horizontalOffset = side === 'left' ? -240 : 240;
+            // Вертикальные уровни: выше / по центру / ниже относительно базовой линии
+            const verticalLevels = [-120, 0, 120];
+            const baseY = py + 200;
+            const vy = verticalLevels[Math.min(index, 2)];
+            const nx = px + horizontalOffset + (side === 'left' ? -index * 0 : 0);
+            const ny = baseY + vy;
+            // Привязка к сетке
+            const snappedX = Math.round(nx / GRID_SIZE) * GRID_SIZE;
+            const snappedY = Math.round(ny / GRID_SIZE) * GRID_SIZE;
+            child.style.left = snappedX + 'px';
+            child.style.top = snappedY + 'px';
             child.textContent = `Child ${index + 1}`;
             canvas.appendChild(child);
             attachPoints(child);
