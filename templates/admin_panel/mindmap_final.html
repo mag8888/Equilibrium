@@ -761,6 +761,7 @@
         <button class="template-btn" onclick="applyTemplate('levels-5-6')">Уровни 5-6</button>
         <button class="template-btn" onclick="applyTemplate('levels-6-7')">Уровни 6-7</button>
         <button class="template-btn" onclick="createFullStructure()" style="background: #10B981;">🏗️ ПОЛНАЯ СТРУКТУРА</button>
+        <button class="template-btn" onclick="createEmptyGrid5Levels()" style="background: #3B82F6; color: white; font-weight: bold;">📐 СЕТКА 5 УРОВНЕЙ</button>
     </div>
     
     <!-- Переключатель сетки -->
@@ -786,7 +787,7 @@
     </div>
     
     <script>
-        console.log('🌐 MLM Mind Map Loading - VERSION v124 - 7 УРОВНЕЙ С ШАБЛОНАМИ!');
+        console.log('🌐 MLM Mind Map Loading - VERSION v125 - СЕТКА 5 УРОВНЕЙ С ФИКСАЦИЕЙ!');
         
         // Генератор человеческих имен для нижней строки
         function generateHumanName() {
@@ -907,16 +908,38 @@
             
             const cards = Array.from(container.querySelectorAll('.user-card'));
             cards.forEach(card => {
-                const currentLeft = parseInt(card.style.left) || 0;
-                const currentTop = parseInt(card.style.top) || 0;
+                // Если карточка зафиксирована на сетке, сохраняем её позицию относительно сетки
+                const isGridFixed = card.getAttribute('data-grid-fixed') === 'true';
                 
-                // Применяем смещение и масштаб к каждой карточке
-                const newLeft = (currentLeft + structureOffsetX) * structureScale;
-                const newTop = (currentTop + structureOffsetY) * structureScale;
-                
-                card.style.left = newLeft + 'px';
-                card.style.top = newTop + 'px';
-                card.style.transform = `scale(${structureScale})`;
+                if (isGridFixed && gridVisible) {
+                    // Для зафиксированных карточек применяем только смещение, сохраняя привязку к сетке
+                    const currentLeft = parseInt(card.style.left) || 0;
+                    const currentTop = parseInt(card.style.top) || 0;
+                    
+                    // Вычисляем позицию на сетке
+                    const gridCol = Math.round((currentLeft + structureOffsetX) / GRID_SIZE);
+                    const gridRow = Math.round((currentTop + structureOffsetY) / GRID_SIZE);
+                    
+                    // Применяем масштаб к смещению сетки
+                    const newLeft = (gridCol * GRID_SIZE) * structureScale;
+                    const newTop = (gridRow * GRID_SIZE) * structureScale;
+                    
+                    card.style.left = newLeft + 'px';
+                    card.style.top = newTop + 'px';
+                    card.style.transform = `scale(${structureScale})`;
+                } else {
+                    // Для обычных карточек применяем стандартную трансформацию
+                    const currentLeft = parseInt(card.style.left) || 0;
+                    const currentTop = parseInt(card.style.top) || 0;
+                    
+                    // Применяем смещение и масштаб к каждой карточке
+                    const newLeft = (currentLeft + structureOffsetX) * structureScale;
+                    const newTop = (currentTop + structureOffsetY) * structureScale;
+                    
+                    card.style.left = newLeft + 'px';
+                    card.style.top = newTop + 'px';
+                    card.style.transform = `scale(${structureScale})`;
+                }
             });
             
             // Перестраиваем связи после трансформации
@@ -1034,6 +1057,149 @@
             }
         }
         
+        // Функция для создания сетки 5 уровней с пустыми карточками
+        function createEmptyGrid5Levels() {
+            console.log('📐 Создаем сетку 5 уровней с пустыми карточками...');
+            
+            const container = document.getElementById('mindmapContainer');
+            if (!container) {
+                console.error('❌ Контейнер не найден');
+                return;
+            }
+            
+            // Очищаем все карточки кроме IVA
+            const allCards = container.querySelectorAll('.user-card');
+            allCards.forEach(card => {
+                if (card.id !== 'iva-main-partner') {
+                    card.remove();
+                }
+            });
+            
+            // Убеждаемся, что IVA существует
+            let ivaCard = document.getElementById('iva-main-partner');
+            if (!ivaCard) {
+                addIVAPartner();
+                ivaCard = document.getElementById('iva-main-partner');
+            }
+            
+            // Показываем сетку если она не видна
+            if (!gridVisible) {
+                toggleGrid();
+            }
+            
+            // MLM структура: 1 → 3 → 9 → 27 → 81
+            // Уровень 0: 1 карточка (IVA) - уже есть
+            // Уровень 1: 3 карточки
+            // Уровень 2: 9 карточек (3^2)
+            // Уровень 3: 27 карточек (3^3)
+            // Уровень 4: 81 карточка (3^4)
+            
+            // Параметры сетки
+            const START_X = 100; // Начальная позиция по X
+            const START_Y = 100; // Начальная позиция по Y
+            const LEVEL_GAP = 200; // Расстояние между уровнями по X
+            const CARD_GAP_Y = 80; // Расстояние между карточками по Y
+            const CENTER_OFFSET = 0; // Смещение для центрирования
+            
+            // Позиционируем IVA
+            ivaCard.style.left = START_X + 'px';
+            ivaCard.style.top = (START_Y + 500) + 'px'; // IVA в центре по вертикали
+            ivaCard.style.position = 'absolute';
+            ivaCard.setAttribute('data-grid-fixed', 'true'); // Флаг фиксации
+            
+            // Создаем карточки для каждого уровня
+            const levelStructure = {
+                1: 3,   // 3 карточки
+                2: 9,   // 9 карточек
+                3: 27,  // 27 карточек
+                4: 81   // 81 карточка
+            };
+            
+            let totalCreated = 0;
+            const cardsByLevel = {}; // Храним карточки по уровням для установки связей
+            
+            // Создаем карточки для уровней 1-4
+            for (let level = 1; level <= 4; level++) {
+                const count = levelStructure[level];
+                const levelX = START_X + (level * LEVEL_GAP);
+                
+                // Вычисляем начальную позицию Y для центрирования
+                const totalHeight = (count - 1) * CARD_GAP_Y;
+                const startY = START_Y + (500 - totalHeight / 2);
+                
+                if (!cardsByLevel[level]) {
+                    cardsByLevel[level] = [];
+                }
+                
+                for (let i = 0; i < count; i++) {
+                    const uniqueId = generateUniqueId();
+                    const humanName = ''; // Пустое имя для пустых карточек
+                    const cardId = `empty-${level}-${i + 1}-${uniqueId}`;
+                    const cardName = `${level}*/${i + 1}`;
+                    
+                    // Вычисляем позицию по сетке
+                    const cardX = levelX;
+                    const cardY = startY + (i * CARD_GAP_Y);
+                    
+                    // Округляем до ближайшей ячейки сетки
+                    const gridX = Math.round(cardX / GRID_SIZE) * GRID_SIZE;
+                    const gridY = Math.round(cardY / GRID_SIZE) * GRID_SIZE;
+                    
+                    const card = createNode(cardId, cardName, level, { x: gridX, y: gridY }, { humanName, uniqueId });
+                    card.classList.add('draggable');
+                    card.setAttribute('data-human-name', humanName || 'Пусто');
+                    card.setAttribute('data-grid-fixed', 'true'); // Флаг фиксации
+                    card.setAttribute('data-empty', 'true'); // Флаг пустой карточки
+                    card.style.opacity = '0.6'; // Полупрозрачность для пустых карточек
+                    
+                    // Устанавливаем родителя для MLM структуры
+                    if (level === 1) {
+                        // Уровень 1: все связаны с IVA
+                        card.setAttribute('data-parent', ivaCard.id);
+                    } else {
+                        // Уровни 2-4: каждая карточка связана с родителем из предыдущего уровня
+                        const parentLevel = level - 1;
+                        const parentCards = cardsByLevel[parentLevel] || [];
+                        if (parentCards.length > 0) {
+                            // Распределяем карточки по родителям: каждая карточка уровня N связана с родителем из уровня N-1
+                            // Формула: parentIndex = Math.floor(i / 3) для правильного распределения 3^n
+                            const parentIndex = Math.floor(i / 3);
+                            if (parentIndex < parentCards.length) {
+                                card.setAttribute('data-parent', parentCards[parentIndex].id);
+                            }
+                        }
+                    }
+                    
+                    cardsByLevel[level].push(card);
+                    
+                    // Добавляем обработчики перетаскивания
+                    addDragHandlers(card);
+                    
+                    container.appendChild(card);
+                    totalCreated++;
+                }
+            }
+            
+            // Обновляем сетку
+            if (gridVisible) {
+                updateGridOccupancy();
+            }
+            
+            // Перестраиваем связи (только для IVA и первого уровня)
+            rebuildConnections();
+            
+            // Обновляем статистику
+            updateStats();
+            
+            console.log(`✅ Создана сетка 5 уровней: ${totalCreated} пустых карточек`);
+            
+            // Обновляем статус
+            const statusElement = document.getElementById('statusMessage');
+            if (statusElement) {
+                statusElement.textContent = `✅ Создана сетка 5 уровней: ${totalCreated} пустых карточек!`;
+            }
+        }
+        
         // Функции для перетаскивания карточек
         function addDragHandlers(card) {
             card.addEventListener('mousedown', handleDragStart);
@@ -1075,6 +1241,24 @@
         function handleDragEnd(e) {
             if (!isDragging || !draggedCard) return;
             
+            // Если сетка видима и карточка зафиксирована, привязываем к ближайшей ячейке
+            if (gridVisible && draggedCard.getAttribute('data-grid-fixed') === 'true') {
+                const currentLeft = parseInt(draggedCard.style.left) || 0;
+                const currentTop = parseInt(draggedCard.style.top) || 0;
+                
+                // Округляем до ближайшей ячейки сетки
+                const gridCol = Math.round(currentLeft / GRID_SIZE);
+                const gridRow = Math.round(currentTop / GRID_SIZE);
+                
+                const snappedX = gridCol * GRID_SIZE;
+                const snappedY = gridRow * GRID_SIZE;
+                
+                draggedCard.style.left = snappedX + 'px';
+                draggedCard.style.top = snappedY + 'px';
+                
+                console.log(`📐 Карточка привязана к сетке: (${gridCol}, ${gridRow})`);
+            }
+            
             isDragging = false;
             draggedCard.classList.remove('dragging');
             draggedCard = null;
@@ -1083,6 +1267,9 @@
             if (gridVisible) {
                 updateGridOccupancy();
             }
+            
+            // Перестраиваем связи после окончания перетаскивания
+            rebuildConnections();
         }
         
         // Инициализация обработчиков перетаскивания
