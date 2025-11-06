@@ -129,6 +129,68 @@
         const childMap = new Map(); // parentId -> Set(childIds)
         let uidCounter = 1;
         function genId() { return 'node-' + (uidCounter++); }
+        
+        // Сохранение/восстановление позиций
+        const STORAGE_KEY = 'structure_v2_positions';
+        function savePositions() {
+            const cards = Array.from(canvas.querySelectorAll('.card'));
+            const data = {
+                uidCounter,
+                cards: cards.map(card => ({
+                    id: card.dataset.id,
+                    parent: card.dataset.parent || null,
+                    left: parseInt(card.style.left) || 0,
+                    top: parseInt(card.style.top) || 0,
+                    text: card.textContent.trim()
+                })),
+                childMap: Array.from(childMap.entries()).map(([parent, children]) => [parent, Array.from(children)])
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const data = JSON.parse(saved);
+                uidCounter = data.uidCounter || 1;
+                // Очищаем существующие карточки
+                canvas.querySelectorAll('.card').forEach(card => card.remove());
+                // Восстанавливаем childMap
+                childMap.clear();
+                if (data.childMap) {
+                    data.childMap.forEach(([parent, children]) => {
+                        childMap.set(parent, new Set(children));
+                    });
+                }
+                // Восстанавливаем карточки
+                const cardMap = new Map();
+                data.cards.forEach(item => {
+                    let card = canvas.querySelector(`.card[data-id="${item.id}"]`);
+                    if (!card) {
+                        card = document.createElement('div');
+                        card.className = 'card';
+                        card.dataset.id = item.id;
+                        canvas.appendChild(card);
+                        enableDrag(card);
+                    }
+                    if (item.parent) card.dataset.parent = item.parent;
+                    card.style.left = item.left + 'px';
+                    card.style.top = item.top + 'px';
+                    if (item.text) card.textContent = item.text;
+                    cardMap.set(item.id, card);
+                });
+                // Обновляем точки и связи
+                cardMap.forEach(card => {
+                    attachPoints(card);
+                    updatePointsState(card);
+                });
+                updateAllConnections();
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
         function getChildSet(parentId) {
             if (!childMap.has(parentId)) childMap.set(parentId, new Set());
             return childMap.get(parentId);
@@ -172,6 +234,7 @@
             children.add(id);
             updatePointsState(parentCard);
             updateConnectionFor(child);
+            savePositions();
         }
 
         // Drag карточек
@@ -223,10 +286,17 @@
             dragging.classList.remove('dragging');
             const finished = dragging;
             dragging = null;
-            if (finished) updateConnectionsForCardAndRelatives(finished);
+            if (finished) {
+                updateConnectionsForCardAndRelatives(finished);
+                savePositions();
+            }
         });
 
-        // Старт
+        // Старт: загружаем сохранённые позиции или используем дефолтные
+        if (!loadPositions()) {
+            // Если нет сохранённых данных, используем дефолтную карточку root
+            canvas.querySelectorAll('.card').forEach(enableDrag);
+        }
         btnCenter.click();
 
         // ----- Связи (как в Miro): гибкие кривые, следуют за карточками -----
