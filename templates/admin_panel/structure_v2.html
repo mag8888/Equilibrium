@@ -258,16 +258,18 @@
             const index = children.size; // 0..2
             // Горизонтальное расположение слева/справа от родителя
             const horizontalOffset = side === 'left' ? -240 : 240;
-            // Вертикальные уровни: берём из уже существующих детей у этого родителя, если есть, иначе дефолт
-            let verticalLevels = [-120, 0, 120];
+            // Вертикальные уровни: первый выше, второй по центру, третий ниже
+            // Берём расстояние из первого существующего ребёнка, если есть, иначе дефолт 120
+            let dy = 120;
             const existing = Array.from(canvas.querySelectorAll(`.card[data-parent="${parentId}"]`));
             if (existing.length > 0) {
                 const base = py + 200;
-                // Ищем ненулевое смещение по Y у любого существующего ребёнка
-                const sample = existing.map(c => (parseInt(c.style.top) || 0) - base).find(dy => Math.abs(dy) > 0) || 120;
-                const dy = Math.max(40, Math.min(240, Math.abs(sample)));
-                verticalLevels = [-dy, 0, dy];
+                // Берём смещение первого ребёнка (по модулю)
+                const firstChild = existing[0];
+                const firstOffset = Math.abs((parseInt(firstChild.style.top) || 0) - base);
+                if (firstOffset > 0) dy = Math.max(40, Math.min(240, firstOffset));
             }
+            const verticalLevels = [-dy, 0, dy]; // выше, центр, ниже
             const baseY = py + 200;
             const vy = verticalLevels[Math.min(index, 2)];
             const nx = px + horizontalOffset + (side === 'left' ? -index * 0 : 0);
@@ -314,8 +316,6 @@
             });
         }
 
-        canvas.querySelectorAll('.card').forEach(enableDrag);
-
         window.addEventListener('mousemove', (e) => {
             if (!dragging) return;
             const { x, y } = toCanvasCoords(e.clientX, e.clientY);
@@ -344,10 +344,18 @@
 
         // Старт: загружаем сохранённые позиции или используем дефолтные
         if (!loadPositions()) {
-            // Если нет сохранённых данных, подготовим root
-            const root = canvas.querySelector('.card[data-id="root"]');
-            if (root) { renderCardContents(root); }
-            canvas.querySelectorAll('.card').forEach(enableDrag);
+            // Если нет сохранённых данных, удаляем все карточки кроме root
+            canvas.querySelectorAll('.card').forEach(card => {
+                if (card.dataset.id !== 'root') {
+                    card.remove();
+                } else {
+                    // Подготавливаем root карточку
+                    renderCardContents(card);
+                    enableDrag(card);
+                }
+            });
+            // Очищаем childMap
+            childMap.clear();
         }
         btnCenter.click();
 
