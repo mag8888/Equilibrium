@@ -1677,42 +1677,36 @@
                 const filledCards = uniqueCards.filter(card => card.dataset.name && card.dataset.uid);
                 
                 // Для статистики считаем партнеров уровня level для карточек уровня level
-                // Нужно посчитать для каждой карточки уровня level, сколько у неё партнеров уровня level
+                // Каждый партнер уникален и считается по ID (один раз, даже если он партнер нескольких карточек)
                 const levelCardsFilled = filledCards;
                 
-                // Для каждой карточки уровня level считаем её партнеров уровня level
-                let totalPartnersAtLevel = 0;
-                let cardsReadyToLevelUp = 0;
+                // Собираем всех уникальных партнеров уровня level по ID
+                const uniquePartnersAtLevel = new Set();
                 
                 levelCardsFilled.forEach(card => {
                     const cardPartners = getDirectChildren(card.dataset.id)
                         .filter(p => p.dataset.name && p.dataset.uid);
                     
-                    // Считаем партнеров уровня level у этой карточки
-                    const partnersAtLevelForCard = cardPartners.filter(p => {
-                        const partnerLevel = parseInt(p.dataset.level || '0');
-                        return partnerLevel === level;
+                    // Добавляем партнеров уровня level в Set (уникальность по ID)
+                    cardPartners.forEach(partner => {
+                        const partnerLevel = parseInt(partner.dataset.level || '0');
+                        if (partnerLevel === level) {
+                            uniquePartnersAtLevel.add(partner.dataset.id);
+                        }
                     });
-                    
-                    totalPartnersAtLevel += partnersAtLevelForCard.length;
-                    
-                    // Если у карточки есть 3+ партнера уровня level, она готова к повышению
-                    if (partnersAtLevelForCard.length >= 3) {
-                        cardsReadyToLevelUp++;
-                    }
                 });
                 
                 // Максимум партнеров = количество карточек уровня level * 3
                 const maxPartners = levelCardsFilled.length * 3;
-                const neededForNextLevel = Math.max(0, maxPartners - totalPartnersAtLevel);
+                const partnersAtLevelCount = uniquePartnersAtLevel.size;
+                const neededForNextLevel = Math.max(0, maxPartners - partnersAtLevelCount);
                 
                 levelStats[level] = {
                     total: uniqueCards.length,
                     filled: filledCards.length,
                     max: maxPartners,
-                    partnersAtLevel: totalPartnersAtLevel,
-                    neededForNextLevel: neededForNextLevel,
-                    cardsReadyToLevelUp: cardsReadyToLevelUp
+                    partnersAtLevel: partnersAtLevelCount,
+                    neededForNextLevel: neededForNextLevel
                 };
             }
             
