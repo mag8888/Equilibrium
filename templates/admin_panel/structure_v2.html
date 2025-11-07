@@ -1526,10 +1526,28 @@
             
             // Начинаем с уровня root
             const rootLevel = parseInt(rootCard.dataset.level || '0');
+            
+            // Для root считаем, сколько партнеров его уровня нужно для повышения
+            const rootPartners = getDirectChildren('root').filter(card => card.dataset.name && card.dataset.uid);
+            const rootPartnersByLevel = {};
+            rootPartners.forEach(partner => {
+                const partnerLevel = parseInt(partner.dataset.level || '0');
+                if (!rootPartnersByLevel[partnerLevel]) {
+                    rootPartnersByLevel[partnerLevel] = [];
+                }
+                rootPartnersByLevel[partnerLevel].push(partner);
+            });
+            
+            // Для повышения root нужны 3 партнера уровня rootLevel
+            const rootPartnersAtRootLevel = rootPartnersByLevel[rootLevel] || [];
+            const rootNeededForNextLevel = Math.max(0, 3 - rootPartnersAtRootLevel.length);
+            
             levelStats[rootLevel] = {
                 total: 1,
                 filled: 1,
-                max: 0
+                max: 0,
+                neededForNextLevel: rootNeededForNextLevel,
+                partnersAtLevel: rootPartnersAtRootLevel.length
             };
             
             // Для уровней выше root считаем только прямых детей карточек предыдущего уровня
@@ -1574,17 +1592,44 @@
                 if (!stats) continue;
                 
                 if (level === rootLevel) {
-                    // Root показывает прочерк
+                    // Root показывает информацию о партнерах для повышения уровня
+                    const needed = stats.neededForNextLevel || 0;
+                    const partnersAtLevel = stats.partnersAtLevel || 0;
+                    
+                    let displayText;
+                    if (needed === 0 && partnersAtLevel >= 3) {
+                        displayText = `3/3 (готов к повышению)`;
+                    } else if (needed > 0) {
+                        displayText = `${partnersAtLevel}/3 (не хватает: ${needed})`;
+                    } else {
+                        displayText = `${partnersAtLevel}/3`;
+                    }
+                    
+                    const color = needed === 0 && partnersAtLevel >= 3 ? '#22c55e' : '#ef4444';
+                    
                     html += `<div class="stats-item">
                         <span class="stats-level" style="color: #3b82f6;">Ур ${level}</span>
-                        <span class="stats-count" style="color: #9ca3af;">—</span>
+                        <span class="stats-count" style="color: ${color};">${displayText}</span>
                     </div>`;
                 } else {
                     // Определяем цвет для партнеров
-                    const partnersColor = stats.filled >= stats.max ? '#22c55e' : '#ef4444';
+                    const filled = stats.filled;
+                    const max = stats.max;
+                    const needed = Math.max(0, max - filled);
+                    const isComplete = filled >= max && max > 0;
+                    const partnersColor = isComplete ? '#22c55e' : '#ef4444';
+                    
+                    // Показываем: заполнено / нужно всего (или сколько не хватает)
+                    let displayText;
+                    if (isComplete) {
+                        displayText = `${filled}/${max}`;
+                    } else {
+                        displayText = `${filled}/${max} (не хватает: ${needed})`;
+                    }
+                    
                     html += `<div class="stats-item">
                         <span class="stats-level" style="color: #3b82f6;">Ур ${level}</span>
-                        <span class="stats-count" style="color: ${partnersColor};">${stats.filled}</span>
+                        <span class="stats-count" style="color: ${partnersColor};">${displayText}</span>
                     </div>`;
                 }
             }
