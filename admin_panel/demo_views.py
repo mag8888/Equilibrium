@@ -241,6 +241,11 @@ def save_card_api(request):
         # Используем UID как referral_code (первые 8 символов)
         referral_code = str(uid)[:8].upper()
         
+        # Для root пользователя используем специальный username
+        is_root = str(uid) == '0000001' or name == 'IVA'
+        username = 'root' if is_root else f'user_{uid}'
+        email = 'root@example.com' if is_root else f'user_{uid}@example.com'
+        
         with transaction.atomic():
             # Ищем пользователя по referral_code или username
             user = None
@@ -250,12 +255,12 @@ def save_card_api(request):
                 user = User.objects.get(referral_code=referral_code)
             except User.DoesNotExist:
                 try:
-                    user = User.objects.get(username=f'user_{uid}')
+                    user = User.objects.get(username=username)
                 except User.DoesNotExist:
                     # Создаем нового пользователя
                     user = User.objects.create(
-                        username=f'user_{uid}',
-                        email=f'user_{uid}@example.com',
+                        username=username,
+                        email=email,
                         first_name=first_name,
                         last_name=last_name,
                         referral_code=referral_code,
