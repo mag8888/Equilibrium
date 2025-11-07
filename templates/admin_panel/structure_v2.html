@@ -1180,86 +1180,90 @@
         
         btnAutoLayout.onclick = () => autoLayoutCards();
 
-        // Подсчет статистики по уровням
+        // Подсчет статистики по уровням - считаем партнеров первого аккаунта (root)
         function updateStats() {
             const cards = Array.from(canvas.querySelectorAll('.card'));
-            const levelCounts = {};
-            const levelFilledPartners = {}; // displayLevel -> { filled: число, max: число }
+            const rootCard = cards.find(card => card.dataset.id === 'root');
             
-            // Сначала считаем карточки по уровням
-            cards.forEach(card => {
-                const depth = parseInt(card.dataset.level || '0');
-                const displayLevel = Math.max(0, 5 - depth);
-                levelCounts[displayLevel] = (levelCounts[displayLevel] || 0) + 1;
-            });
+            if (!rootCard) {
+                statsContent.innerHTML = '<div class="stats-item">Нет root карточки</div>';
+                return;
+            }
             
-            // Теперь для каждого уровня считаем заполненных партнеров (дочек)
-            Object.keys(levelCounts).forEach(level => {
-                const displayLevel = parseInt(level);
+            // Рекурсивная функция для подсчета всех потомков на определенном уровне
+            function countDescendantsAtLevel(parentId, targetDisplayLevel, currentLevel = 5) {
+                if (currentLevel < targetDisplayLevel) return [];
                 
-                // Уровень 5 и 0 не имеют партнеров (root и последний уровень)
-                if (displayLevel === 5 || displayLevel === 0) {
-                    return;
+                const children = Array.from(canvas.querySelectorAll(`.card[data-parent="${parentId}"]`));
+                if (currentLevel === targetDisplayLevel) {
+                    return children;
                 }
                 
-                // Находим все карточки этого уровня
-                const levelCards = cards.filter(card => {
-                    const depth = parseInt(card.dataset.level || '0');
-                    const cardDisplayLevel = Math.max(0, 5 - depth);
-                    return cardDisplayLevel === displayLevel;
+                // Рекурсивно собираем потомков
+                const descendants = [];
+                children.forEach(child => {
+                    const childDescendants = countDescendantsAtLevel(child.dataset.id, targetDisplayLevel, currentLevel - 1);
+                    descendants.push(...childDescendants);
                 });
-                
-                // Для каждой карточки уровня считаем заполненных дочек
-                let totalFilled = 0;
-                levelCards.forEach(card => {
-                    const cardId = card.dataset.id;
-                    const children = Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`));
-                    const filledChildren = children.filter(child => child.dataset.name && child.dataset.uid);
-                    totalFilled += filledChildren.length;
-                });
-                
-                const maxPartners = levelCards.length * 3; // Максимум 3 партнера на карточку
-                levelFilledPartners[displayLevel] = { filled: totalFilled, max: maxPartners };
-            });
+                return descendants;
+            }
             
-            // Сортируем уровни от большего к меньшему
-            const sortedLevels = Object.keys(levelCounts).sort((a, b) => parseInt(b) - parseInt(a));
+            // Для каждого уровня считаем партнеров root
+            const levelStats = {};
+            for (let displayLevel = 5; displayLevel >= 0; displayLevel--) {
+                if (displayLevel === 5) {
+                    // Уровень 5 - сам root
+                    levelStats[5] = {
+                        total: 1,
+                        filled: 1,
+                        max: 0
+                    };
+                } else {
+                    // Находим всех потомков root на этом уровне
+                    const levelCards = countDescendantsAtLevel('root', displayLevel);
+                    const filledCards = levelCards.filter(card => card.dataset.name && card.dataset.uid);
+                    
+                    // Максимум партнеров = количество карточек на предыдущем уровне * 3
+                    const prevLevelCards = displayLevel === 4 
+                        ? [rootCard] 
+                        : countDescendantsAtLevel('root', displayLevel + 1);
+                    const maxPartners = prevLevelCards.length * 3;
+                    
+                    levelStats[displayLevel] = {
+                        total: levelCards.length,
+                        filled: filledCards.length,
+                        max: maxPartners
+                    };
+                }
+            }
+            
+            // Формируем HTML
             let html = '';
-            sortedLevels.forEach(level => {
-                const levelNum = parseInt(level);
-                const count = levelCounts[level];
-                const partners = levelFilledPartners[levelNum];
+            for (let level = 5; level >= 0; level--) {
+                const stats = levelStats[level];
+                if (!stats) continue;
                 
-                // Для уровня 5 и 0 показываем прочерк (нет партнеров)
-                if (levelNum === 5 || levelNum === 0) {
+                if (level === 5 || level === 0) {
+                    // Уровень 5 и 0 показываем прочерк
                     html += `<div class="stats-item">
                         <span class="stats-level">Уровень ${level}:</span>
-                        <span class="stats-count">${count}</span>
+                        <span class="stats-count">${stats.total}</span>
                         <span style="margin-left: 8px; color: #9ca3af; font-weight: 600;">—</span>
                     </div>`;
-                } else if (partners) {
+                } else {
                     // Определяем цвет для партнеров
-                    // Если все возможные партнеры заполнены (filled >= max), то зеленый
-                    const maxPartners = partners.max;
-                    const filledPartners = partners.filled;
-                    const partnersColor = filledPartners >= maxPartners ? '#22c55e' : '#ef4444'; // зеленый если все заполнены, красный если меньше
+                    const partnersColor = stats.filled >= stats.max ? '#22c55e' : '#ef4444';
                     
                     html += `<div class="stats-item">
                         <span class="stats-level">Уровень ${level}:</span>
-                        <span class="stats-count">${count}</span>
-                        <span style="margin-left: 8px; color: ${partnersColor}; font-weight: 600;">${filledPartners}</span>
-                    </div>`;
-                } else {
-                    // Если нет данных о партнерах, показываем только количество карточек
-                    html += `<div class="stats-item">
-                        <span class="stats-level">Уровень ${level}:</span>
-                        <span class="stats-count">${count}</span>
-                        <span style="margin-left: 8px; color: #ef4444; font-weight: 600;">0</span>
+                        <span class="stats-count">${stats.total}</span>
+                        <span style="margin-left: 8px; color: ${partnersColor}; font-weight: 600;">${stats.filled}</span>
                     </div>`;
                 }
-            });
-            if (sortedLevels.length === 0) {
-                html = '<div class="stats-item">Нет карточек</div>';
+            }
+            
+            if (html === '') {
+                html = '<div class="stats-item">Нет данных</div>';
             }
             statsContent.innerHTML = html;
         }
