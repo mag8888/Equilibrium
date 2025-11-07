@@ -1637,7 +1637,7 @@
             const rootLevel = parseInt(rootCard.dataset.level || '0');
             
             // Для root считаем статистику по всем уровням партнеров
-            // Логика: для каждого уровня партнеров считаем их прямых детей уровня (level - 1)
+            // Логика: для каждого уровня партнеров считаем их прямых детей того же уровня
             // Например, для повышения 3 партнеров уровня 0 до уровня 1 нужно 9 партнеров уровня 0 (по 3 на каждого)
             const rootPartnersByLevel = {};
             const partnersMaxByLevel = {};
@@ -1663,6 +1663,8 @@
                     canvas.querySelector(`.card[data-id="${id}"]`)
                 ).filter(card => card);
                 
+                if (partnersAtLevel.length === 0) return; // Пропускаем если нет партнеров
+                
                 // Для каждого партнера уровня level находим его прямых детей уровня targetLevel (того же уровня)
                 const childrenAtTargetLevel = new Set();
                 partnersAtLevel.forEach(partner => {
@@ -1676,39 +1678,23 @@
                     });
                 });
                 
-                // Сохраняем количество партнеров уровня targetLevel для повышения партнеров уровня level
-                // НО: если это уровень 0, то мы НЕ добавляем их в rootPartnersByLevel[0], 
-                // потому что rootPartnersByLevel[0] уже содержит прямых детей root уровня 0
-                // Вместо этого мы сохраняем их отдельно для статистики
-                if (targetLevel !== level || level === 0) {
-                    // Для уровня 0 не добавляем в rootPartnersByLevel, так как это уже прямые дети root
-                    // Но для других уровней добавляем
-                    if (targetLevel !== 0) {
-                        if (!rootPartnersByLevel[targetLevel]) {
-                            rootPartnersByLevel[targetLevel] = new Set();
-                        }
-                        childrenAtTargetLevel.forEach(id => {
-                            rootPartnersByLevel[targetLevel].add(id);
-                        });
-                    }
-                }
-                
                 // Максимум = количество партнеров уровня level * 3
-                // Но для уровня 0 считаем только детей партнеров уровня 0, а не всех потомков
+                partnersMaxByLevel[targetLevel] = partnersAtLevel.length * 3;
+                
+                // Сохраняем количество партнеров уровня targetLevel для повышения партнеров уровня level
+                // Для уровня 0: перезаписываем rootPartnersByLevel[0] только детьми партнеров уровня 0
+                // Для других уровней: добавляем в rootPartnersByLevel[targetLevel]
                 if (level === 0) {
-                    // Для уровня 0: считаем только прямых детей партнеров уровня 0
-                    partnersMaxByLevel[0] = partnersAtLevel.length * 3;
-                    // И количество уже есть в childrenAtTargetLevel
-                    if (!rootPartnersByLevel[0]) {
-                        rootPartnersByLevel[0] = new Set();
-                    }
-                    // Очищаем и добавляем только детей партнеров уровня 0
-                    rootPartnersByLevel[0].clear();
-                    childrenAtTargetLevel.forEach(id => {
-                        rootPartnersByLevel[0].add(id);
-                    });
+                    // Для уровня 0: сохраняем только детей партнеров уровня 0 (не самих партнеров)
+                    rootPartnersByLevel[0] = childrenAtTargetLevel;
                 } else {
-                    partnersMaxByLevel[targetLevel] = partnersAtLevel.length * 3;
+                    // Для других уровней: добавляем детей в соответствующий уровень
+                    if (!rootPartnersByLevel[targetLevel]) {
+                        rootPartnersByLevel[targetLevel] = new Set();
+                    }
+                    childrenAtTargetLevel.forEach(id => {
+                        rootPartnersByLevel[targetLevel].add(id);
+                    });
                 }
             });
             
