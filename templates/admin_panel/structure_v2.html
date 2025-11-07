@@ -36,6 +36,9 @@
         .guide-line { position: absolute; left: 0; width: 100%; height: 2px; background: #ef4444; cursor: ns-resize; z-index: 1500; opacity: 0.7; }
         .guide-line:hover { opacity: 1; background: #dc2626; }
         .guide-line::before { content: ''; position: absolute; left: 0; top: -4px; width: 100%; height: 10px; cursor: ns-resize; }
+        .guide-line-vertical { position: absolute; top: 0; width: 2px; height: 100%; background: #ef4444; cursor: ew-resize; z-index: 1500; opacity: 0.7; }
+        .guide-line-vertical:hover { opacity: 1; background: #dc2626; }
+        .guide-line-vertical::before { content: ''; position: absolute; top: 0; left: -4px; width: 10px; height: 100%; cursor: ew-resize; }
     </style>
 </head>
 <body>
@@ -61,6 +64,12 @@
             <div class="guide-line" style="top: 4000px;"></div>
             <div class="guide-line" style="top: 5500px;"></div>
             <div class="guide-line" style="top: 7000px;"></div>
+            <!-- Вертикальные линии-ориентиры -->
+            <div class="guide-line-vertical" style="left: 1000px;"></div>
+            <div class="guide-line-vertical" style="left: 2000px;"></div>
+            <div class="guide-line-vertical" style="left: 3000px;"></div>
+            <div class="guide-line-vertical" style="left: 4000px;"></div>
+            <div class="guide-line-vertical" style="left: 5000px;"></div>
             <!-- Авто-раскладка примера по уровням -->
             <div class="card" data-id="root" data-level="0" data-name="IVA" data-uid="0000001" style="left: 2400px; top: 200px;"></div>
         </div>
@@ -94,16 +103,32 @@
         // Инициализация перетаскиваемых линий-ориентиров
         let guideLineDragging = null;
         function initGuideLines() {
+            // Горизонтальные линии
             const guideLines = canvas.querySelectorAll('.guide-line');
             guideLines.forEach(line => {
                 line.addEventListener('mousedown', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     guideLineDragging = line;
-                    const rect = viewport.getBoundingClientRect();
                     const { y } = toCanvasCoords(e.clientX, e.clientY);
                     const lineTop = parseInt(line.style.top) || 0;
                     guideLineDragging.dataset.dragOffset = y - lineTop;
+                    guideLineDragging.dataset.dragType = 'horizontal';
+                    line.style.opacity = '1';
+                });
+            });
+            
+            // Вертикальные линии
+            const guideLinesVertical = canvas.querySelectorAll('.guide-line-vertical');
+            guideLinesVertical.forEach(line => {
+                line.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    guideLineDragging = line;
+                    const { x } = toCanvasCoords(e.clientX, e.clientY);
+                    const lineLeft = parseInt(line.style.left) || 0;
+                    guideLineDragging.dataset.dragOffset = x - lineLeft;
+                    guideLineDragging.dataset.dragType = 'vertical';
                     line.style.opacity = '1';
                 });
             });
@@ -112,12 +137,23 @@
         // Обработка перетаскивания линий
         window.addEventListener('mousemove', (e) => {
             if (!guideLineDragging) return;
-            const { y } = toCanvasCoords(e.clientX, e.clientY);
-            const dragOffset = parseFloat(guideLineDragging.dataset.dragOffset || 0);
-            const newTop = y - dragOffset;
-            // Ограничиваем в пределах canvas
-            const clampedTop = Math.max(0, Math.min(8450, newTop));
-            guideLineDragging.style.top = Math.round(clampedTop / GRID_SIZE) * GRID_SIZE + 'px';
+            const dragType = guideLineDragging.dataset.dragType;
+            
+            if (dragType === 'horizontal') {
+                const { y } = toCanvasCoords(e.clientX, e.clientY);
+                const dragOffset = parseFloat(guideLineDragging.dataset.dragOffset || 0);
+                const newTop = y - dragOffset;
+                // Ограничиваем в пределах canvas
+                const clampedTop = Math.max(0, Math.min(8450, newTop));
+                guideLineDragging.style.top = Math.round(clampedTop / GRID_SIZE) * GRID_SIZE + 'px';
+            } else if (dragType === 'vertical') {
+                const { x } = toCanvasCoords(e.clientX, e.clientY);
+                const dragOffset = parseFloat(guideLineDragging.dataset.dragOffset || 0);
+                const newLeft = x - dragOffset;
+                // Ограничиваем в пределах canvas
+                const clampedLeft = Math.max(0, Math.min(6500, newLeft));
+                guideLineDragging.style.left = Math.round(clampedLeft / GRID_SIZE) * GRID_SIZE + 'px';
+            }
         });
         
         window.addEventListener('mouseup', () => {
