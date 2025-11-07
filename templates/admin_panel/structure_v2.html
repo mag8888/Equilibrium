@@ -53,6 +53,7 @@
         <button class="btn" id="zoomIn">+</button>
         <button class="btn" id="showAll" style="background: #3b82f6; color: white;">🔍 Показать все</button>
         <button class="btn" id="showFullGrid" style="background: #f59e0b; color: white;">📐 Вся сетка</button>
+        <button class="btn" id="importCoords" style="background: #06b6d4; color: white;">📤 Импорт координат</button>
         <button class="btn" id="exportCoords" style="background: #8b5cf6; color: white;">📥 Экспорт координат</button>
         <button class="btn" id="saveLayout" style="background: #10b981; color: white;">💾 Сохранить</button>
     </div>
@@ -187,6 +188,7 @@
         const btnZoomOut = document.getElementById('zoomOut');
         const btnShowAll = document.getElementById('showAll');
         const btnShowFullGrid = document.getElementById('showFullGrid');
+        const btnImportCoords = document.getElementById('importCoords');
         const btnExportCoords = document.getElementById('exportCoords');
         const btnSaveLayout = document.getElementById('saveLayout');
         const statsContent = document.getElementById('statsContent');
@@ -342,6 +344,133 @@
         
         btnShowFullGrid.onclick = () => showFullGrid();
         
+        // Импорт координат из файла
+        function importCoordinatesFromFile() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const importData = JSON.parse(event.target.result);
+                        
+                        if (!importData.cards || !Array.isArray(importData.cards)) {
+                            alert('Неверный формат файла. Ожидается массив cards.');
+                            return;
+                        }
+                        
+                        // Очищаем существующие карточки (кроме root, если он есть)
+                        const rootCard = canvas.querySelector('.card[data-id="root"]');
+                        canvas.querySelectorAll('.card').forEach(card => {
+                            if (card !== rootCard) card.remove();
+                        });
+                        
+                        // Очищаем childMap
+                        childMap.clear();
+                        
+                        // Восстанавливаем uidCounter
+                        if (importData.uidCounter) {
+                            uidCounter = importData.uidCounter;
+                        }
+                        
+                        // Восстанавливаем карточки
+                        const cardMap = new Map();
+                        if (rootCard) {
+                            cardMap.set('root', rootCard);
+                        }
+                        
+                        importData.cards.forEach(item => {
+                            // Пропускаем root, если он уже есть
+                            if (item.id === 'root' && rootCard) {
+                                // Обновляем позицию root, если она изменилась
+                                if (item.left !== undefined) rootCard.style.left = item.left + 'px';
+                                if (item.top !== undefined) rootCard.style.top = item.top + 'px';
+                                return;
+                            }
+                            
+                            let card = canvas.querySelector(`.card[data-id="${item.id}"]`);
+                            if (!card) {
+                                card = document.createElement('div');
+                                card.className = 'card';
+                                card.dataset.id = item.id;
+                                canvas.appendChild(card);
+                            }
+                            
+                            // Устанавливаем все атрибуты
+                            if (item.parent) card.dataset.parent = item.parent;
+                            if (typeof item.level === 'number') card.dataset.level = String(item.level);
+                            if (item.name) card.dataset.name = item.name;
+                            if (item.uid) card.dataset.uid = item.uid;
+                            if (item.left !== undefined) card.style.left = item.left + 'px';
+                            if (item.top !== undefined) card.style.top = item.top + 'px';
+                            
+                            // Рендерим содержимое
+                            renderCardContents(card);
+                            // Включаем drag и точки
+                            enableDrag(card);
+                            cardMap.set(item.id, card);
+                        });
+                        
+                        // Восстанавливаем childMap из импортированных данных
+                        if (importData.childMap) {
+                            importData.childMap.forEach(([parent, children]) => {
+                                childMap.set(parent, new Set(children));
+                            });
+                        } else {
+                            // Если childMap нет в файле, строим его из данных карточек
+                            importData.cards.forEach(item => {
+                                if (item.parent) {
+                                    if (!childMap.has(item.parent)) {
+                                        childMap.set(item.parent, new Set());
+                                    }
+                                    childMap.get(item.parent).add(item.id);
+                                }
+                            });
+                        }
+                        
+                        // Обновляем состояние точек
+                        cardMap.forEach(card => {
+                            updatePointsState(card);
+                        });
+                        
+                        // Обновляем связи
+                        updateAllConnections();
+                        
+                        // Сохраняем импортированные данные в localStorage
+                        savePositions();
+                        
+                        // Обновляем статистику
+                        updateStats();
+                        
+                        // Показываем уведомление
+                        const btn = btnImportCoords;
+                        const originalText = btn.textContent;
+                        btn.textContent = '✓ Импортировано!';
+                        btn.style.background = '#22c55e';
+                        setTimeout(() => {
+                            btn.textContent = originalText;
+                            btn.style.background = '#06b6d4';
+                        }, 2000);
+                        
+                        // Показываем все карточки после импорта
+                        setTimeout(() => showAllCards(), 300);
+                        
+                    } catch (error) {
+                        console.error('Ошибка импорта:', error);
+                        alert('Ошибка при импорте файла: ' + error.message);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+        
+        btnImportCoords.onclick = () => importCoordinatesFromFile();
+        
         // Экспорт координат всех карточек в файл
         function exportCoordinatesToFile() {
             const cards = Array.from(canvas.querySelectorAll('.card'));
@@ -363,6 +492,8 @@
                 canvasWidth: 6500,
                 canvasHeight: 8450,
                 totalCards: cardsData.length,
+                uidCounter: uidCounter,
+                childMap: Array.from(childMap.entries()).map(([parent, children]) => [parent, Array.from(children)]),
                 cards: cardsData.sort((a, b) => {
                     // Сортируем по уровню, затем по позиции
                     if (a.displayLevel !== b.displayLevel) return b.displayLevel - a.displayLevel;
