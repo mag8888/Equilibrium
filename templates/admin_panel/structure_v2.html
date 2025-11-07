@@ -127,9 +127,10 @@
         const viewport = document.getElementById('viewport');
         // Рендер содержимого карточки (имя, id, бейдж уровня)
         function renderCardContents(card) {
-            const depth = parseInt(card.dataset.level || '0');
-            const displayLevel = Math.max(0, 5 - depth); // 5 у корня, до 0 у нижних
             const isRoot = card.dataset.id === 'root';
+            const depth = parseInt(card.dataset.level || '0');
+            // Root всегда отображается как уровень 5, остальные показывают свой реальный уровень
+            const displayLevel = isRoot ? 5 : depth;
             const isEmpty = !card.dataset.name || !card.dataset.uid;
             
             // Если карточка пустая, добавляем класс empty
@@ -376,7 +377,7 @@
                     uid: card.dataset.uid,
                     name: card.dataset.name,
                     level: parseInt(card.dataset.level || '0'),
-                    display_level: Math.max(0, 5 - parseInt(card.dataset.level || '0')),
+                    display_level: isRoot ? 5 : parseInt(card.dataset.level || '0'),
                     inviter_uid: inviterId,
                     left: parseInt(card.style.left) || 0,
                     top: parseInt(card.style.top) || 0
@@ -797,18 +798,23 @@
         // Экспорт координат всех карточек в файл
         function exportCoordinatesToFile() {
             const cards = Array.from(canvas.querySelectorAll('.card'));
-            const cardsData = cards.map(card => ({
-                id: card.dataset.id,
-                name: card.dataset.name || '',
-                uid: card.dataset.uid || '',
-                level: parseInt(card.dataset.level || '0'),
-                displayLevel: Math.max(0, 5 - parseInt(card.dataset.level || '0')),
-                parent: card.dataset.parent || null,
-                left: parseInt(card.style.left) || 0,
-                top: parseInt(card.style.top) || 0,
-                width: card.offsetWidth || 160,
-                height: card.offsetHeight || 80
-            }));
+            const cardsData = cards.map(card => {
+                const isRoot = card.dataset.id === 'root';
+                const level = parseInt(card.dataset.level || '0');
+                const displayLevel = isRoot ? 5 : level;
+                return {
+                    id: card.dataset.id,
+                    name: card.dataset.name || '',
+                    uid: card.dataset.uid || '',
+                    level: level,
+                    displayLevel: displayLevel,
+                    parent: card.dataset.parent || null,
+                    left: parseInt(card.style.left) || 0,
+                    top: parseInt(card.style.top) || 0,
+                    width: card.offsetWidth || 160,
+                    height: card.offsetHeight || 80
+                };
+            });
             
             const exportData = {
                 timestamp: new Date().toISOString(),
@@ -955,7 +961,12 @@
                     }
                     // Устанавливаем все атрибуты
                     if (item.parent) card.dataset.parent = item.parent;
-                    if (typeof item.level === 'number') card.dataset.level = String(item.level);
+                    // Сбрасываем уровень на 0 для всех карточек кроме root
+                    if (item.id === 'root') {
+                        card.dataset.level = '0'; // Root остается на уровне 0
+                    } else {
+                        card.dataset.level = '0'; // Все остальные карточки сбрасываются на уровень 0
+                    }
                     if (item.name) card.dataset.name = item.name;
                     if (item.uid) card.dataset.uid = item.uid;
                     card.style.left = item.left + 'px';
@@ -973,6 +984,13 @@
                 updateAllConnections();
                 
                 // Пересчитываем уровни всех карточек после загрузки (снизу вверх)
+                // Сначала сбрасываем все уровни на 0 (кроме root)
+                cardMap.forEach(card => {
+                    if (card.dataset.id !== 'root') {
+                        card.dataset.level = '0';
+                    }
+                });
+                
                 // Находим все листья (карточки без детей) и пересчитываем от них вверх
                 function getAllDescendants(cardId) {
                     return Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`));
@@ -1355,8 +1373,9 @@
             // Группируем карточки по уровням
             const cardsByLevel = {};
             cards.forEach(card => {
+                const isRoot = card.dataset.id === 'root';
                 const depth = parseInt(card.dataset.level || '0');
-                const displayLevel = Math.max(0, 5 - depth);
+                const displayLevel = isRoot ? 5 : depth;
                 if (!cardsByLevel[displayLevel]) cardsByLevel[displayLevel] = [];
                 cardsByLevel[displayLevel].push(card);
             });
