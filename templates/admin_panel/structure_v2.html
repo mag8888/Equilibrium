@@ -1633,21 +1633,22 @@
             rootPartners.forEach(partner => {
                 const partnerLevel = parseInt(partner.dataset.level || '0');
                 if (!rootPartnersByLevel[partnerLevel]) {
-                    rootPartnersByLevel[partnerLevel] = [];
+                    rootPartnersByLevel[partnerLevel] = new Set();
                 }
-                rootPartnersByLevel[partnerLevel].push(partner);
+                // Каждый партнер уникален и считается по ID
+                rootPartnersByLevel[partnerLevel].add(partner.dataset.id);
             });
             
-            // Для повышения root нужны 3 партнера уровня rootLevel
-            const rootPartnersAtRootLevel = rootPartnersByLevel[rootLevel] || [];
-            const rootNeededForNextLevel = Math.max(0, 3 - rootPartnersAtRootLevel.length);
+            // Для повышения root нужны 3 партнера уровня rootLevel (уникальные по ID)
+            const rootPartnersAtRootLevel = rootPartnersByLevel[rootLevel] || new Set();
+            const rootNeededForNextLevel = Math.max(0, 3 - rootPartnersAtRootLevel.size);
             
             levelStats[rootLevel] = {
                 total: 1,
                 filled: 1,
                 max: 0,
                 neededForNextLevel: rootNeededForNextLevel,
-                partnersAtLevel: rootPartnersAtRootLevel.length
+                partnersAtLevel: rootPartnersAtRootLevel.size
             };
             
             // Для уровней выше root считаем только прямых детей карточек предыдущего уровня
