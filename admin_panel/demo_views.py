@@ -223,7 +223,6 @@ def save_card_api(request):
     try:
         import json
         from django.db import transaction
-        from django.views.decorators.csrf import csrf_exempt
         from users.models import User
         
         data = json.loads(request.body)
