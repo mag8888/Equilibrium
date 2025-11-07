@@ -479,6 +479,8 @@
             const VERTICAL_GAP = 350; // Большой вертикальный отступ для линий
             const SAFETY_MARGIN = 50; // Дополнительный отступ при проверке пересечений
             const START_Y = 500;
+            const LEVEL_X_OFFSET = 400; // Смещение по X для каждого уровня (5й левее, 0й правее)
+            const BASE_X = 200; // Базовая позиция X для уровня 5
             
             // Создаем карту карточек по ID
             const cardMap = new Map();
@@ -529,82 +531,71 @@
             sortedLevels.forEach(level => {
                 const levelCards = cardsByLevel[level];
                 const levelNum = parseInt(level);
+                const displayLevel = Math.max(0, 5 - levelNum); // 5 для root, уменьшается для детей
                 const y = START_Y + levelNum * VERTICAL_GAP;
                 
-                if (levelNum === 0) {
-                    // Root карточка - центрируем
-                    const root = levelCards[0];
-                    const rootX = Math.round((6500 / 2 - CARD_WIDTH / 2) / GRID_SIZE) * GRID_SIZE;
-                    root.style.left = rootX + 'px';
-                    root.style.top = Math.round(y / GRID_SIZE) * GRID_SIZE + 'px';
+                // Вычисляем стартовую позицию X для этого уровня
+                // Уровень 5 (displayLevel=5) - самый левый, уровень 0 - самый правый
+                const levelStartX = BASE_X + (5 - displayLevel) * LEVEL_X_OFFSET;
+                
+                // Сортируем карточки по позиции родителя (если есть) для более логичного порядка
+                levelCards.sort((a, b) => {
+                    const aParentId = a.dataset.parent || 'root';
+                    const bParentId = b.dataset.parent || 'root';
+                    const aParent = cardMap.get(aParentId);
+                    const bParent = cardMap.get(bParentId);
+                    
+                    if (aParent && bParent) {
+                        const aX = parseInt(aParent.style.left) || 0;
+                        const bX = parseInt(bParent.style.left) || 0;
+                        if (aX !== bX) return aX - bX;
+                    }
+                    // Если родители одинаковые или нет, сортируем по ID
+                    return (a.dataset.id || '').localeCompare(b.dataset.id || '');
+                });
+                
+                // Размещаем карточки слева направо последовательно
+                let currentX = levelStartX;
+                
+                levelCards.forEach(child => {
+                    let cardX = currentX;
+                    
+                    // Проверяем пересечения и сдвигаем при необходимости
+                    let attempts = 0;
+                    let hasOverlap = true;
+                    while (hasOverlap && attempts < 200) {
+                        const testRect = {
+                            left: cardX,
+                            right: cardX + CARD_WIDTH,
+                            top: y,
+                            bottom: y + CARD_HEIGHT
+                        };
+                        
+                        if (hasCollision(testRect)) {
+                            cardX += HORIZONTAL_GAP / 2;
+                            attempts++;
+                        } else {
+                            hasOverlap = false;
+                        }
+                    }
+                    
+                    // Размещаем карточку
+                    const x = Math.round(cardX / GRID_SIZE) * GRID_SIZE;
+                    child.style.left = x + 'px';
+                    child.style.top = Math.round(y / GRID_SIZE) * GRID_SIZE + 'px';
+                    
+                    // Добавляем в список размещенных
                     allPlacedRects.push({
-                        card: root,
-                        left: rootX,
-                        right: rootX + CARD_WIDTH,
+                        card: child,
+                        left: x,
+                        right: x + CARD_WIDTH,
                         top: y,
                         bottom: y + CARD_HEIGHT
                     });
-                } else {
-                    // Для остальных уровней размещаем карточки слева направо последовательно
-                    // Сортируем карточки по позиции родителя (если есть) для более логичного порядка
-                    levelCards.sort((a, b) => {
-                        const aParentId = a.dataset.parent || 'root';
-                        const bParentId = b.dataset.parent || 'root';
-                        const aParent = cardMap.get(aParentId);
-                        const bParent = cardMap.get(bParentId);
-                        
-                        if (aParent && bParent) {
-                            const aX = parseInt(aParent.style.left) || 0;
-                            const bX = parseInt(bParent.style.left) || 0;
-                            if (aX !== bX) return aX - bX;
-                        }
-                        // Если родители одинаковые или нет, сортируем по ID
-                        return (a.dataset.id || '').localeCompare(b.dataset.id || '');
-                    });
                     
-                    // Размещаем карточки слева направо последовательно
-                    let currentX = 200;
-                    
-                    levelCards.forEach(child => {
-                        let cardX = currentX;
-                        
-                        // Проверяем пересечения и сдвигаем при необходимости
-                        let attempts = 0;
-                        let hasOverlap = true;
-                        while (hasOverlap && attempts < 200) {
-                            const testRect = {
-                                left: cardX,
-                                right: cardX + CARD_WIDTH,
-                                top: y,
-                                bottom: y + CARD_HEIGHT
-                            };
-                            
-                            if (hasCollision(testRect)) {
-                                cardX += HORIZONTAL_GAP / 2;
-                                attempts++;
-                            } else {
-                                hasOverlap = false;
-                            }
-                        }
-                        
-                        // Размещаем карточку
-                        const x = Math.round(cardX / GRID_SIZE) * GRID_SIZE;
-                        child.style.left = x + 'px';
-                        child.style.top = Math.round(y / GRID_SIZE) * GRID_SIZE + 'px';
-                        
-                        // Добавляем в список размещенных
-                        allPlacedRects.push({
-                            card: child,
-                            left: x,
-                            right: x + CARD_WIDTH,
-                            top: y,
-                            bottom: y + CARD_HEIGHT
-                        });
-                        
-                        // Обновляем текущую позицию для следующей карточки
-                        currentX = x + CARD_WIDTH + HORIZONTAL_GAP;
-                    });
-                }
+                    // Обновляем текущую позицию для следующей карточки
+                    currentX = x + CARD_WIDTH + HORIZONTAL_GAP;
+                });
             });
             
             // Обновляем связи и сохраняем
