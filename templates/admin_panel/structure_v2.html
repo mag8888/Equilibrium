@@ -545,86 +545,64 @@
                         bottom: y + CARD_HEIGHT
                     });
                 } else {
-                    // Для остальных уровней группируем по родителям
-                    const cardsByParent = {};
-                    levelCards.forEach(card => {
-                        const parentId = card.dataset.parent || 'root';
-                        if (!cardsByParent[parentId]) cardsByParent[parentId] = [];
-                        cardsByParent[parentId].push(card);
-                    });
-                    
-                    // Размещаем группы детей под родителями
-                    const parentGroups = Object.keys(cardsByParent).map(parentId => ({
-                        parentId,
-                        children: cardsByParent[parentId],
-                        parent: cardMap.get(parentId)
-                    }));
-                    
-                    // Сортируем группы по позиции родителя слева направо
-                    parentGroups.sort((a, b) => {
-                        const aParent = a.parent;
-                        const bParent = b.parent;
-                        if (!aParent && !bParent) return 0;
-                        if (!aParent) return -1;
-                        if (!bParent) return 1;
-                        const aX = parseInt(aParent.style.left) || 0;
-                        const bX = parseInt(bParent.style.left) || 0;
-                        return aX - bX;
-                    });
-                    
-                    parentGroups.forEach(({ parentId, children, parent }) => {
-                        let groupStartX = 200;
+                    // Для остальных уровней размещаем карточки слева направо последовательно
+                    // Сортируем карточки по позиции родителя (если есть) для более логичного порядка
+                    levelCards.sort((a, b) => {
+                        const aParentId = a.dataset.parent || 'root';
+                        const bParentId = b.dataset.parent || 'root';
+                        const aParent = cardMap.get(aParentId);
+                        const bParent = cardMap.get(bParentId);
                         
-                        // Если есть родитель, пытаемся центрировать группу под ним
-                        if (parent) {
-                            const parentLeft = parseInt(parent.style.left) || 0;
-                            const parentCenter = parentLeft + CARD_WIDTH / 2;
-                            const childrenWidth = (children.length - 1) * HORIZONTAL_GAP + CARD_WIDTH;
-                            groupStartX = parentCenter - childrenWidth / 2;
+                        if (aParent && bParent) {
+                            const aX = parseInt(aParent.style.left) || 0;
+                            const bX = parseInt(bParent.style.left) || 0;
+                            if (aX !== bX) return aX - bX;
                         }
+                        // Если родители одинаковые или нет, сортируем по ID
+                        return (a.dataset.id || '').localeCompare(b.dataset.id || '');
+                    });
+                    
+                    // Размещаем карточки слева направо последовательно
+                    let currentX = 200;
+                    
+                    levelCards.forEach(child => {
+                        let cardX = currentX;
                         
-                        // Проверяем и исправляем пересечения
+                        // Проверяем пересечения и сдвигаем при необходимости
                         let attempts = 0;
                         let hasOverlap = true;
                         while (hasOverlap && attempts < 200) {
-                            hasOverlap = false;
-                            
-                            // Проверяем каждую карточку в группе
-                            for (let i = 0; i < children.length; i++) {
-                                const cardLeft = groupStartX + i * HORIZONTAL_GAP;
-                                const cardRight = cardLeft + CARD_WIDTH;
-                                const testRect = {
-                                    left: cardLeft,
-                                    right: cardRight,
-                                    top: y,
-                                    bottom: y + CARD_HEIGHT
-                                };
-                                
-                                if (hasCollision(testRect)) {
-                                    hasOverlap = true;
-                                    // Сдвигаем всю группу вправо
-                                    groupStartX += HORIZONTAL_GAP / 2;
-                                    break;
-                                }
-                            }
-                            attempts++;
-                        }
-                        
-                        // Размещаем детей группы
-                        children.forEach((child, index) => {
-                            const x = Math.round((groupStartX + index * HORIZONTAL_GAP) / GRID_SIZE) * GRID_SIZE;
-                            child.style.left = x + 'px';
-                            child.style.top = Math.round(y / GRID_SIZE) * GRID_SIZE + 'px';
-                            
-                            // Добавляем в список размещенных
-                            allPlacedRects.push({
-                                card: child,
-                                left: x,
-                                right: x + CARD_WIDTH,
+                            const testRect = {
+                                left: cardX,
+                                right: cardX + CARD_WIDTH,
                                 top: y,
                                 bottom: y + CARD_HEIGHT
-                            });
+                            };
+                            
+                            if (hasCollision(testRect)) {
+                                cardX += HORIZONTAL_GAP / 2;
+                                attempts++;
+                            } else {
+                                hasOverlap = false;
+                            }
+                        }
+                        
+                        // Размещаем карточку
+                        const x = Math.round(cardX / GRID_SIZE) * GRID_SIZE;
+                        child.style.left = x + 'px';
+                        child.style.top = Math.round(y / GRID_SIZE) * GRID_SIZE + 'px';
+                        
+                        // Добавляем в список размещенных
+                        allPlacedRects.push({
+                            card: child,
+                            left: x,
+                            right: x + CARD_WIDTH,
+                            top: y,
+                            bottom: y + CARD_HEIGHT
                         });
+                        
+                        // Обновляем текущую позицию для следующей карточки
+                        currentX = x + CARD_WIDTH + HORIZONTAL_GAP;
                     });
                 }
             });
