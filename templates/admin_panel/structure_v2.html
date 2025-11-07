@@ -36,6 +36,9 @@
         .card.empty .fill-btn { display: block; }
         .card.empty .name, .card.empty .uid { display: none; }
         .card.empty { border-style: dashed; opacity: 0.7; }
+        .card .fill-children-btn { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); padding: 6px 12px; background: #10b981; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600; z-index: 10; white-space: nowrap; }
+        .card .fill-children-btn:hover { background: #059669; }
+        .card .fill-children-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .point { position: absolute; width: 12px; height: 12px; border-radius: 50%; background: #22c55e; border: 2px solid #16a34a; top: 50%; transform: translateY(-50%); cursor: pointer; }
         .point.left { left: -8px; }
         .point.right { right: -8px; }
@@ -125,13 +128,30 @@
                     });
                 }
             } else {
-                // Заполненная карточка
+                // Заполненная карточка - добавляем кнопку для заполнения дочерних объектов
+                const hasChildren = Array.from(canvas.querySelectorAll(`.card[data-parent="${card.dataset.id}"]`)).length > 0;
+                const hasEmptyChildren = hasChildren && Array.from(canvas.querySelectorAll(`.card[data-parent="${card.dataset.id}"]`)).some(child => !child.dataset.name || !child.dataset.uid);
+                
                 card.innerHTML = `
                     <div class="badge">${displayLevel}</div>
                     ${!isRoot ? '<button class="delete-btn" title="Удалить карточку и всех её детей">×</button>' : ''}
                     <div class="name">${card.dataset.name}</div>
                     <div class="uid">ID${card.dataset.uid}</div>
+                    ${hasEmptyChildren ? '<button class="fill-children-btn" title="Заполнить дочерние объекты">Заполнить дочерние</button>' : ''}
                 `;
+                
+                // Добавляем обработчик для кнопки заполнения дочерних объектов (включая root)
+                const fillChildrenBtn = card.querySelector('.fill-children-btn');
+                if (fillChildrenBtn) {
+                    fillChildrenBtn.addEventListener('click', async (e) => {
+                        e.stopPropagation();
+                        fillChildrenBtn.disabled = true;
+                        fillChildrenBtn.textContent = 'Заполняется...';
+                        await fillCardChildren(card);
+                        fillChildrenBtn.disabled = false;
+                        renderCardContents(card); // Перерисовываем чтобы убрать кнопку если все заполнено
+                    });
+                }
             }
             
             // Добавляем обработчик удаления
@@ -146,7 +166,7 @@
             }
         }
         
-        // Заполнение карточки данными и её дочерних объектов
+        // Заполнение карточки данными
         async function fillCard(card) {
             if (!card.dataset.name) card.dataset.name = generateRandomName();
             if (!card.dataset.uid) card.dataset.uid = generateRandomId();
@@ -156,6 +176,14 @@
             await saveCardToDatabase(card);
             
             // Заполняем все дочерние объекты этой карточки
+            await fillCardChildren(card);
+            
+            savePositions();
+            updateStats();
+        }
+        
+        // Заполнение дочерних объектов карточки
+        async function fillCardChildren(card) {
             const cardId = card.dataset.id;
             const children = Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`));
             
@@ -164,9 +192,6 @@
                     await fillCard(child); // Рекурсивно заполняем дочерние объекты
                 }
             }
-            
-            savePositions();
-            updateStats();
         }
         
         // Сохранение карточки в базу данных
@@ -950,6 +975,22 @@
             }
         });
 
+        // Создание root пользователя в базе при загрузке
+        async function ensureRootInDatabase() {
+            const rootCard = canvas.querySelector('.card[data-id="root"]');
+            if (!rootCard) return;
+            
+            if (!rootCard.dataset.name) rootCard.dataset.name = 'IVA';
+            if (!rootCard.dataset.uid) rootCard.dataset.uid = '0000001';
+            
+            // Сохраняем root в базу если его там нет
+            try {
+                await saveCardToDatabase(rootCard);
+            } catch (error) {
+                console.error('Ошибка сохранения root в базу:', error);
+            }
+        }
+        
         // Старт: загружаем сохранённые позиции или используем дефолтные
         if (!loadPositions()) {
             // Если нет сохранённых данных, удаляем все карточки кроме root
@@ -971,6 +1012,9 @@
                 enableDrag(root);
             }
         }
+        
+        // Создаем root в базе при загрузке
+        ensureRootInDatabase();
         // Убеждаемся, что все карточки отрендерены
         canvas.querySelectorAll('.card').forEach(card => {
             if (!card.querySelector('.badge')) {
@@ -1319,18 +1363,30 @@
             statsContent.innerHTML = html;
         }
 
-        // Очистить тестовые данные (удалить имя и ID у всех карточек кроме root)
-        function clearTestData() {
-            const cards = Array.from(canvas.querySelectorAll('.card'));
-            cards.forEach(card => {
-                if (card.dataset.id !== 'root') {
-                    // Удаляем имя и ID
-                    delete card.dataset.name;
-                    delete card.dataset.uid;
-                    // Перерисовываем карточку (она станет пустой)
-                    renderCardContents(card);
-                }
+        // Очистить тестовые данные дочерних объектов root (только данные, карточки не удаляем)
+        async function clearTestData() {
+            const rootCard = canvas.querySelector('.card[data-id="root"]');
+            if (!rootCard) return;
+            
+            // Находим все дочерние объекты root рекурсивно
+            function getAllDescendants(parentId) {
+                const children = Array.from(canvas.querySelectorAll(`.card[data-parent="${parentId}"]`));
+                let allDescendants = [...children];
+                children.forEach(child => {
+                    allDescendants.push(...getAllDescendants(child.dataset.id));
+                });
+                return allDescendants;
+            }
+            
+            const rootChildren = getAllDescendants('root');
+            
+            // Очищаем данные всех дочерних объектов root
+            rootChildren.forEach(card => {
+                delete card.dataset.name;
+                delete card.dataset.uid;
+                renderCardContents(card);
             });
+            
             savePositions();
             updateStats();
             
