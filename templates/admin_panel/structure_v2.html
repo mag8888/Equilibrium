@@ -183,6 +183,46 @@
         
         // Сохранение/восстановление позиций
         const STORAGE_KEY = 'structure_v2_positions';
+        const LAYOUT_TEMPLATE_KEY = 'structure_v2_layout_template';
+        
+        // Сохраняем шаблон расположения детей для каждого родителя
+        function saveLayoutTemplate() {
+            const templates = {};
+            canvas.querySelectorAll('.card').forEach(parentCard => {
+                const parentId = parentCard.dataset.id;
+                const children = Array.from(canvas.querySelectorAll(`.card[data-parent="${parentId}"]`));
+                if (children.length === 0) return;
+                
+                const px = parseInt(parentCard.style.left) || 0;
+                const py = parseInt(parentCard.style.top) || 0;
+                
+                // Сохраняем относительные позиции детей
+                const childPositions = children.map(child => {
+                    const cx = parseInt(child.style.left) || 0;
+                    const cy = parseInt(child.style.top) || 0;
+                    return {
+                        offsetX: cx - px,
+                        offsetY: cy - py
+                    };
+                });
+                
+                templates[parentId] = childPositions;
+            });
+            localStorage.setItem(LAYOUT_TEMPLATE_KEY, JSON.stringify(templates));
+        }
+        
+        // Загружаем шаблон расположения для родителя
+        function loadLayoutTemplate(parentId) {
+            const saved = localStorage.getItem(LAYOUT_TEMPLATE_KEY);
+            if (!saved) return null;
+            try {
+                const templates = JSON.parse(saved);
+                return templates[parentId] || null;
+            } catch (e) {
+                return null;
+            }
+        }
+        
         function savePositions() {
             const cards = Array.from(canvas.querySelectorAll('.card'));
             const data = {
@@ -199,6 +239,8 @@
                 childMap: Array.from(childMap.entries()).map(([parent, children]) => [parent, Array.from(children)])
             };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
         }
         function loadPositions() {
             const saved = localStorage.getItem(STORAGE_KEY);
@@ -285,24 +327,37 @@
             const px = parseInt(parentCard.style.left) || 0;
             const py = parseInt(parentCard.style.top) || 0;
             const index = children.size; // 0..2
-            // Горизонтальное расположение слева/справа от родителя
-            const horizontalOffset = side === 'left' ? -240 : 240;
-            // Вертикальные уровни: первый выше, второй по центру, третий ниже
-            // Берём расстояние из первого существующего ребёнка, если есть, иначе дефолт 120
-            let dy = 120;
-            const existing = Array.from(canvas.querySelectorAll(`.card[data-parent="${parentId}"]`));
-            if (existing.length > 0) {
-                const base = py + 200;
-                // Берём смещение первого ребёнка (по модулю)
-                const firstChild = existing[0];
-                const firstOffset = Math.abs((parseInt(firstChild.style.top) || 0) - base);
-                if (firstOffset > 0) dy = Math.max(40, Math.min(240, firstOffset));
+            
+            // Пытаемся использовать сохраненный шаблон расположения
+            const template = loadLayoutTemplate(parentId);
+            let nx, ny;
+            
+            if (template && template.length > index) {
+                // Используем сохраненный шаблон
+                const templatePos = template[index];
+                nx = px + templatePos.offsetX;
+                ny = py + templatePos.offsetY;
+            } else {
+                // Используем стандартную логику
+                const horizontalOffset = side === 'left' ? -240 : 240;
+                // Вертикальные уровни: первый выше, второй по центру, третий ниже
+                // Берём расстояние из первого существующего ребёнка, если есть, иначе дефолт 120
+                let dy = 120;
+                const existing = Array.from(canvas.querySelectorAll(`.card[data-parent="${parentId}"]`));
+                if (existing.length > 0) {
+                    const base = py + 200;
+                    // Берём смещение первого ребёнка (по модулю)
+                    const firstChild = existing[0];
+                    const firstOffset = Math.abs((parseInt(firstChild.style.top) || 0) - base);
+                    if (firstOffset > 0) dy = Math.max(40, Math.min(240, firstOffset));
+                }
+                const verticalLevels = [-dy, 0, dy]; // выше, центр, ниже
+                const baseY = py + 200;
+                const vy = verticalLevels[Math.min(index, 2)];
+                nx = px + horizontalOffset + (side === 'left' ? -index * 0 : 0);
+                ny = baseY + vy;
             }
-            const verticalLevels = [-dy, 0, dy]; // выше, центр, ниже
-            const baseY = py + 200;
-            const vy = verticalLevels[Math.min(index, 2)];
-            const nx = px + horizontalOffset + (side === 'left' ? -index * 0 : 0);
-            const ny = baseY + vy;
+            
             // Привязка к сетке
             const snappedX = Math.round(nx / GRID_SIZE) * GRID_SIZE;
             const snappedY = Math.round(ny / GRID_SIZE) * GRID_SIZE;
@@ -373,7 +428,7 @@
             dragging = null;
             if (finished) {
                 updateConnectionsForCardAndRelatives(finished);
-                savePositions();
+                savePositions(); // Это также сохранит шаблон расположения
                 updateStats();
             }
         });
