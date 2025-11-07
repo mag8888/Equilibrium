@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление пользователями</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .header { padding: 20px; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 24px; color: #333; }
+        .stats { display: flex; gap: 20px; margin-top: 10px; }
+        .stat-item { padding: 10px 15px; background: #f8f9fa; border-radius: 6px; }
+        .stat-label { font-size: 12px; color: #666; }
+        .stat-value { font-size: 18px; font-weight: 600; color: #333; margin-top: 4px; }
+        .search-bar { padding: 20px; border-bottom: 1px solid #e0e0e0; }
+        .search-bar input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e0e0e0; }
+        th { background: #f8f9fa; font-weight: 600; color: #333; position: sticky; top: 0; }
+        tr:hover { background: #f8f9fa; }
+        .balance { font-weight: 600; color: #059669; }
+        .balance.negative { color: #dc2626; }
+        .inviter { color: #666; }
+        .actions { display: flex; gap: 8px; }
+        .btn { padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; }
+        .btn-add { background: #10b981; color: white; }
+        .btn-subtract { background: #ef4444; color: white; }
+        .btn:hover { opacity: 0.9; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+        .modal-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 8px; min-width: 400px; }
+        .modal-header { margin-bottom: 20px; }
+        .modal-header h2 { font-size: 20px; color: #333; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: #666; font-size: 14px; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+        .btn-cancel { background: #e5e7eb; color: #333; }
+        .pagination { padding: 20px; display: flex; justify-content: center; gap: 10px; }
+        .pagination a { padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; text-decoration: none; color: #333; }
+        .pagination a:hover { background: #f8f9fa; }
+        .pagination .current { background: #3b82f6; color: white; border-color: #3b82f6; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>Управление пользователями</h1>
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-label">Всего пользователей</div>
+                        <div class="stat-value">{{ total_users }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Общий баланс</div>
+                        <div class="stat-value">{{ total_balance|floatformat:2 }} ₽</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="search-bar">
+            <form method="GET">
+                <input type="text" name="search" placeholder="Поиск по имени, email, коду..." value="{{ search }}">
+            </form>
+        </div>
+        
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Имя</th>
+                        <th>Email</th>
+                        <th>Код</th>
+                        <th>Пригласитель</th>
+                        <th>Баланс</th>
+                        <th>Статус</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>{{ user.first_name }} {{ user.last_name|default:"" }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.referral_code }}</td>
+                        <td class="inviter">
+                            {% if user.invited_by %}
+                                {{ user.invited_by.first_name }} {{ user.invited_by.last_name|default:"" }} ({{ user.invited_by.referral_code }})
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                        <td class="balance {% if user.balance < 0 %}negative{% endif %}">
+                            {{ user.balance|floatformat:2 }} ₽
+                        </td>
+                        <td>{{ user.get_status_display }}</td>
+                        <td>
+                            <div class="actions">
+                                <button class="btn btn-add" onclick="openModal('add', {{ user.id }}, '{{ user.first_name }} {{ user.last_name|default:"" }}', {{ user.balance }})">
+                                    Добавить
+                                </button>
+                                <button class="btn btn-subtract" onclick="openModal('subtract', {{ user.id }}, '{{ user.first_name }} {{ user.last_name|default:"" }}', {{ user.balance }})">
+                                    Списать
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 40px; color: #666;">
+                            Пользователи не найдены
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        {% if users.has_other_pages %}
+        <div class="pagination">
+            {% if users.has_previous %}
+                <a href="?page={{ users.previous_page_number }}{% if search %}&search={{ search }}{% endif %}">←</a>
+            {% endif %}
+            
+            {% for num in users.paginator.page_range %}
+                {% if users.number == num %}
+                    <span class="current">{{ num }}</span>
+                {% elif num > users.number|add:'-3' and num < users.number|add:'3' %}
+                    <a href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+            
+            {% if users.has_next %}
+                <a href="?page={{ users.next_page_number }}{% if search %}&search={{ search }}{% endif %}">→</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Модальное окно для изменения баланса -->
+    <div id="balanceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Изменение баланса</h2>
+            </div>
+            <form id="balanceForm" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="action" id="modalAction">
+                <input type="hidden" name="user_id" id="modalUserId">
+                <div class="form-group">
+                    <label>Пользователь</label>
+                    <input type="text" id="modalUserName" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Текущий баланс</label>
+                    <input type="text" id="modalCurrentBalance" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Сумма</label>
+                    <input type="number" name="amount" step="0.01" min="0.01" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel" onclick="closeModal()">Отмена</button>
+                    <button type="submit" class="btn {% if action == 'add' %}btn-add{% else %}btn-subtract{% endif %}" id="modalSubmitBtn">
+                        Применить
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        function openModal(action, userId, userName, currentBalance) {
+            const modal = document.getElementById('balanceModal');
+            const form = document.getElementById('balanceForm');
+            const title = document.getElementById('modalTitle');
+            const submitBtn = document.getElementById('modalSubmitBtn');
+            
+            document.getElementById('modalAction').value = action;
+            document.getElementById('modalUserId').value = userId;
+            document.getElementById('modalUserName').value = userName;
+            document.getElementById('modalCurrentBalance').value = currentBalance.toFixed(2) + ' ₽';
+            
+            if (action === 'add') {
+                title.textContent = 'Добавить баланс';
+                submitBtn.textContent = 'Добавить';
+                submitBtn.className = 'btn btn-add';
+            } else {
+                title.textContent = 'Списать баланс';
+                submitBtn.textContent = 'Списать';
+                submitBtn.className = 'btn btn-subtract';
+            }
+            
+            modal.style.display = 'block';
+        }
+        
+        function closeModal() {
+            document.getElementById('balanceModal').style.display = 'none';
+            document.getElementById('balanceForm').reset();
+        }
+        
+        // Закрытие модального окна при клике вне его
+        window.onclick = function(event) {
+            const modal = document.getElementById('balanceModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+        
+        // Обработка формы через AJAX
+        document.getElementById('balanceForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const action = formData.get('action');
+            const userId = formData.get('user_id');
+            const amount = formData.get('amount');
+            
+            try {
+                const response = await fetch('', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(`Баланс успешно изменен. Новый баланс: ${data.new_balance.toFixed(2)} ₽`);
+                    location.reload();
+                } else {
+                    alert('Ошибка: ' + (data.error || 'Неизвестная ошибка'));
+                }
+            } catch (error) {
+                alert('Ошибка при отправке запроса: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>
+

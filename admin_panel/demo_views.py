@@ -4,6 +4,7 @@
 """
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 
 
 def admin_demo_dashboard(request):
@@ -211,6 +212,148 @@ def admin_demo_structure_v6(request):
 def admin_demo_structure_v2(request):
     """Новая страница структуры v2: сетка, панорама, drag карточек"""
     return render(request, 'admin_panel/structure_v2.html', {})
+
+
+@csrf_exempt
+def save_card_api(request):
+    """API для сохранения карточки в базу данных"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    try:
+        import json
+        from django.db import transaction
+        from django.views.decorators.csrf import csrf_exempt
+        from users.models import User
+        
+        data = json.loads(request.body)
+        uid = data.get('uid')
+        name = data.get('name')
+        inviter_uid = data.get('inviter_uid')
+        
+        if not uid or not name:
+            return JsonResponse({'error': 'UID and name are required'}, status=400)
+        
+        # Разделяем имя на имя и фамилию
+        name_parts = name.split(' ', 1)
+        first_name = name_parts[0] if len(name_parts) > 0 else name
+        last_name = name_parts[1] if len(name_parts) > 1 else ''
+        
+        # Используем UID как referral_code (первые 8 символов)
+        referral_code = str(uid)[:8].upper()
+        
+        with transaction.atomic():
+            # Ищем пользователя по referral_code или username
+            user = None
+            created = False
+            
+            try:
+                user = User.objects.get(referral_code=referral_code)
+            except User.DoesNotExist:
+                try:
+                    user = User.objects.get(username=f'user_{uid}')
+                except User.DoesNotExist:
+                    # Создаем нового пользователя
+                    user = User.objects.create(
+                        username=f'user_{uid}',
+                        email=f'user_{uid}@example.com',
+                        first_name=first_name,
+                        last_name=last_name,
+                        referral_code=referral_code,
+                    )
+                    created = True
+            
+            # Обновляем имя если пользователь уже существует
+            if not created:
+                user.first_name = first_name
+                user.last_name = last_name
+                if not user.referral_code:
+                    user.referral_code = referral_code
+                user.save()
+            
+            # Устанавливаем пригласителя
+            if inviter_uid:
+                try:
+                    inviter_code = str(inviter_uid)[:8].upper()
+                    inviter = User.objects.get(referral_code=inviter_code)
+                    if user.invited_by != inviter:
+                        user.invited_by = inviter
+                        user.save()
+                except User.DoesNotExist:
+                    pass  # Пригласитель не найден, пропускаем
+            
+            return JsonResponse({
+                'success': True,
+                'user_id': user.id,
+                'created': created
+            })
+            
+    except Exception as e:
+        import traceback
+        return JsonResponse({'error': str(e), 'traceback': traceback.format_exc()}, status=500)
+
+
+def admin_users_management(request):
+    """Админка для управления пользователями с балансом"""
+    from users.models import User
+    from django.db.models import Q, Sum
+    from django.core.paginator import Paginator
+    import json
+    
+    # Получение списка пользователей
+    users = User.objects.all().order_by('-date_joined')
+    
+    # Фильтрация
+    search = request.GET.get('search', '')
+    if search:
+        users = users.filter(
+            Q(username__icontains=search) |
+            Q(email__icontains=search) |
+            Q(first_name__icontains=search) |
+            Q(last_name__icontains=search) |
+            Q(referral_code__icontains=search)
+        )
+    
+    # Пагинация
+    paginator = Paginator(users, 50)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
+    # Статистика
+    total_users = User.objects.count()
+    total_balance = User.objects.aggregate(Sum('balance'))['balance__sum'] or 0
+    
+    # Обработка изменения баланса
+    if request.method == 'POST':
+        try:
+            action = request.POST.get('action')
+            user_id = request.POST.get('user_id')
+            amount = float(request.POST.get('amount', 0))
+            
+            user = User.objects.get(id=user_id)
+            
+            if action == 'add_balance':
+                user.balance += amount
+                user.save()
+                return JsonResponse({'success': True, 'new_balance': float(user.balance)})
+            elif action == 'subtract_balance':
+                if user.balance >= amount:
+                    user.balance -= amount
+                    user.save()
+                    return JsonResponse({'success': True, 'new_balance': float(user.balance)})
+                else:
+                    return JsonResponse({'error': 'Недостаточно средств'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    
+    context = {
+        'users': page_obj,
+        'total_users': total_users,
+        'total_balance': total_balance,
+        'search': search,
+    }
+    
+    return render(request, 'admin_panel/users_management.html', context)
 
 
 def build_structure_tree(user, level=0):
