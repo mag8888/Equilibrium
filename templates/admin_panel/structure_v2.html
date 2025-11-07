@@ -34,7 +34,44 @@
         .card { position: absolute; min-width: 140px; min-height: 64px; padding: 10px 12px; background: white; border: 2px solid #cbd5e1; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); cursor: grab; user-select: none; transition: box-shadow 0.15s ease; color: #1f2937; }
         .card:hover { box-shadow: 0 6px 18px rgba(0,0,0,0.1); }
         .card.dragging { cursor: grabbing; z-index: 2000; }
-        .card .badge { position: absolute; top: -10px; left: -10px; background: #1f2937; color: #fff; font-size: 11px; padding: 2px 6px; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+        .card .badge { 
+            position: absolute; 
+            top: -10px; 
+            left: -10px; 
+            background: #1f2937; 
+            color: #fff; 
+            font-size: 12px; 
+            font-weight: 600;
+            padding: 4px 8px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            z-index: 20;
+            min-width: 24px;
+            text-align: center;
+        }
+        .card .badge.level-up {
+            background: #22c55e;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .card .progress-indicator {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #e5e7eb;
+            border-radius: 0 0 8px 8px;
+        }
+        .card .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #ef4444, #f59e0b, #22c55e);
+            border-radius: 0 0 8px 8px;
+            transition: width 0.3s ease;
+        }
         .card .name { font-weight: 600; color: #1f2937; }
         .card .uid { font-size: 12px; opacity: 0.6; color: #4b5563; }
         .card .delete-btn { position: absolute; top: -8px; right: -8px; width: 20px; height: 20px; background: #ef4444; color: white; border: none; border-radius: 50%; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; z-index: 10; line-height: 1; }
@@ -133,6 +170,27 @@
             const displayLevel = depth;
             const isEmpty = !card.dataset.name || !card.dataset.uid;
             
+            // Вычисляем прогресс для повышения уровня
+            const cardId = card.dataset.id;
+            const partners = Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`))
+                .filter(child => child.dataset.name && child.dataset.uid);
+            
+            // Группируем партнеров по уровням
+            const partnersByLevel = {};
+            partners.forEach(partner => {
+                const partnerLevel = parseInt(partner.dataset.level || '0');
+                if (!partnersByLevel[partnerLevel]) {
+                    partnersByLevel[partnerLevel] = [];
+                }
+                partnersByLevel[partnerLevel].push(partner);
+            });
+            
+            // Партнеры текущего уровня для повышения
+            const partnersAtCurrentLevel = partnersByLevel[depth] || [];
+            const neededForNextLevel = Math.max(0, 3 - partnersAtCurrentLevel.length);
+            const progressPercent = Math.min(100, (partnersAtCurrentLevel.length / 3) * 100);
+            const canLevelUp = partnersAtCurrentLevel.length >= 3;
+            
             // Если карточка пустая, добавляем класс empty
             if (isEmpty && !isRoot) {
                 card.classList.add('empty');
@@ -140,12 +198,20 @@
                 card.classList.remove('empty');
             }
             
+            // Добавляем класс для анимации повышения уровня
+            if (canLevelUp) {
+                card.classList.add('can-level-up');
+            } else {
+                card.classList.remove('can-level-up');
+            }
+            
             if (isEmpty && !isRoot) {
                 // Пустая карточка - показываем кнопку заполнения
                 card.innerHTML = `
-                    <div class="badge">${displayLevel}</div>
+                    <div class="badge ${canLevelUp ? 'level-up' : ''}">${displayLevel}</div>
                     <button class="fill-btn" title="Заполнить карточку и её дочерние объекты">Заполнить</button>
                     <button class="delete-btn" title="Удалить карточку и всех её детей">×</button>
+                    ${!isEmpty ? `<div class="progress-indicator"><div class="progress-bar" style="width: ${progressPercent}%"></div></div>` : ''}
                 `;
                 // Добавляем обработчик заполнения
                 const fillBtn = card.querySelector('.fill-btn');
@@ -161,11 +227,12 @@
             } else {
                 // Заполненная карточка - добавляем кнопку "+" для добавления дочерних объектов
                 card.innerHTML = `
-                    <div class="badge">${displayLevel}</div>
+                    <div class="badge ${canLevelUp ? 'level-up' : ''}" title="Уровень ${displayLevel}. Для повышения нужно ${neededForNextLevel > 0 ? `еще ${neededForNextLevel} партнер${neededForNextLevel === 1 ? 'а' : 'ов'}` : 'готов к повышению'}">${displayLevel}</div>
                     ${!isRoot ? '<button class="delete-btn" title="Удалить карточку и всех её детей">×</button>' : ''}
                     <button class="add-child-btn" title="Добавить дочерний объект">+</button>
                     <div class="name">${card.dataset.name}</div>
                     <div class="uid">ID${card.dataset.uid}</div>
+                    ${partners.length > 0 ? `<div class="progress-indicator"><div class="progress-bar" style="width: ${progressPercent}%"></div></div>` : ''}
                 `;
                 
                 // Добавляем обработчик для кнопки "+"
@@ -352,6 +419,12 @@
                 renderCardContents(card);
                 saveCardToDatabase(card);
                 
+                // Обновляем все дочерние карточки, чтобы они пересчитали свой прогресс
+                const children = Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`));
+                children.forEach(child => {
+                    renderCardContents(child);
+                });
+                
                 // Рекурсивно пересчитываем уровень родителя (если есть)
                 const parentId = card.dataset.parent;
                 if (parentId) {
@@ -360,6 +433,9 @@
                         recalculateLevel(parentCard);
                     }
                 }
+            } else {
+                // Даже если уровень не изменился, обновляем отображение для показа прогресса
+                renderCardContents(card);
             }
         }
         
@@ -1575,8 +1651,9 @@
                 cardsByLevel[level] = uniqueCards;
                 const filledCards = uniqueCards.filter(card => card.dataset.name && card.dataset.uid);
                 
-                // Максимум партнеров = количество карточек на предыдущем уровне * 3
-                const maxPartners = prevLevelCards.length * 3;
+                // Максимум партнеров = количество ЗАПОЛНЕННЫХ карточек на предыдущем уровне * 3
+                const filledPrevLevelCards = prevLevelCards.filter(card => card.dataset.name && card.dataset.uid);
+                const maxPartners = filledPrevLevelCards.length * 3;
                 
                 levelStats[level] = {
                     total: uniqueCards.length,
