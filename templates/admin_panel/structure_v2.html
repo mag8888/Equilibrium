@@ -1225,7 +1225,14 @@
                 const count = levelCounts[level];
                 const partners = levelFilledPartners[levelNum];
                 
-                if (partners) {
+                // Для уровня 5 показываем прочерк
+                if (levelNum === 5) {
+                    html += `<div class="stats-item">
+                        <span class="stats-level">Уровень ${level}:</span>
+                        <span class="stats-count">${count}</span>
+                        <span style="margin-left: 8px; color: #9ca3af; font-weight: 600;">—</span>
+                    </div>`;
+                } else if (partners) {
                     // Определяем цвет для партнеров
                     // Если все возможные партнеры заполнены (filled >= max), то зеленый
                     const maxPartners = partners.max;
