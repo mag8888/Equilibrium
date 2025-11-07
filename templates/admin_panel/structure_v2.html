@@ -1686,21 +1686,21 @@
                     cardPartners.forEach(partner => {
                         const partnerLevel = parseInt(partner.dataset.level || '0');
                         if (!partnersByLevelForStats[partnerLevel]) {
-                            partnersByLevelForStats[partnerLevel] = [];
+                            partnersByLevelForStats[partnerLevel] = new Set();
                         }
-                        partnersByLevelForStats[partnerLevel].push(partner);
+                        partnersByLevelForStats[partnerLevel].add(partner.dataset.id);
                     });
                 });
                 
-                // Партнеры уровня level для повышения карточек уровня level
-                const partnersAtLevel = partnersByLevelForStats[level] || [];
-                const neededForNextLevel = Math.max(0, (levelCardsFilled.length * 3) - partnersAtLevel.length);
+                // Партнеры уровня level для повышения карточек уровня level (уникальные по ID)
+                const partnersAtLevel = (partnersByLevelForStats[level] || new Set()).size;
+                const neededForNextLevel = Math.max(0, (levelCardsFilled.length * 3) - partnersAtLevel);
                 
                 levelStats[level] = {
                     total: uniqueCards.length,
                     filled: filledCards.length,
                     max: levelCardsFilled.length * 3,
-                    partnersAtLevel: partnersAtLevel.length,
+                    partnersAtLevel: partnersAtLevel,
                     neededForNextLevel: neededForNextLevel
                 };
             }
