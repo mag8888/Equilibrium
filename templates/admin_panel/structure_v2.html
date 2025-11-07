@@ -1706,12 +1706,12 @@
                 nextLevel: nextLevel
             };
             
-            // Для уровней выше root считаем только прямых детей карточек предыдущего уровня
+            // Для уровней выше root считаем партнеров уровня (level - 1) для повышения карточек уровня level
             for (let level = rootLevel + 1; level <= maxLevel; level++) {
                 const prevLevel = level - 1;
                 const prevLevelCards = cardsByLevel[prevLevel] || [];
                 
-                // Собираем всех прямых детей карточек предыдущего уровня
+                // Собираем всех прямых детей карточек предыдущего уровня (это карточки уровня level)
                 const levelCards = [];
                 prevLevelCards.forEach(parentCard => {
                     const children = getDirectChildren(parentCard.dataset.id);
@@ -1731,37 +1731,36 @@
                 cardsByLevel[level] = uniqueCards;
                 const filledCards = uniqueCards.filter(card => card.dataset.name && card.dataset.uid);
                 
-                // Для статистики считаем партнеров уровня level для карточек уровня level
-                // Каждый партнер уникален и считается по ID (один раз, даже если он партнер нескольких карточек)
-                const levelCardsFilled = filledCards;
+                // Для статистики считаем партнеров уровня (level - 1) для карточек уровня level
+                // Это партнеры, которые нужны для повышения карточек уровня level до уровня (level + 1)
+                const targetPartnerLevel = level - 1;
+                const uniquePartnersAtTargetLevel = new Set();
                 
-                // Собираем всех уникальных партнеров уровня level по ID
-                const uniquePartnersAtLevel = new Set();
-                
-                levelCardsFilled.forEach(card => {
+                filledCards.forEach(card => {
                     const cardPartners = getDirectChildren(card.dataset.id)
                         .filter(p => p.dataset.name && p.dataset.uid);
                     
-                    // Добавляем партнеров уровня level в Set (уникальность по ID)
+                    // Добавляем партнеров уровня targetPartnerLevel в Set (уникальность по ID)
                     cardPartners.forEach(partner => {
                         const partnerLevel = parseInt(partner.dataset.level || '0');
-                        if (partnerLevel === level) {
-                            uniquePartnersAtLevel.add(partner.dataset.id);
+                        if (partnerLevel === targetPartnerLevel) {
+                            uniquePartnersAtTargetLevel.add(partner.dataset.id);
                         }
                     });
                 });
                 
                 // Максимум партнеров = количество карточек уровня level * 3
-                const maxPartners = levelCardsFilled.length * 3;
-                const partnersAtLevelCount = uniquePartnersAtLevel.size;
-                const neededForNextLevel = Math.max(0, maxPartners - partnersAtLevelCount);
+                const maxPartners = filledCards.length * 3;
+                const partnersAtTargetLevelCount = uniquePartnersAtTargetLevel.size;
+                const neededForNextLevel = Math.max(0, maxPartners - partnersAtTargetLevelCount);
                 
                 levelStats[level] = {
                     total: uniqueCards.length,
                     filled: filledCards.length,
                     max: maxPartners,
-                    partnersAtLevel: partnersAtLevelCount,
-                    neededForNextLevel: neededForNextLevel
+                    partnersAtLevel: partnersAtTargetLevelCount,
+                    neededForNextLevel: neededForNextLevel,
+                    targetPartnerLevel: targetPartnerLevel
                 };
             }
             
@@ -1817,6 +1816,7 @@
                     const partnersAtLevel = stats.partnersAtLevel || 0;
                     const needed = stats.neededForNextLevel || 0;
                     const max = stats.max || 0;
+                    const targetPartnerLevel = stats.targetPartnerLevel !== undefined ? stats.targetPartnerLevel : (level - 1);
                     
                     let displayText;
                     if (max === 0) {
@@ -1833,7 +1833,7 @@
                     
                     html += `<div class="stats-item">
                         <span class="stats-level" style="color: #3b82f6;">Ур ${level}</span>
-                        <span class="stats-count" style="color: ${color};">${displayText}</span>
+                        <span class="stats-count" style="color: ${color};">${displayText} ур ${targetPartnerLevel}</span>
                     </div>`;
                 }
             }
