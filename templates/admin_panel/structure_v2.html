@@ -1076,11 +1076,11 @@
                     }
                     // Устанавливаем все атрибуты
                     if (item.parent) card.dataset.parent = item.parent;
-                    // Сбрасываем уровень на 0 для всех карточек кроме root
-                    if (item.id === 'root') {
-                        card.dataset.level = '0'; // Root остается на уровне 0
+                    // Загружаем уровень из сохраненных данных (для root тоже)
+                    if (item.level !== undefined) {
+                        card.dataset.level = String(item.level);
                     } else {
-                        card.dataset.level = '0'; // Все остальные карточки сбрасываются на уровень 0
+                        card.dataset.level = '0';
                     }
                     if (item.name) card.dataset.name = item.name;
                     if (item.uid) card.dataset.uid = item.uid;
@@ -1099,7 +1099,7 @@
                 updateAllConnections();
                 
                 // Пересчитываем уровни всех карточек после загрузки (снизу вверх)
-                // Сначала сбрасываем все уровни на 0 (кроме root)
+                // Сначала сбрасываем все уровни на 0 (кроме root - его уровень уже загружен)
                 cardMap.forEach(card => {
                     if (card.dataset.id !== 'root') {
                         card.dataset.level = '0';
@@ -1124,10 +1124,9 @@
                     return depthB - depthA; // От большего к меньшему (от листьев к корню)
                 });
                 
+                // Пересчитываем уровни всех карточек (включая root)
                 sortedCards.forEach(card => {
-                    if (card.dataset.id !== 'root') {
-                        recalculateLevel(card);
-                    }
+                    recalculateLevel(card);
                 });
                 
                 updateStats();
