@@ -42,8 +42,7 @@
         <button class="btn" id="snap">Привязка к сетке: Вкл</button>
         <button class="btn" id="zoomOut">−</button>
         <button class="btn" id="zoomIn">+</button>
-        <button class="btn" id="resetRoot" style="background: #ef4444; color: white;">🗑️ Удалить все кроме первой</button>
-        <button class="btn" id="autoLayout" style="background: #10b981; color: white;">📐 Авторасстановка</button>
+        <button class="btn" id="autoLayout" style="background: #10b981; color: white;">📐 Расставить</button>
     </div>
     <div class="stats-panel" id="statsPanel">
         <div class="stats-title">📊 Статистика по уровням</div>
@@ -87,7 +86,6 @@
         const btnSnap = document.getElementById('snap');
         const btnZoomIn = document.getElementById('zoomIn');
         const btnZoomOut = document.getElementById('zoomOut');
-        const btnResetRoot = document.getElementById('resetRoot');
         const btnAutoLayout = document.getElementById('autoLayout');
         const statsContent = document.getElementById('statsContent');
 
@@ -164,7 +162,6 @@
             offsetY = (viewport.clientHeight - 8450 * scale) / 2;
             applyTransform();
         };
-        btnResetRoot.onclick = () => resetToRoot();
         btnAutoLayout.onclick = () => autoLayoutCards();
 
         // Переключатель сетки
