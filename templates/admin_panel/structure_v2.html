@@ -1010,7 +1010,7 @@
             const GRID_SIZE = 40;
             
             // Конфигурация для каждого уровня (логичное распределение)
-            const centerY = CANVAS_HEIGHT / 2 + 800; // Центр по вертикали + смещение вниз
+            const centerY = CANVAS_HEIGHT / 2 + 1500; // Центр по вертикали + смещение вниз
             const levelConfig = {
                 5: { 
                     x: 300, 
@@ -1107,8 +1107,8 @@
                     cardYPositions = levelCards.map(() => config.y);
                 } else if (displayLevel === 0) {
                     // Уровень 0: равномерно по всей высоте с смещением вниз
-                    const topMargin = 600;
-                    const bottomMargin = 600;
+                    const topMargin = 1200;
+                    const bottomMargin = 1200;
                     const availableHeight = CANVAS_HEIGHT - topMargin - bottomMargin;
                     const spacing = levelCards.length > 1 
                         ? availableHeight / (levelCards.length - 1) 
@@ -1117,7 +1117,7 @@
                 } else {
                     // Уровни 4, 3, 2, 1: центрирование с указанным расстоянием между карточками
                     const totalHeight = (levelCards.length - 1) * config.verticalGap;
-                    const startY = (CANVAS_HEIGHT - totalHeight) / 2 + 600; // Смещение вниз
+                    const startY = (CANVAS_HEIGHT - totalHeight) / 2 + 1200; // Смещение вниз
                     cardYPositions = levelCards.map((_, index) => startY + index * config.verticalGap);
                 }
                 
