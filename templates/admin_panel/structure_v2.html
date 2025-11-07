@@ -1731,28 +1731,28 @@
                     // Формируем детальную статистику
                     let htmlRoot = '';
                     
-                    // Текущий уровень
+                    // Заголовок: Повысить уровень (X)
                     htmlRoot += `<div class="stats-item" style="margin-bottom: 8px;">
-                        <span class="stats-level" style="color: #3b82f6; font-weight: 600;">Ваш уровень: ${currentLevel}</span>
+                        <span class="stats-level" style="color: #3b82f6; font-weight: 600;">Повысить уровень (${nextLevel})</span>
                     </div>`;
                     
-                    // Информация о повышении уровня
-                    if (needed > 0) {
-                        htmlRoot += `<div class="stats-item" style="margin-bottom: 8px;">
-                            <span style="color: #ef4444;">Для повышения уровня до ${nextLevel} вам не хватает ${needed} партнер${needed === 1 ? 'а' : 'ов'} уровня ${currentLevel}</span>
-                        </div>`;
-                    } else if (partnersAtLevel >= 3) {
-                        htmlRoot += `<div class="stats-item" style="margin-bottom: 8px;">
-                            <span style="color: #22c55e;">Готов к повышению до уровня ${nextLevel}</span>
-                        </div>`;
-                    }
+                    // Показываем партнеров уровня currentLevel для повышения
+                    const neededCount = needed > 0 ? needed : 0;
+                    const currentCount = partnersAtLevel;
+                    htmlRoot += `<div class="stats-item" style="margin-bottom: 8px;">
+                        <span style="color: ${needed > 0 ? '#ef4444' : '#22c55e'};">
+                            ${currentCount}/3 ур ${currentLevel}
+                        </span>
+                    </div>`;
                     
-                    // Партнеры по уровням (от максимального к минимальному)
+                    // Показываем всех партнеров по уровням (от максимального к минимальному)
                     const partnerLevels = Object.keys(partnersByLevel).map(l => parseInt(l)).sort((a, b) => b - a);
                     partnerLevels.forEach(partnerLevel => {
                         const count = partnersByLevel[partnerLevel].size;
+                        // Для каждого уровня показываем X/Y, где Y = количество карточек этого уровня * 3
+                        // Но для root статистики показываем просто количество партнеров
                         htmlRoot += `<div class="stats-item">
-                            <span style="color: #6b7280;">${count} партнер${count === 1 ? '' : count < 5 ? 'а' : 'ов'} уровня ${partnerLevel}</span>
+                            <span style="color: #6b7280;">${count} ур ${partnerLevel}</span>
                         </div>`;
                     });
                     
