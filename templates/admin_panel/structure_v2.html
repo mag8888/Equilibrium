@@ -10,7 +10,7 @@
         .toolbar { position: fixed; top: 10px; left: 10px; z-index: 1000; display: flex; gap: 8px; background: rgba(255,255,255,0.9); padding: 8px 10px; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
         .btn { padding: 6px 10px; border: 1px solid #ddd; background: #fff; border-radius: 6px; cursor: pointer; }
         .viewport { position: relative; width: 100vw; height: 100vh; overflow: hidden; background: #fafafa; }
-        .canvas { position: absolute; top: 0; left: 0; width: 5000px; height: 5000px; transform-origin: 0 0; }
+        .canvas { position: absolute; top: 0; left: 0; width: 6500px; height: 6500px; transform-origin: 0 0; }
         .grid { position: absolute; inset: 0; background-image: linear-gradient(#eee 1px, transparent 1px), linear-gradient(90deg, #eee 1px, transparent 1px); background-size: 40px 40px, 40px 40px; pointer-events: none; }
         .grid.heavy { background-image: linear-gradient(#eee 1px, transparent 1px), linear-gradient(90deg, #eee 1px, transparent 1px), linear-gradient(#e2e8f0 1px, transparent 1px), linear-gradient(90deg, #e2e8f0 1px, transparent 1px); background-size: 40px 40px, 40px 40px, 200px 200px, 200px 200px; }
         .links { position: absolute; inset: 0; pointer-events: none; }
@@ -40,7 +40,7 @@
     <div class="viewport" id="viewport">
         <div class="canvas" id="canvas">
             <div class="grid heavy" id="grid"></div>
-            <svg class="links" id="links" width="5000" height="5000"></svg>
+            <svg class="links" id="links" width="6500" height="6500"></svg>
             <!-- Авто-раскладка примера по уровням -->
             <div class="card" data-id="root" data-level="0" data-name="IVA" data-uid="0000001" style="left: 2400px; top: 200px;"></div>
         </div>
@@ -86,8 +86,8 @@
         let snapEnabled = true;
 
         function clampOffsets() {
-            const canvasW = 5000 * scale;
-            const canvasH = 5000 * scale;
+            const canvasW = 6500 * scale;
+            const canvasH = 6500 * scale;
             const minX = Math.min(0, viewport.clientWidth - canvasW);
             const minY = Math.min(0, viewport.clientHeight - canvasH);
             const maxX = 0;
@@ -146,8 +146,8 @@
         btnZoomOut.onclick = () => { scale = Math.max(0.5, scale * 0.9); applyTransform(); };
         btnCenter.onclick = () => {
             // Центрируем полотно по горизонтали и вертикали относительно видимой области
-            offsetX = (viewport.clientWidth - 5000 * scale) / 2;
-            offsetY = (viewport.clientHeight - 5000 * scale) / 2;
+            offsetX = (viewport.clientWidth - 6500 * scale) / 2;
+            offsetY = (viewport.clientHeight - 6500 * scale) / 2;
             applyTransform();
         };
         btnResetRoot.onclick = () => resetToRoot();
