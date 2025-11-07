@@ -475,12 +475,21 @@
             
             const CARD_WIDTH = 160;
             const CARD_HEIGHT = 80;
-            const HORIZONTAL_GAP = 250; // Отступ между карточками на одном уровне
+            const HORIZONTAL_GAP = 250; // Отступ между карточками на одном уровне по горизонтали
             const SAFETY_MARGIN = 100; // Отступ при проверке пересечений
             const CANVAS_WIDTH = 6500; // Ширина canvas
             const CANVAS_HEIGHT = 8450; // Высота canvas
-            const MIN_X = 200; // Минимальная позиция X (для уровня 5)
-            const MAX_X = CANVAS_WIDTH - CARD_WIDTH - 200; // Максимальная позиция X (для уровня 0)
+            const GRID_SIZE = 40;
+            
+            // Конфигурация для каждого уровня
+            const levelConfig = {
+                5: { x: 50, y: 4200, verticalGap: null }, // Фиксированная позиция
+                4: { x: 1000, y: null, verticalGap: 2800 }, // Центрирование по Y, расстояние между карточками
+                3: { x: 2000, y: null, verticalGap: 930 },
+                2: { x: 3000, y: null, verticalGap: 311 },
+                1: { x: 4000, y: null, verticalGap: 80 },
+                0: { x: 6000, y: null, verticalGap: null } // Равномерно по всей высоте
+            };
             
             // Создаем карту карточек по ID
             const cardMap = new Map();
@@ -492,41 +501,10 @@
             const cardsByLevel = {};
             cards.forEach(card => {
                 const depth = parseInt(card.dataset.level || '0');
-                if (!cardsByLevel[depth]) cardsByLevel[depth] = [];
-                cardsByLevel[depth].push(card);
+                const displayLevel = Math.max(0, 5 - depth);
+                if (!cardsByLevel[displayLevel]) cardsByLevel[displayLevel] = [];
+                cardsByLevel[displayLevel].push(card);
             });
-            
-            // Получаем все уровни и вычисляем displayLevel
-            const levelsData = Object.keys(cardsByLevel).map(level => {
-                const levelNum = parseInt(level);
-                const displayLevel = Math.max(0, 5 - levelNum);
-                return {
-                    levelNum,
-                    displayLevel,
-                    cards: cardsByLevel[level]
-                };
-            }).sort((a, b) => a.levelNum - b.levelNum);
-            
-            // Вычисляем равномерное распределение по ширине
-            // Уровень 5 (displayLevel=5) - слева, уровень 0 (displayLevel=0) - справа
-            const availableWidth = MAX_X - MIN_X;
-            const levelCount = levelsData.length;
-            
-            // Вычисляем равномерное распределение по высоте
-            // Уровень 5 по центру, остальные (4, 3, 2, 1, 0) равномерно по всей высоте
-            const centerY = CANVAS_HEIGHT / 2;
-            const topMargin = 300;
-            const bottomMargin = 300;
-            const availableHeight = CANVAS_HEIGHT - topMargin - bottomMargin;
-            
-            // Разделяем уровни: уровень 5 и остальные
-            const level5Data = levelsData.find(l => l.displayLevel === 5);
-            const otherLevels = levelsData.filter(l => l.displayLevel !== 5).sort((a, b) => b.displayLevel - a.displayLevel); // Сортируем от большего к меньшему (4, 3, 2, 1, 0)
-            
-            // Вычисляем шаг для распределения остальных уровней по всей высоте
-            const verticalSpacing = otherLevels.length > 1 
-                ? availableHeight / (otherLevels.length - 1) 
-                : 0;
             
             // Храним все размещенные карточки для проверки пересечений
             const allPlacedRects = [];
@@ -545,78 +523,13 @@
                 return false;
             }
             
-            // Сначала размещаем уровень 5
-            if (level5Data) {
-                const { levelNum, displayLevel, cards: levelCards } = level5Data;
+            // Размещаем карточки по уровням
+            [5, 4, 3, 2, 1, 0].forEach(displayLevel => {
+                const levelCards = cardsByLevel[displayLevel] || [];
+                if (levelCards.length === 0) return;
                 
-                // Уровень 5 - максимально слева
-                const levelStartX = MIN_X;
-                const y = centerY; // По центру вертикально
-                
-                // Сортируем карточки
-                levelCards.sort((a, b) => {
-                    const aParentId = a.dataset.parent || 'root';
-                    const bParentId = b.dataset.parent || 'root';
-                    const aParent = cardMap.get(aParentId);
-                    const bParent = cardMap.get(bParentId);
-                    
-                    if (aParent && bParent) {
-                        const aX = parseInt(aParent.style.left) || 0;
-                        const bX = parseInt(bParent.style.left) || 0;
-                        if (aX !== bX) return aX - bX;
-                    }
-                    return (a.dataset.id || '').localeCompare(b.dataset.id || '');
-                });
-                
-                // Вычисляем ширину всех карточек на этом уровне
-                const totalCardsWidth = levelCards.length * CARD_WIDTH + (levelCards.length - 1) * HORIZONTAL_GAP;
-                
-                // Центрируем группу карточек относительно levelStartX
-                let currentX = levelStartX - totalCardsWidth / 2;
-                
-                // Размещаем карточки
-                levelCards.forEach(child => {
-                    let cardX = Math.max(MIN_X, currentX);
-                    
-                    const testRect = {
-                        left: cardX,
-                        right: cardX + CARD_WIDTH,
-                        top: y,
-                        bottom: y + CARD_HEIGHT
-                    };
-                    
-                    const x = Math.max(MIN_X, Math.round(cardX / GRID_SIZE) * GRID_SIZE);
-                    child.style.left = x + 'px';
-                    child.style.top = Math.round(y / GRID_SIZE) * GRID_SIZE + 'px';
-                    
-                    allPlacedRects.push({
-                        card: child,
-                        left: x,
-                        right: x + CARD_WIDTH,
-                        top: y,
-                        bottom: y + CARD_HEIGHT
-                    });
-                    
-                    currentX = x + CARD_WIDTH + HORIZONTAL_GAP;
-                });
-            }
-            
-            // Затем размещаем остальные уровни (4, 3, 2, 1, 0) равномерно по всей высоте
-            otherLevels.forEach((levelData, index) => {
-                const { levelNum, displayLevel, cards: levelCards } = levelData;
-                
-                // Вычисляем позицию X для этого уровня (равномерно по ширине)
-                // Уровень 4 - правее уровня 5, уровень 0 - максимально справа
-                const minDisplayLevel = Math.min(...otherLevels.map(l => l.displayLevel));
-                const maxDisplayLevel = Math.max(...otherLevels.map(l => l.displayLevel));
-                const levelProgress = otherLevels.length > 1 && maxDisplayLevel !== minDisplayLevel 
-                    ? (displayLevel - minDisplayLevel) / (maxDisplayLevel - minDisplayLevel)
-                    : 0;
-                // Уровень 4 (больший displayLevel) должен быть левее уровня 0
-                const levelStartX = MIN_X + levelProgress * availableWidth;
-                
-                // Вычисляем позицию Y для этого уровня - равномерно по всей высоте
-                const y = topMargin + index * verticalSpacing;
+                const config = levelConfig[displayLevel];
+                const levelX = config.x;
                 
                 // Сортируем карточки по позиции родителя (если есть)
                 levelCards.sort((a, b) => {
@@ -633,30 +546,43 @@
                     return (a.dataset.id || '').localeCompare(b.dataset.id || '');
                 });
                 
+                // Вычисляем позиции Y для карточек
+                let cardYPositions = [];
+                
+                if (displayLevel === 5) {
+                    // Уровень 5: фиксированная позиция Y
+                    cardYPositions = levelCards.map(() => config.y);
+                } else if (displayLevel === 0) {
+                    // Уровень 0: равномерно по всей высоте
+                    const topMargin = 300;
+                    const bottomMargin = 300;
+                    const availableHeight = CANVAS_HEIGHT - topMargin - bottomMargin;
+                    const spacing = levelCards.length > 1 
+                        ? availableHeight / (levelCards.length - 1) 
+                        : 0;
+                    cardYPositions = levelCards.map((_, index) => topMargin + index * spacing);
+                } else {
+                    // Уровни 4, 3, 2, 1: центрирование с указанным расстоянием между карточками
+                    const totalHeight = (levelCards.length - 1) * config.verticalGap;
+                    const startY = (CANVAS_HEIGHT - totalHeight) / 2;
+                    cardYPositions = levelCards.map((_, index) => startY + index * config.verticalGap);
+                }
+                
                 // Вычисляем ширину всех карточек на этом уровне
                 const totalCardsWidth = levelCards.length * CARD_WIDTH + (levelCards.length - 1) * HORIZONTAL_GAP;
                 
-                // Центрируем группу карточек относительно levelStartX
-                let currentX = levelStartX - totalCardsWidth / 2;
+                // Центрируем группу карточек относительно levelX
+                let currentX = levelX - totalCardsWidth / 2;
                 
-                // Размещаем карточки слева направо
-                levelCards.forEach(child => {
+                // Размещаем карточки
+                levelCards.forEach((child, index) => {
+                    const y = cardYPositions[index];
                     let cardX = currentX;
                     
                     // Проверяем пересечения и сдвигаем при необходимости
                     let attempts = 0;
                     let hasOverlap = true;
                     while (hasOverlap && attempts < 300) {
-                        // Проверяем границы canvas
-                        if (cardX + CARD_WIDTH > MAX_X) {
-                            cardX = MAX_X - CARD_WIDTH;
-                            break;
-                        }
-                        if (cardX < MIN_X) {
-                            cardX = MIN_X;
-                            break;
-                        }
-                        
                         const testRect = {
                             left: cardX,
                             right: cardX + CARD_WIDTH,
@@ -672,12 +598,10 @@
                         }
                     }
                     
-                    // Ограничиваем позицию границами canvas
-                    const x = Math.min(MAX_X - CARD_WIDTH, Math.max(MIN_X, Math.round(cardX / GRID_SIZE) * GRID_SIZE));
+                    const x = Math.round(cardX / GRID_SIZE) * GRID_SIZE;
                     child.style.left = x + 'px';
                     child.style.top = Math.round(y / GRID_SIZE) * GRID_SIZE + 'px';
                     
-                    // Добавляем в список размещенных
                     allPlacedRects.push({
                         card: child,
                         left: x,
@@ -686,7 +610,6 @@
                         bottom: y + CARD_HEIGHT
                     });
                     
-                    // Обновляем текущую позицию для следующей карточки
                     currentX = x + CARD_WIDTH + HORIZONTAL_GAP;
                 });
             });
