@@ -1197,6 +1197,11 @@
             Object.keys(levelCounts).forEach(level => {
                 const displayLevel = parseInt(level);
                 
+                // Уровень 5 и 0 не имеют партнеров (root и последний уровень)
+                if (displayLevel === 5 || displayLevel === 0) {
+                    return;
+                }
+                
                 // Находим все карточки этого уровня
                 const levelCards = cards.filter(card => {
                     const depth = parseInt(card.dataset.level || '0');
@@ -1225,8 +1230,8 @@
                 const count = levelCounts[level];
                 const partners = levelFilledPartners[levelNum];
                 
-                // Для уровня 5 показываем прочерк
-                if (levelNum === 5) {
+                // Для уровня 5 и 0 показываем прочерк (нет партнеров)
+                if (levelNum === 5 || levelNum === 0) {
                     html += `<div class="stats-item">
                         <span class="stats-level">Уровень ${level}:</span>
                         <span class="stats-count">${count}</span>
@@ -1245,7 +1250,12 @@
                         <span style="margin-left: 8px; color: ${partnersColor}; font-weight: 600;">${filledPartners}</span>
                     </div>`;
                 } else {
-                    html += `<div class="stats-item"><span class="stats-level">Уровень ${level}:</span><span class="stats-count">${count}</span></div>`;
+                    // Если нет данных о партнерах, показываем только количество карточек
+                    html += `<div class="stats-item">
+                        <span class="stats-level">Уровень ${level}:</span>
+                        <span class="stats-count">${count}</span>
+                        <span style="margin-left: 8px; color: #ef4444; font-weight: 600;">0</span>
+                    </div>`;
                 }
             });
             if (sortedLevels.length === 0) {
