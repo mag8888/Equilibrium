@@ -234,7 +234,7 @@
             }
         }
         
-        // Заполнение следующего дочернего объекта (или дочернего дочернего если все 3 заняты)
+        // Заполнение одного дочернего объекта (или дочернего дочернего если все 3 заняты)
         async function fillNextChild(card) {
             const cardId = card.dataset.id;
             const children = Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`));
@@ -243,8 +243,11 @@
             const emptyChild = children.find(child => !child.dataset.name || !child.dataset.uid);
             
             if (emptyChild) {
-                // Если есть пустой дочерний объект - заполняем его
-                await fillCard(emptyChild);
+                // Если есть пустой дочерний объект - заполняем только его (без рекурсивного заполнения дочерних)
+                if (!emptyChild.dataset.name) emptyChild.dataset.name = generateRandomName();
+                if (!emptyChild.dataset.uid) emptyChild.dataset.uid = generateRandomId();
+                renderCardContents(emptyChild);
+                await saveCardToDatabase(emptyChild);
             } else if (children.length >= 3) {
                 // Если все 3 дочерних объекта заполнены, ищем первый дочерний объект с пустыми дочерними
                 for (const child of children) {
@@ -252,14 +255,17 @@
                     const emptyGrandchild = grandchildren.find(grandchild => !grandchild.dataset.name || !grandchild.dataset.uid);
                     
                     if (emptyGrandchild) {
-                        // Нашли пустого внука - заполняем его
-                        await fillCard(emptyGrandchild);
+                        // Нашли пустого внука - заполняем только его (без рекурсивного заполнения дочерних)
+                        if (!emptyGrandchild.dataset.name) emptyGrandchild.dataset.name = generateRandomName();
+                        if (!emptyGrandchild.dataset.uid) emptyGrandchild.dataset.uid = generateRandomId();
+                        renderCardContents(emptyGrandchild);
+                        await saveCardToDatabase(emptyGrandchild);
                         break;
                     }
                 }
             }
             
-            renderCardContents(card); // Обновляем кнопки
+            renderCardContents(card); // Обновляем кнопки родительской карточки
             savePositions();
             updateStats();
         }
