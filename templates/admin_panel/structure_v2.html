@@ -1630,7 +1630,22 @@
             // Для root считаем статистику по всем уровням партнеров
             const rootPartners = getDirectChildren('root').filter(card => card.dataset.name && card.dataset.uid);
             const rootPartnersByLevel = {};
-            rootPartners.forEach(partner => {
+            
+            // Рекурсивная функция для получения всех потомков карточки
+            function getAllDescendants(parentId) {
+                const children = getDirectChildren(parentId);
+                let allDescendants = [...children];
+                children.forEach(child => {
+                    allDescendants.push(...getAllDescendants(child.dataset.id));
+                });
+                return allDescendants;
+            }
+            
+            // Получаем всех потомков root (все партнеры в структуре)
+            const allRootDescendants = getAllDescendants('root').filter(card => card.dataset.name && card.dataset.uid);
+            
+            // Группируем всех потомков по уровням
+            allRootDescendants.forEach(partner => {
                 const partnerLevel = parseInt(partner.dataset.level || '0');
                 if (!rootPartnersByLevel[partnerLevel]) {
                     rootPartnersByLevel[partnerLevel] = new Set();
@@ -1648,10 +1663,9 @@
             const partnersMaxByLevel = {};
             Object.keys(rootPartnersByLevel).forEach(levelStr => {
                 const level = parseInt(levelStr);
-                // Находим все карточки уровня level
-                const cardsAtLevel = cardsByLevel[level] || [];
-                const filledCardsAtLevel = cardsAtLevel.filter(card => card.dataset.name && card.dataset.uid);
-                partnersMaxByLevel[level] = filledCardsAtLevel.length * 3;
+                // Находим все карточки уровня level среди всех потомков root
+                const cardsAtLevel = allRootDescendants.filter(card => parseInt(card.dataset.level || '0') === level);
+                partnersMaxByLevel[level] = cardsAtLevel.length * 3;
             });
             
             levelStats[rootLevel] = {
