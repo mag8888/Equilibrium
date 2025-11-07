@@ -475,12 +475,14 @@
             
             const CARD_WIDTH = 160;
             const CARD_HEIGHT = 80;
-            const HORIZONTAL_GAP = 300; // Большой отступ для предотвращения пересечений
-            const VERTICAL_GAP = 350; // Большой вертикальный отступ для линий
-            const SAFETY_MARGIN = 50; // Дополнительный отступ при проверке пересечений
+            const HORIZONTAL_GAP = 250; // Отступ между карточками
+            const VERTICAL_GAP = 450; // Увеличенный вертикальный отступ для предотвращения пересечения линий
+            const SAFETY_MARGIN = 80; // Увеличенный отступ при проверке пересечений
             const START_Y = 500;
-            const LEVEL_X_OFFSET = 400; // Смещение по X для каждого уровня (5й левее, 0й правее)
-            const BASE_X = 200; // Базовая позиция X для уровня 5
+            const LEVEL_X_OFFSET = 200; // Уменьшенное смещение по X для каждого уровня (чтобы поместились на экране)
+            const BASE_X = 300; // Базовая позиция X для уровня 5
+            const CANVAS_WIDTH = 6500; // Ширина canvas
+            const MAX_X = CANVAS_WIDTH - CARD_WIDTH - 100; // Максимальная позиция X (с запасом)
             
             // Создаем карту карточек по ID
             const cardMap = new Map();
@@ -555,7 +557,7 @@
                 });
                 
                 // Размещаем карточки слева направо последовательно
-                let currentX = levelStartX;
+                let currentX = Math.max(BASE_X, levelStartX); // Убеждаемся, что не начинаем слишком рано
                 
                 levelCards.forEach(child => {
                     let cardX = currentX;
@@ -563,7 +565,15 @@
                     // Проверяем пересечения и сдвигаем при необходимости
                     let attempts = 0;
                     let hasOverlap = true;
-                    while (hasOverlap && attempts < 200) {
+                    while (hasOverlap && attempts < 300) {
+                        // Проверяем границы canvas
+                        if (cardX + CARD_WIDTH > MAX_X) {
+                            // Если карточка не помещается, начинаем новую строку (сдвигаем вниз)
+                            // Но для простоты просто останавливаемся на границе
+                            cardX = MAX_X - CARD_WIDTH;
+                            break;
+                        }
+                        
                         const testRect = {
                             left: cardX,
                             right: cardX + CARD_WIDTH,
@@ -572,15 +582,15 @@
                         };
                         
                         if (hasCollision(testRect)) {
-                            cardX += HORIZONTAL_GAP / 2;
+                            cardX += HORIZONTAL_GAP / 3; // Меньший шаг для более точного размещения
                             attempts++;
                         } else {
                             hasOverlap = false;
                         }
                     }
                     
-                    // Размещаем карточку
-                    const x = Math.round(cardX / GRID_SIZE) * GRID_SIZE;
+                    // Ограничиваем позицию границами canvas
+                    const x = Math.min(MAX_X - CARD_WIDTH, Math.max(BASE_X, Math.round(cardX / GRID_SIZE) * GRID_SIZE));
                     child.style.left = x + 'px';
                     child.style.top = Math.round(y / GRID_SIZE) * GRID_SIZE + 'px';
                     
@@ -602,6 +612,11 @@
             updateAllConnections();
             savePositions();
             updateStats();
+            
+            // Автоматически центрируем canvas после расстановки
+            setTimeout(() => {
+                btnCenter.click();
+            }, 100);
         }
 
         // Подсчет статистики по уровням
