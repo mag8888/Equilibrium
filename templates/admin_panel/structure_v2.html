@@ -102,7 +102,10 @@
 
         // Панорамирование по пустому месту
         viewport.addEventListener('mousedown', (e) => {
-            if (e.target.classList.contains('card')) return;
+            // Проверяем, что клик не на карточке или её дочерних элементах
+            if (e.target.closest('.card')) return;
+            // Проверяем, что не идет drag карточки
+            if (dragging) return;
             isPanning = true;
             panStartX = e.clientX;
             panStartY = e.clientY;
@@ -110,12 +113,19 @@
             canvasStartY = offsetY;
         });
         window.addEventListener('mousemove', (e) => {
+            // Если идет drag карточки, не панорамируем
+            if (dragging) {
+                isPanning = false;
+                return;
+            }
             if (!isPanning) return;
             offsetX = canvasStartX + (e.clientX - panStartX);
             offsetY = canvasStartY + (e.clientY - panStartY);
             applyTransform();
         });
-        window.addEventListener('mouseup', () => { isPanning = false; });
+        window.addEventListener('mouseup', () => { 
+            isPanning = false;
+        });
 
         // Зум колёсиком
         viewport.addEventListener('wheel', (e) => {
@@ -311,6 +321,8 @@
             attachPoints(card);
             card.addEventListener('mousedown', (e) => {
                 if ((e.target).classList && (e.target).classList.contains('point')) return;
+                // Останавливаем панорамирование при начале drag карточки
+                isPanning = false;
                 dragging = card;
                 dragging.classList.add('dragging');
                 const { x, y } = toCanvasCoords(e.clientX, e.clientY);
@@ -319,6 +331,7 @@
                 dragOffsetX = x - startLeft;
                 dragOffsetY = y - startTop;
                 e.preventDefault();
+                e.stopPropagation(); // Останавливаем всплытие события
             });
         }
 
@@ -333,6 +346,8 @@
         });
         window.addEventListener('mouseup', () => {
             if (!dragging) return;
+            // Останавливаем панорамирование
+            isPanning = false;
             if (snapEnabled) {
                 const nx = Math.round((parseInt(dragging.style.left) || 0) / GRID_SIZE) * GRID_SIZE;
                 const ny = Math.round((parseInt(dragging.style.top) || 0) / GRID_SIZE) * GRID_SIZE;
