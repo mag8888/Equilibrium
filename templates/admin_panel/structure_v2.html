@@ -52,6 +52,7 @@
         <button class="btn" id="zoomOut">−</button>
         <button class="btn" id="zoomIn">+</button>
         <button class="btn" id="showAll" style="background: #3b82f6; color: white;">🔍 Показать все</button>
+        <button class="btn" id="exportCoords" style="background: #8b5cf6; color: white;">📥 Экспорт координат</button>
         <button class="btn" id="saveLayout" style="background: #10b981; color: white;">💾 Сохранить</button>
     </div>
     <div class="stats-panel" id="statsPanel">
@@ -184,6 +185,7 @@
         const btnZoomIn = document.getElementById('zoomIn');
         const btnZoomOut = document.getElementById('zoomOut');
         const btnShowAll = document.getElementById('showAll');
+        const btnExportCoords = document.getElementById('exportCoords');
         const btnSaveLayout = document.getElementById('saveLayout');
         const statsContent = document.getElementById('statsContent');
 
@@ -316,6 +318,60 @@
         }
         
         btnShowAll.onclick = () => showAllCards();
+        
+        // Экспорт координат всех карточек в файл
+        function exportCoordinatesToFile() {
+            const cards = Array.from(canvas.querySelectorAll('.card'));
+            const cardsData = cards.map(card => ({
+                id: card.dataset.id,
+                name: card.dataset.name || '',
+                uid: card.dataset.uid || '',
+                level: parseInt(card.dataset.level || '0'),
+                displayLevel: Math.max(0, 5 - parseInt(card.dataset.level || '0')),
+                parent: card.dataset.parent || null,
+                left: parseInt(card.style.left) || 0,
+                top: parseInt(card.style.top) || 0,
+                width: card.offsetWidth || 160,
+                height: card.offsetHeight || 80
+            }));
+            
+            const exportData = {
+                timestamp: new Date().toISOString(),
+                canvasWidth: 6500,
+                canvasHeight: 8450,
+                totalCards: cardsData.length,
+                cards: cardsData.sort((a, b) => {
+                    // Сортируем по уровню, затем по позиции
+                    if (a.displayLevel !== b.displayLevel) return b.displayLevel - a.displayLevel;
+                    if (a.top !== b.top) return a.top - b.top;
+                    return a.left - b.left;
+                })
+            };
+            
+            // Создаем JSON файл и скачиваем
+            const jsonStr = JSON.stringify(exportData, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `structure_coordinates_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            // Показываем уведомление
+            const btn = btnExportCoords;
+            const originalText = btn.textContent;
+            btn.textContent = '✓ Экспортировано!';
+            btn.style.background = '#22c55e';
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.background = '#8b5cf6';
+            }, 2000);
+        }
+        
+        btnExportCoords.onclick = () => exportCoordinatesToFile();
 
         // Переключатель сетки
         let gridVisible = true;
