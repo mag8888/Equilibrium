@@ -8,6 +8,12 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
         .toolbar { position: fixed; top: 10px; left: 10px; z-index: 1000; display: flex; gap: 8px; background: rgba(255,255,255,0.9); padding: 8px 10px; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
+        .stats-panel { position: fixed; top: 10px; right: 10px; z-index: 1000; background: rgba(255,255,255,0.95); padding: 12px 16px; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); min-width: 200px; }
+        .stats-title { font-weight: 600; margin-bottom: 8px; font-size: 14px; color: #333; }
+        .stats-item { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; border-bottom: 1px solid #eee; }
+        .stats-item:last-child { border-bottom: none; }
+        .stats-level { color: #666; }
+        .stats-count { font-weight: 600; color: #2563eb; }
         .btn { padding: 6px 10px; border: 1px solid #ddd; background: #fff; border-radius: 6px; cursor: pointer; }
         .viewport { position: relative; width: 100vw; height: 100vh; overflow: hidden; background: #fafafa; }
         .canvas { position: absolute; top: 0; left: 0; width: 6500px; height: 8450px; transform-origin: 0 0; }
@@ -36,6 +42,10 @@
         <button class="btn" id="zoomOut">−</button>
         <button class="btn" id="zoomIn">+</button>
         <button class="btn" id="resetRoot" style="background: #ef4444; color: white;">🗑️ Удалить все кроме первой</button>
+    </div>
+    <div class="stats-panel" id="statsPanel">
+        <div class="stats-title">📊 Статистика по уровням</div>
+        <div id="statsContent"></div>
     </div>
     <div class="viewport" id="viewport">
         <div class="canvas" id="canvas">
@@ -76,6 +86,7 @@
         const btnZoomIn = document.getElementById('zoomIn');
         const btnZoomOut = document.getElementById('zoomOut');
         const btnResetRoot = document.getElementById('resetRoot');
+        const statsContent = document.getElementById('statsContent');
 
         let scale = 1; // 0.5..2
         let offsetX = 0; // панорама
@@ -231,6 +242,7 @@
                     updatePointsState(card);
                 });
                 updateAllConnections();
+                updateStats();
                 return true;
             } catch (e) {
                 console.error('Failed to load positions:', e);
@@ -303,6 +315,7 @@
             updatePointsState(parentCard);
             updateConnectionFor(child);
             savePositions();
+            updateStats();
         }
 
         // Drag карточек
@@ -360,6 +373,7 @@
             if (finished) {
                 updateConnectionsForCardAndRelatives(finished);
                 savePositions();
+                updateStats();
             }
         });
 
@@ -391,6 +405,8 @@
             }
         });
         btnCenter.click();
+        // Показываем начальную статистику
+        updateStats();
 
         // ----- Связи (как в Miro): гибкие кривые, следуют за карточками -----
         function getAnchorRight(card) {
@@ -451,6 +467,27 @@
         // начальное построение (для root детей пока нет)
         updateAllConnections();
 
+        // Подсчет статистики по уровням
+        function updateStats() {
+            const cards = Array.from(canvas.querySelectorAll('.card'));
+            const levelCounts = {};
+            cards.forEach(card => {
+                const depth = parseInt(card.dataset.level || '0');
+                const displayLevel = Math.max(0, 5 - depth);
+                levelCounts[displayLevel] = (levelCounts[displayLevel] || 0) + 1;
+            });
+            // Сортируем уровни от большего к меньшему
+            const sortedLevels = Object.keys(levelCounts).sort((a, b) => parseInt(b) - parseInt(a));
+            let html = '';
+            sortedLevels.forEach(level => {
+                html += `<div class="stats-item"><span class="stats-level">Уровень ${level}:</span><span class="stats-count">${levelCounts[level]}</span></div>`;
+            });
+            if (sortedLevels.length === 0) {
+                html = '<div class="stats-item">Нет карточек</div>';
+            }
+            statsContent.innerHTML = html;
+        }
+
         // Удалить все карточки кроме root и сбросить сохранение
         function resetToRoot() {
             // Сначала очищаем localStorage, чтобы при следующей загрузке не восстановились карточки
@@ -489,6 +526,7 @@
             // Сохранить текущее состояние (только root)
             savePositions();
             updateAllConnections();
+            updateStats();
         }
     </script>
 </body>
