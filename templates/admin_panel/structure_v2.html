@@ -42,7 +42,7 @@
         <button class="btn" id="snap">Привязка к сетке: Вкл</button>
         <button class="btn" id="zoomOut">−</button>
         <button class="btn" id="zoomIn">+</button>
-        <button class="btn" id="autoLayout" style="background: #10b981; color: white;">📐 Расставить</button>
+        <button class="btn" id="saveLayout" style="background: #10b981; color: white;">💾 Сохранить</button>
     </div>
     <div class="stats-panel" id="statsPanel">
         <div class="stats-title">📊 Статистика по уровням</div>
@@ -86,7 +86,7 @@
         const btnSnap = document.getElementById('snap');
         const btnZoomIn = document.getElementById('zoomIn');
         const btnZoomOut = document.getElementById('zoomOut');
-        const btnAutoLayout = document.getElementById('autoLayout');
+        const btnSaveLayout = document.getElementById('saveLayout');
         const statsContent = document.getElementById('statsContent');
 
         let scale = 1; // 0.5..2
@@ -162,7 +162,18 @@
             offsetY = (viewport.clientHeight - 8450 * scale) / 2;
             applyTransform();
         };
-        btnAutoLayout.onclick = () => autoLayoutCards();
+        btnSaveLayout.onclick = () => {
+            savePositions();
+            // Показываем уведомление о сохранении
+            const btn = btnSaveLayout;
+            const originalText = btn.textContent;
+            btn.textContent = '✓ Сохранено!';
+            btn.style.background = '#22c55e';
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.background = '#10b981';
+            }, 2000);
+        };
 
         // Переключатель сетки
         let gridVisible = true;
