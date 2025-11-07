@@ -29,6 +29,9 @@
         .card .badge { position: absolute; top: -10px; left: -10px; background: #1f2937; color: #fff; font-size: 11px; padding: 2px 6px; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
         .card .name { font-weight: 600; color: #1f2937; }
         .card .uid { font-size: 12px; opacity: 0.6; color: #4b5563; }
+        .card .delete-btn { position: absolute; top: -8px; right: -8px; width: 20px; height: 20px; background: #ef4444; color: white; border: none; border-radius: 50%; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; z-index: 10; line-height: 1; }
+        .card:hover .delete-btn { opacity: 1; }
+        .card .delete-btn:hover { background: #dc2626; }
         .point { position: absolute; width: 12px; height: 12px; border-radius: 50%; background: #22c55e; border: 2px solid #16a34a; top: 50%; transform: translateY(-50%); cursor: pointer; }
         .point.left { left: -8px; }
         .point.right { right: -8px; }
@@ -85,11 +88,23 @@
             const displayLevel = Math.max(0, 5 - depth); // 5 у корня, до 0 у нижних
             if (!card.dataset.name) card.dataset.name = generateRandomName();
             if (!card.dataset.uid) card.dataset.uid = generateRandomId();
+            const isRoot = card.dataset.id === 'root';
             card.innerHTML = `
                 <div class="badge">${displayLevel}</div>
+                ${!isRoot ? '<button class="delete-btn" title="Удалить карточку и всех её детей">×</button>' : ''}
                 <div class="name">${card.dataset.name}</div>
                 <div class="uid">ID${card.dataset.uid}</div>
             `;
+            // Добавляем обработчик удаления
+            if (!isRoot) {
+                const deleteBtn = card.querySelector('.delete-btn');
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        deleteCardAndChildren(card);
+                    });
+                }
+            }
         }
         function generateRandomId() { return String(Math.floor(1000000 + Math.random()*9000000)); }
         function generateRandomName() {
@@ -508,6 +523,47 @@
             children.add(id);
             updatePointsState(parentCard);
             updateConnectionFor(child);
+            savePositions();
+            updateStats();
+        }
+
+        // Удаление карточки и всех её дочерних карточек (рекурсивно)
+        function deleteCardAndChildren(card) {
+            if (!card || card.dataset.id === 'root') return; // Не удаляем root
+            
+            const cardId = card.dataset.id;
+            
+            // Находим всех детей этой карточки
+            const children = Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`));
+            
+            // Рекурсивно удаляем всех детей
+            children.forEach(child => {
+                deleteCardAndChildren(child);
+            });
+            
+            // Удаляем связи (SVG пути)
+            const linkGroup = document.getElementById('link-' + cardId);
+            if (linkGroup) linkGroup.remove();
+            
+            // Удаляем карточку из childMap родителя
+            const parentId = card.dataset.parent;
+            if (parentId && childMap.has(parentId)) {
+                childMap.get(parentId).delete(cardId);
+            }
+            
+            // Удаляем карточку из DOM
+            card.remove();
+            
+            // Обновляем состояние точек родителя
+            if (parentId) {
+                const parentCard = canvas.querySelector(`.card[data-id="${parentId}"]`);
+                if (parentCard) {
+                    updatePointsState(parentCard);
+                }
+            }
+            
+            // Обновляем связи и сохраняем
+            updateAllConnections();
             savePositions();
             updateStats();
         }
