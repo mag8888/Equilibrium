@@ -1643,19 +1643,18 @@
                 rootPartnersByLevel[partnerLevel].add(partner.dataset.id);
             });
             
-            // Для каждого уровня партнеров root считаем их прямых детей уровня (level - 1)
+            // Для каждого уровня партнеров root считаем их прямых детей того же уровня
+            // Например, для повышения 3 партнеров уровня 0 до уровня 1 нужно 9 партнеров уровня 0 (по 3 на каждого)
             Object.keys(rootPartnersByLevel).forEach(levelStr => {
                 const level = parseInt(levelStr);
-                const targetLevel = level - 1; // Уровень детей для повышения партнеров уровня level
-                
-                if (targetLevel < 0) return; // Не считаем отрицательные уровни
+                const targetLevel = level; // Уровень детей для повышения партнеров уровня level (тот же уровень!)
                 
                 // Находим всех партнеров root уровня level
                 const partnersAtLevel = Array.from(rootPartnersByLevel[level]).map(id => 
                     canvas.querySelector(`.card[data-id="${id}"]`)
                 ).filter(card => card);
                 
-                // Для каждого партнера уровня level находим его прямых детей уровня targetLevel
+                // Для каждого партнера уровня level находим его прямых детей уровня targetLevel (того же уровня)
                 const childrenAtTargetLevel = new Set();
                 partnersAtLevel.forEach(partner => {
                     const directChildren = getDirectChildren(partner.dataset.id)
