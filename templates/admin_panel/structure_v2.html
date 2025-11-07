@@ -201,6 +201,9 @@
             // Заполняем все дочерние объекты этой карточки
             await fillCardChildren(card);
             
+            // Пересчитываем уровень после заполнения
+            recalculateLevel(card);
+            
             savePositions();
             updateStats();
         }
@@ -215,6 +218,9 @@
                     await fillCard(child); // Рекурсивно заполняем дочерние объекты
                 }
             }
+            
+            // Пересчитываем уровень после заполнения всех дочерних объектов
+            recalculateLevel(card);
         }
         
         // Заполнение одного дочернего объекта (или дочернего дочернего если все 3 заняты)
@@ -237,8 +243,12 @@
                 const emptyChild = emptyChildren[0];
                 if (!emptyChild.dataset.name) emptyChild.dataset.name = generateRandomName();
                 if (!emptyChild.dataset.uid) emptyChild.dataset.uid = generateRandomId();
+                // Новые карточки создаются с уровнем 0
+                emptyChild.dataset.level = '0';
                 renderCardContents(emptyChild);
                 await saveCardToDatabase(emptyChild);
+                // Пересчитываем уровень родителя после заполнения партнера
+                recalculateLevel(card);
             } else if (children.length >= 3) {
                 // Если все 3 дочерних объекта заполнены, ищем дочерний объект с наименьшим количеством заполненных внуков
                 const childrenWithStats = children.map(child => {
@@ -275,8 +285,14 @@
                         const emptyGrandchild = stat.emptyGrandchildren[0];
                         if (!emptyGrandchild.dataset.name) emptyGrandchild.dataset.name = generateRandomName();
                         if (!emptyGrandchild.dataset.uid) emptyGrandchild.dataset.uid = generateRandomId();
+                        // Новые карточки создаются с уровнем 0
+                        emptyGrandchild.dataset.level = '0';
                         renderCardContents(emptyGrandchild);
                         await saveCardToDatabase(emptyGrandchild);
+                        // Пересчитываем уровень родителя (дочернего объекта) после заполнения внука
+                        recalculateLevel(stat.child);
+                        // Также пересчитываем уровень исходной карточки
+                        recalculateLevel(card);
                         break;
                     }
                 }
@@ -285,6 +301,68 @@
             renderCardContents(card); // Обновляем кнопки родительской карточки
             savePositions();
             updateStats();
+        }
+        
+        // Пересчет уровня карточки на основе количества партнеров того же уровня
+        function recalculateLevel(card) {
+            if (!card || card.dataset.id === 'root') {
+                // Root всегда остается на уровне 0 (displayLevel 5)
+                return;
+            }
+            
+            const cardId = card.dataset.id;
+            // Находим всех прямых дочерних объектов (партнеров) - только заполненные
+            const partners = Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`))
+                .filter(child => child.dataset.name && child.dataset.uid);
+            
+            // Если партнеров менее 3 - уровень 0
+            if (partners.length < 3) {
+                const oldLevel = parseInt(card.dataset.level || '0');
+                card.dataset.level = '0';
+                if (oldLevel !== 0) {
+                    renderCardContents(card);
+                    saveCardToDatabase(card);
+                }
+                return;
+            }
+            
+            // Группируем партнеров по уровням
+            const partnersByLevel = {};
+            partners.forEach(partner => {
+                const partnerLevel = parseInt(partner.dataset.level || '0');
+                if (!partnersByLevel[partnerLevel]) {
+                    partnersByLevel[partnerLevel] = [];
+                }
+                partnersByLevel[partnerLevel].push(partner);
+            });
+            
+            // Находим максимальный уровень, у которого есть >= 3 партнера
+            let maxLevelWith3Partners = -1;
+            for (const level in partnersByLevel) {
+                const levelNum = parseInt(level);
+                if (partnersByLevel[level].length >= 3 && levelNum > maxLevelWith3Partners) {
+                    maxLevelWith3Partners = levelNum;
+                }
+            }
+            
+            // Новый уровень = maxLevelWith3Partners + 1 (или 0 если нет такого уровня)
+            const newLevel = maxLevelWith3Partners >= 0 ? maxLevelWith3Partners + 1 : 0;
+            const oldLevel = parseInt(card.dataset.level || '0');
+            
+            if (newLevel !== oldLevel) {
+                card.dataset.level = String(newLevel);
+                renderCardContents(card);
+                saveCardToDatabase(card);
+                
+                // Рекурсивно пересчитываем уровень родителя
+                const parentId = card.dataset.parent;
+                if (parentId) {
+                    const parentCard = canvas.querySelector(`.card[data-id="${parentId}"]`);
+                    if (parentCard) {
+                        recalculateLevel(parentCard);
+                    }
+                }
+            }
         }
         
         // Сохранение карточки в базу данных
@@ -893,6 +971,32 @@
                     updatePointsState(card);
                 });
                 updateAllConnections();
+                
+                // Пересчитываем уровни всех карточек после загрузки (снизу вверх)
+                // Находим все листья (карточки без детей) и пересчитываем от них вверх
+                function getAllDescendants(cardId) {
+                    return Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`));
+                }
+                
+                // Сортируем карточки по глубине в дереве (от листьев к корню)
+                const sortedCards = Array.from(cardMap.values()).sort((a, b) => {
+                    // Вычисляем максимальную глубину поддерева для каждой карточки
+                    function getMaxDepth(cardId) {
+                        const children = getAllDescendants(cardId);
+                        if (children.length === 0) return 0;
+                        return 1 + Math.max(...children.map(child => getMaxDepth(child.dataset.id)));
+                    }
+                    const depthA = getMaxDepth(a.dataset.id);
+                    const depthB = getMaxDepth(b.dataset.id);
+                    return depthB - depthA; // От большего к меньшему (от листьев к корню)
+                });
+                
+                sortedCards.forEach(card => {
+                    if (card.dataset.id !== 'root') {
+                        recalculateLevel(card);
+                    }
+                });
+                
                 updateStats();
                 return true;
             } catch (e) {
@@ -931,7 +1035,7 @@
             child.className = 'card';
             child.dataset.id = id;
             child.dataset.parent = parentId;
-            child.dataset.level = String((parseInt(parentCard.dataset.level || '0')) + 1);
+            child.dataset.level = '0'; // Новые карточки создаются с уровнем 0
             // НЕ устанавливаем имя и ID - карточка создается пустой
             const px = parseInt(parentCard.style.left) || 0;
             const py = parseInt(parentCard.style.top) || 0;
@@ -1492,7 +1596,16 @@
             rootChildren.forEach(card => {
                 delete card.dataset.name;
                 delete card.dataset.uid;
+                card.dataset.level = '0'; // Сбрасываем уровень на 0
                 renderCardContents(card);
+            });
+            
+            // Пересчитываем уровни всех карточек после очистки
+            const allCards = Array.from(canvas.querySelectorAll('.card'));
+            allCards.forEach(card => {
+                if (card.dataset.id !== 'root') {
+                    recalculateLevel(card);
+                }
             });
             
             savePositions();
