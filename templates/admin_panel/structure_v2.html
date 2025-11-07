@@ -1248,8 +1248,8 @@
                 const stats = levelStats[level];
                 if (!stats) continue;
                 
-                if (level === 5 || level === 0) {
-                    // Уровень 5 и 0 показываем прочерк
+                if (level === 5) {
+                    // Уровень 5 показываем прочерк (root не имеет партнеров выше)
                     html += `<div class="stats-item">
                         <span class="stats-level">Уровень ${level}:</span>
                         <span class="stats-count">${stats.total}</span>
