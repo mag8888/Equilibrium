@@ -222,23 +222,57 @@
             const cardId = card.dataset.id;
             const children = Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`));
             
-            // Ищем первый пустой дочерний объект
-            const emptyChild = children.find(child => !child.dataset.name || !child.dataset.uid);
+            // Ищем пустые дочерние объекты
+            const emptyChildren = children.filter(child => !child.dataset.name || !child.dataset.uid);
             
-            if (emptyChild) {
-                // Если есть пустой дочерний объект - заполняем только его (без рекурсивного заполнения дочерних)
+            if (emptyChildren.length > 0) {
+                // Если есть пустые дочерние объекты - заполняем первый по порядку сверху вниз
+                // Сортируем по координате top (сверху вниз)
+                emptyChildren.sort((a, b) => {
+                    const topA = parseInt(a.style.top) || 0;
+                    const topB = parseInt(b.style.top) || 0;
+                    return topA - topB;
+                });
+                
+                const emptyChild = emptyChildren[0];
                 if (!emptyChild.dataset.name) emptyChild.dataset.name = generateRandomName();
                 if (!emptyChild.dataset.uid) emptyChild.dataset.uid = generateRandomId();
                 renderCardContents(emptyChild);
                 await saveCardToDatabase(emptyChild);
             } else if (children.length >= 3) {
-                // Если все 3 дочерних объекта заполнены, ищем первый дочерний объект с пустыми дочерними
-                for (const child of children) {
+                // Если все 3 дочерних объекта заполнены, ищем дочерний объект с наименьшим количеством заполненных внуков
+                const childrenWithStats = children.map(child => {
                     const grandchildren = Array.from(canvas.querySelectorAll(`.card[data-parent="${child.dataset.id}"]`));
-                    const emptyGrandchild = grandchildren.find(grandchild => !grandchild.dataset.name || !grandchild.dataset.uid);
-                    
-                    if (emptyGrandchild) {
-                        // Нашли пустого внука - заполняем только его (без рекурсивного заполнения дочерних)
+                    const filledGrandchildren = grandchildren.filter(gc => gc.dataset.name && gc.dataset.uid);
+                    return {
+                        child: child,
+                        filledCount: filledGrandchildren.length,
+                        emptyGrandchildren: grandchildren.filter(gc => !gc.dataset.name || !gc.dataset.uid)
+                    };
+                });
+                
+                // Сортируем по количеству заполненных внуков (меньше = приоритет выше), затем по позиции сверху вниз
+                childrenWithStats.sort((a, b) => {
+                    if (a.filledCount !== b.filledCount) {
+                        return a.filledCount - b.filledCount; // Меньше заполненных = выше приоритет
+                    }
+                    // Если одинаковое количество, сортируем по позиции сверху вниз
+                    const topA = parseInt(a.child.style.top) || 0;
+                    const topB = parseInt(b.child.style.top) || 0;
+                    return topA - topB;
+                });
+                
+                // Ищем первого с пустыми внуками
+                for (const stat of childrenWithStats) {
+                    if (stat.emptyGrandchildren.length > 0) {
+                        // Сортируем внуков сверху вниз
+                        stat.emptyGrandchildren.sort((a, b) => {
+                            const topA = parseInt(a.style.top) || 0;
+                            const topB = parseInt(b.style.top) || 0;
+                            return topA - topB;
+                        });
+                        
+                        const emptyGrandchild = stat.emptyGrandchildren[0];
                         if (!emptyGrandchild.dataset.name) emptyGrandchild.dataset.name = generateRandomName();
                         if (!emptyGrandchild.dataset.uid) emptyGrandchild.dataset.uid = generateRandomId();
                         renderCardContents(emptyGrandchild);
