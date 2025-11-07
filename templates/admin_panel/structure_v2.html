@@ -475,9 +475,9 @@
             
             const CARD_WIDTH = 160;
             const CARD_HEIGHT = 80;
-            const HORIZONTAL_GAP = 250; // Отступ между карточками
-            const VERTICAL_GAP = 450; // Увеличенный вертикальный отступ для предотвращения пересечения линий
-            const SAFETY_MARGIN = 80; // Увеличенный отступ при проверке пересечений
+            const HORIZONTAL_GAP = 280; // Увеличенный отступ между карточками
+            const VERTICAL_GAP = 550; // Еще больше увеличенный вертикальный отступ для предотвращения пересечения линий
+            const SAFETY_MARGIN = 100; // Еще больше увеличенный отступ при проверке пересечений
             const START_Y = 500;
             const LEVEL_X_OFFSET = 200; // Уменьшенное смещение по X для каждого уровня (чтобы поместились на экране)
             const BASE_X = 300; // Базовая позиция X для уровня 5
@@ -518,9 +518,14 @@
             function hasCollision(rect, excludeCard = null) {
                 for (const placed of allPlacedRects) {
                     if (excludeCard && placed.card === excludeCard) continue;
+                    
+                    // Увеличиваем отступ для карточек, которые находятся дальше справа
+                    // чтобы линии от левых карточек не пересекались с правыми
+                    const dynamicMargin = rect.left > placed.right ? SAFETY_MARGIN * 1.5 : SAFETY_MARGIN;
+                    
                     // Проверяем пересечение с отступом
-                    if (!(rect.right + SAFETY_MARGIN < placed.left || 
-                          rect.left - SAFETY_MARGIN > placed.right ||
+                    if (!(rect.right + dynamicMargin < placed.left || 
+                          rect.left - dynamicMargin > placed.right ||
                           rect.bottom + SAFETY_MARGIN < placed.top || 
                           rect.top - SAFETY_MARGIN > placed.bottom)) {
                         return true;
@@ -582,7 +587,9 @@
                         };
                         
                         if (hasCollision(testRect)) {
-                            cardX += HORIZONTAL_GAP / 3; // Меньший шаг для более точного размещения
+                            // Увеличиваем шаг сдвига для карточек справа, чтобы быстрее находить свободное место
+                            const stepSize = cardX > CANVAS_WIDTH / 2 ? HORIZONTAL_GAP / 2 : HORIZONTAL_GAP / 3;
+                            cardX += stepSize;
                             attempts++;
                         } else {
                             hasOverlap = false;
