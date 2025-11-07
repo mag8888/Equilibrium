@@ -432,19 +432,29 @@
                     renderCardContents(card);
                 }
             } else {
-                // Если партнеров текущего уровня менее 3 - уровень должен быть 0
-                // Но сначала проверяем, можем ли мы остаться на текущем уровне или ниже
-                // Ищем максимальный уровень, для которого есть 3 партнера
-                let maxLevelWith3Partners = -1;
-                for (const level in partnersByLevel) {
-                    const levelNum = parseInt(level);
-                    if (partnersByLevel[level].length >= 3 && levelNum > maxLevelWith3Partners) {
-                        maxLevelWith3Partners = levelNum;
+                // Если партнеров текущего уровня менее 3 - проверяем, можем ли остаться на текущем уровне
+                // Для уровня N нужно проверить, есть ли 3 партнера уровня N-1
+                const prevLevel = currentLevel - 1;
+                const partnersAtPrevLevel = partnersByLevel[prevLevel] || [];
+                
+                let newLevel;
+                if (currentLevel > 0 && partnersAtPrevLevel.length >= 3) {
+                    // Если есть 3 партнера предыдущего уровня - остаемся на текущем уровне
+                    newLevel = currentLevel;
+                } else {
+                    // Ищем максимальный уровень, для которого есть 3 партнера
+                    let maxLevelWith3Partners = -1;
+                    for (const level in partnersByLevel) {
+                        const levelNum = parseInt(level);
+                        if (partnersByLevel[level].length >= 3 && levelNum > maxLevelWith3Partners) {
+                            maxLevelWith3Partners = levelNum;
+                        }
                     }
+                    
+                    // Новый уровень = maxLevelWith3Partners + 1 (или 0 если нет такого уровня)
+                    newLevel = maxLevelWith3Partners >= 0 ? maxLevelWith3Partners + 1 : 0;
                 }
                 
-                // Новый уровень = maxLevelWith3Partners + 1 (или 0 если нет такого уровня)
-                const newLevel = maxLevelWith3Partners >= 0 ? maxLevelWith3Partners + 1 : 0;
                 const oldLevel = parseInt(card.dataset.level || '0');
                 
                 if (newLevel !== oldLevel) {
