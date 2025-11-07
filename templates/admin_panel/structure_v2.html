@@ -1644,6 +1644,16 @@
             const rootNeededForNextLevel = Math.max(0, 3 - rootPartnersAtRootLevel.size);
             const nextLevel = rootLevel + 1;
             
+            // Для каждого уровня партнеров считаем максимум (количество карточек этого уровня * 3)
+            const partnersMaxByLevel = {};
+            Object.keys(rootPartnersByLevel).forEach(levelStr => {
+                const level = parseInt(levelStr);
+                // Находим все карточки уровня level
+                const cardsAtLevel = cardsByLevel[level] || [];
+                const filledCardsAtLevel = cardsAtLevel.filter(card => card.dataset.name && card.dataset.uid);
+                partnersMaxByLevel[level] = filledCardsAtLevel.length * 3;
+            });
+            
             levelStats[rootLevel] = {
                 total: 1,
                 filled: 1,
@@ -1651,6 +1661,7 @@
                 neededForNextLevel: rootNeededForNextLevel,
                 partnersAtLevel: rootPartnersAtRootLevel.size,
                 partnersByLevel: rootPartnersByLevel,
+                partnersMaxByLevel: partnersMaxByLevel,
                 currentLevel: rootLevel,
                 nextLevel: nextLevel
             };
@@ -1727,6 +1738,7 @@
                     const needed = stats.neededForNextLevel || 0;
                     const partnersAtLevel = stats.partnersAtLevel || 0;
                     const partnersByLevel = stats.partnersByLevel || {};
+                    const partnersMaxByLevel = stats.partnersMaxByLevel || {};
                     
                     // Формируем детальную статистику
                     let htmlRoot = '';
@@ -1737,22 +1749,20 @@
                     </div>`;
                     
                     // Показываем партнеров уровня currentLevel для повышения
-                    const neededCount = needed > 0 ? needed : 0;
-                    const currentCount = partnersAtLevel;
                     htmlRoot += `<div class="stats-item" style="margin-bottom: 8px;">
                         <span style="color: ${needed > 0 ? '#ef4444' : '#22c55e'};">
-                            ${currentCount}/3 ур ${currentLevel}
+                            ${partnersAtLevel}/3 ур ${currentLevel}
                         </span>
                     </div>`;
                     
-                    // Показываем всех партнеров по уровням (от максимального к минимальному)
+                    // Показываем всех партнеров по уровням (от максимального к минимальному) в формате X/Y ур Z
                     const partnerLevels = Object.keys(partnersByLevel).map(l => parseInt(l)).sort((a, b) => b - a);
                     partnerLevels.forEach(partnerLevel => {
                         const count = partnersByLevel[partnerLevel].size;
-                        // Для каждого уровня показываем X/Y, где Y = количество карточек этого уровня * 3
-                        // Но для root статистики показываем просто количество партнеров
+                        const max = partnersMaxByLevel[partnerLevel] || 0;
+                        // Показываем в формате X/Y ур Z
                         htmlRoot += `<div class="stats-item">
-                            <span style="color: #6b7280;">${count} ур ${partnerLevel}</span>
+                            <span style="color: #6b7280;">${count}/${max} ур ${partnerLevel}</span>
                         </div>`;
                     });
                     
