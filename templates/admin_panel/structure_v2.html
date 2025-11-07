@@ -1098,49 +1098,14 @@
                 });
                 updateAllConnections();
                 
-                // Пересчитываем уровни всех карточек после загрузки (снизу вверх)
-                // Сначала сбрасываем все уровни на 0 (кроме root - его уровень уже загружен)
-                // Сохраняем уровень root перед пересчетом
-                const rootCard = cardMap.get('root');
-                const savedRootLevel = rootCard ? parseInt(rootCard.dataset.level || '0') : 0;
-                
+                // Уровни уже загружены из сохраненных данных (строки 1080-1084)
+                // Обновляем содержимое всех карточек, чтобы отобразить правильные уровни
                 cardMap.forEach(card => {
-                    if (card.dataset.id !== 'root') {
-                        card.dataset.level = '0';
-                    }
+                    renderCardContents(card);
                 });
                 
-                // Находим все листья (карточки без детей) и пересчитываем от них вверх
-                function getAllDescendants(cardId) {
-                    return Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`));
-                }
-                
-                // Сортируем карточки по глубине в дереве (от листьев к корню)
-                const sortedCards = Array.from(cardMap.values()).sort((a, b) => {
-                    // Вычисляем максимальную глубину поддерева для каждой карточки
-                    function getMaxDepth(cardId) {
-                        const children = getAllDescendants(cardId);
-                        if (children.length === 0) return 0;
-                        return 1 + Math.max(...children.map(child => getMaxDepth(child.dataset.id)));
-                    }
-                    const depthA = getMaxDepth(a.dataset.id);
-                    const depthB = getMaxDepth(b.dataset.id);
-                    return depthB - depthA; // От большего к меньшему (от листьев к корню)
-                });
-                
-                // Пересчитываем уровни всех карточек (кроме root сначала)
-                sortedCards.forEach(card => {
-                    if (card.dataset.id !== 'root') {
-                        recalculateLevel(card);
-                    }
-                });
-                
-                // В конце пересчитываем уровень root
-                if (rootCard) {
-                    // Восстанавливаем сохраненный уровень root перед пересчетом
-                    rootCard.dataset.level = String(savedRootLevel);
-                    recalculateLevel(rootCard);
-                }
+                // НЕ пересчитываем уровни при загрузке - они уже сохранены правильно
+                // Пересчет уровней происходит только при добавлении/изменении структуры
                 
                 updateStats();
                 return true;
