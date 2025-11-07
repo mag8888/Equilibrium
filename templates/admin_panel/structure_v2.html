@@ -206,10 +206,11 @@
             }
             
             if (isEmpty && !isRoot) {
-                // Пустая карточка - показываем кнопку заполнения
+                // Пустая карточка - показываем кнопку заполнения и кнопку "+"
                 card.innerHTML = `
                     <div class="badge ${canLevelUp ? 'level-up' : ''}">${displayLevel}</div>
                     <button class="fill-btn" title="Заполнить карточку и её дочерние объекты">Заполнить</button>
+                    <button class="add-child-btn" title="Добавить дочерний объект">+</button>
                     <button class="delete-btn" title="Удалить карточку и всех её детей">×</button>
                     ${!isEmpty ? `<div class="progress-indicator"><div class="progress-bar" style="width: ${progressPercent}%"></div></div>` : ''}
                 `;
@@ -222,6 +223,14 @@
                         fillBtn.textContent = 'Заполняется...';
                         await fillCard(card);
                         fillBtn.disabled = false;
+                    });
+                }
+                // Добавляем обработчик для кнопки "+"
+                const addChildBtn = card.querySelector('.add-child-btn');
+                if (addChildBtn) {
+                    addChildBtn.addEventListener('click', async (e) => {
+                        e.stopPropagation();
+                        await fillNextChild(card);
                     });
                 }
             } else {
