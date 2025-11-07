@@ -1628,45 +1628,63 @@
             const rootLevel = parseInt(rootCard.dataset.level || '0');
             
             // Для root считаем статистику по всем уровням партнеров
-            const rootPartners = getDirectChildren('root').filter(card => card.dataset.name && card.dataset.uid);
+            // Логика: для каждого уровня партнеров считаем их прямых детей уровня (level - 1)
+            // Например, для повышения 3 партнеров уровня 0 до уровня 1 нужно 9 партнеров уровня 0 (по 3 на каждого)
             const rootPartnersByLevel = {};
+            const partnersMaxByLevel = {};
             
-            // Рекурсивная функция для получения всех потомков карточки
-            function getAllDescendants(parentId) {
-                const children = getDirectChildren(parentId);
-                let allDescendants = [...children];
-                children.forEach(child => {
-                    allDescendants.push(...getAllDescendants(child.dataset.id));
-                });
-                return allDescendants;
-            }
-            
-            // Получаем всех потомков root (все партнеры в структуре)
-            const allRootDescendants = getAllDescendants('root').filter(card => card.dataset.name && card.dataset.uid);
-            
-            // Группируем всех потомков по уровням
-            allRootDescendants.forEach(partner => {
+            // Сначала находим всех прямых детей root и группируем их по уровням
+            const rootDirectChildren = getDirectChildren('root').filter(card => card.dataset.name && card.dataset.uid);
+            rootDirectChildren.forEach(partner => {
                 const partnerLevel = parseInt(partner.dataset.level || '0');
                 if (!rootPartnersByLevel[partnerLevel]) {
                     rootPartnersByLevel[partnerLevel] = new Set();
                 }
-                // Каждый партнер уникален и считается по ID
                 rootPartnersByLevel[partnerLevel].add(partner.dataset.id);
+            });
+            
+            // Для каждого уровня партнеров root считаем их прямых детей уровня (level - 1)
+            Object.keys(rootPartnersByLevel).forEach(levelStr => {
+                const level = parseInt(levelStr);
+                const targetLevel = level - 1; // Уровень детей для повышения партнеров уровня level
+                
+                if (targetLevel < 0) return; // Не считаем отрицательные уровни
+                
+                // Находим всех партнеров root уровня level
+                const partnersAtLevel = Array.from(rootPartnersByLevel[level]).map(id => 
+                    canvas.querySelector(`.card[data-id="${id}"]`)
+                ).filter(card => card);
+                
+                // Для каждого партнера уровня level находим его прямых детей уровня targetLevel
+                const childrenAtTargetLevel = new Set();
+                partnersAtLevel.forEach(partner => {
+                    const directChildren = getDirectChildren(partner.dataset.id)
+                        .filter(child => child.dataset.name && child.dataset.uid);
+                    directChildren.forEach(child => {
+                        const childLevel = parseInt(child.dataset.level || '0');
+                        if (childLevel === targetLevel) {
+                            childrenAtTargetLevel.add(child.dataset.id);
+                        }
+                    });
+                });
+                
+                // Сохраняем количество партнеров уровня targetLevel для повышения партнеров уровня level
+                if (!rootPartnersByLevel[targetLevel]) {
+                    rootPartnersByLevel[targetLevel] = new Set();
+                }
+                // Объединяем с уже существующими партнерами уровня targetLevel
+                childrenAtTargetLevel.forEach(id => {
+                    rootPartnersByLevel[targetLevel].add(id);
+                });
+                
+                // Максимум = количество партнеров уровня level * 3
+                partnersMaxByLevel[targetLevel] = partnersAtLevel.length * 3;
             });
             
             // Для повышения root нужны 3 партнера уровня rootLevel
             const rootPartnersAtRootLevel = rootPartnersByLevel[rootLevel] || new Set();
             const rootNeededForNextLevel = Math.max(0, 3 - rootPartnersAtRootLevel.size);
             const nextLevel = rootLevel + 1;
-            
-            // Для каждого уровня партнеров считаем максимум (количество карточек этого уровня * 3)
-            const partnersMaxByLevel = {};
-            Object.keys(rootPartnersByLevel).forEach(levelStr => {
-                const level = parseInt(levelStr);
-                // Находим все карточки уровня level среди всех потомков root
-                const cardsAtLevel = allRootDescendants.filter(card => parseInt(card.dataset.level || '0') === level);
-                partnersMaxByLevel[level] = cardsAtLevel.length * 3;
-            });
             
             levelStats[rootLevel] = {
                 total: 1,
