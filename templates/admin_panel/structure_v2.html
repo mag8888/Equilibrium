@@ -1675,14 +1675,33 @@
                 cardsByLevel[level] = uniqueCards;
                 const filledCards = uniqueCards.filter(card => card.dataset.name && card.dataset.uid);
                 
-                // Максимум партнеров = количество ЗАПОЛНЕННЫХ карточек на предыдущем уровне * 3
-                const filledPrevLevelCards = prevLevelCards.filter(card => card.dataset.name && card.dataset.uid);
-                const maxPartners = filledPrevLevelCards.length * 3;
+                // Для статистики считаем партнеров уровня level для карточек уровня level
+                // Группируем заполненные карточки уровня level по их партнерам
+                const levelCardsFilled = filledCards;
+                const partnersByLevelForStats = {};
+                
+                levelCardsFilled.forEach(card => {
+                    const cardPartners = getDirectChildren(card.dataset.id)
+                        .filter(p => p.dataset.name && p.dataset.uid);
+                    cardPartners.forEach(partner => {
+                        const partnerLevel = parseInt(partner.dataset.level || '0');
+                        if (!partnersByLevelForStats[partnerLevel]) {
+                            partnersByLevelForStats[partnerLevel] = [];
+                        }
+                        partnersByLevelForStats[partnerLevel].push(partner);
+                    });
+                });
+                
+                // Партнеры уровня level для повышения карточек уровня level
+                const partnersAtLevel = partnersByLevelForStats[level] || [];
+                const neededForNextLevel = Math.max(0, (levelCardsFilled.length * 3) - partnersAtLevel.length);
                 
                 levelStats[level] = {
                     total: uniqueCards.length,
                     filled: filledCards.length,
-                    max: maxPartners
+                    max: levelCardsFilled.length * 3,
+                    partnersAtLevel: partnersAtLevel.length,
+                    neededForNextLevel: neededForNextLevel
                 };
             }
             
@@ -1713,24 +1732,27 @@
                         <span class="stats-count" style="color: ${color};">${displayText}</span>
                     </div>`;
                 } else {
-                    // Определяем цвет для партнеров
-                    const filled = stats.filled;
-                    const max = stats.max;
-                    const needed = Math.max(0, max - filled);
-                    const isComplete = filled >= max && max > 0;
-                    const partnersColor = isComplete ? '#22c55e' : '#ef4444';
+                    // Для других уровней показываем информацию о партнерах для повышения
+                    const partnersAtLevel = stats.partnersAtLevel || 0;
+                    const needed = stats.neededForNextLevel || 0;
+                    const max = stats.max || 0;
                     
-                    // Показываем: заполнено / нужно всего (или сколько не хватает)
                     let displayText;
-                    if (isComplete) {
-                        displayText = `${filled}/${max}`;
+                    if (max === 0) {
+                        displayText = `${stats.filled}`;
+                    } else if (needed === 0 && partnersAtLevel >= max) {
+                        displayText = `${partnersAtLevel}/${max} (готов к повышению)`;
+                    } else if (needed > 0) {
+                        displayText = `${partnersAtLevel}/${max} (не хватает: ${needed})`;
                     } else {
-                        displayText = `${filled}/${max} (не хватает: ${needed})`;
+                        displayText = `${partnersAtLevel}/${max}`;
                     }
+                    
+                    const color = (needed === 0 && partnersAtLevel >= max && max > 0) ? '#22c55e' : '#ef4444';
                     
                     html += `<div class="stats-item">
                         <span class="stats-level" style="color: #3b82f6;">Ур ${level}</span>
-                        <span class="stats-count" style="color: ${partnersColor};">${displayText}</span>
+                        <span class="stats-count" style="color: ${color};">${displayText}</span>
                     </div>`;
                 }
             }
