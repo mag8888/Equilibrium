@@ -481,14 +481,39 @@
             const CANVAS_HEIGHT = 8450; // Высота canvas
             const GRID_SIZE = 40;
             
-            // Конфигурация для каждого уровня
+            // Конфигурация для каждого уровня (логичное распределение)
+            const centerY = CANVAS_HEIGHT / 2; // Центр по вертикали
             const levelConfig = {
-                5: { x: 50, y: 4200, verticalGap: null }, // Фиксированная позиция
-                4: { x: 1000, y: null, verticalGap: 2800 }, // Центрирование по Y, расстояние между карточками
-                3: { x: 2000, y: null, verticalGap: 930 },
-                2: { x: 3000, y: null, verticalGap: 311 },
-                1: { x: 4000, y: null, verticalGap: 80 },
-                0: { x: 6000, y: null, verticalGap: null } // Равномерно по всей высоте
+                5: { 
+                    x: 300, 
+                    y: centerY, 
+                    verticalGap: null 
+                }, // Root: слева, по центру вертикально
+                4: { 
+                    x: 1200, 
+                    y: null, 
+                    verticalGap: 400 
+                }, // Достаточный отступ для линий
+                3: { 
+                    x: 2200, 
+                    y: null, 
+                    verticalGap: 350 
+                }, // Умеренный отступ
+                2: { 
+                    x: 3400, 
+                    y: null, 
+                    verticalGap: 250 
+                }, // Компактнее, но читаемо
+                1: { 
+                    x: 4600, 
+                    y: null, 
+                    verticalGap: 150 
+                }, // Более компактно
+                0: { 
+                    x: 5800, 
+                    y: null, 
+                    verticalGap: null 
+                } // Максимально справа, равномерно по высоте
             };
             
             // Создаем карту карточек по ID
