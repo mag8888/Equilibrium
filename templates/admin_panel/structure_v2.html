@@ -52,6 +52,7 @@
         <button class="btn" id="zoomOut">−</button>
         <button class="btn" id="zoomIn">+</button>
         <button class="btn" id="showAll" style="background: #3b82f6; color: white;">🔍 Показать все</button>
+        <button class="btn" id="showFullGrid" style="background: #f59e0b; color: white;">📐 Вся сетка</button>
         <button class="btn" id="exportCoords" style="background: #8b5cf6; color: white;">📥 Экспорт координат</button>
         <button class="btn" id="saveLayout" style="background: #10b981; color: white;">💾 Сохранить</button>
     </div>
@@ -185,6 +186,7 @@
         const btnZoomIn = document.getElementById('zoomIn');
         const btnZoomOut = document.getElementById('zoomOut');
         const btnShowAll = document.getElementById('showAll');
+        const btnShowFullGrid = document.getElementById('showFullGrid');
         const btnExportCoords = document.getElementById('exportCoords');
         const btnSaveLayout = document.getElementById('saveLayout');
         const statsContent = document.getElementById('statsContent');
@@ -318,6 +320,27 @@
         }
         
         btnShowAll.onclick = () => showAllCards();
+        
+        // Показать всю сетку (весь canvas целиком)
+        function showFullGrid() {
+            const CANVAS_WIDTH = 6500;
+            const CANVAS_HEIGHT = 8450;
+            
+            // Вычисляем масштаб, чтобы весь canvas поместился в viewport
+            const scaleX = viewport.clientWidth / CANVAS_WIDTH;
+            const scaleY = viewport.clientHeight / CANVAS_HEIGHT;
+            scale = Math.min(2, Math.max(0.1, Math.min(scaleX, scaleY) * 0.95)); // 95% чтобы был небольшой отступ
+            
+            // Центрируем canvas
+            offsetX = (viewport.clientWidth - CANVAS_WIDTH * scale) / 2;
+            offsetY = (viewport.clientHeight - CANVAS_HEIGHT * scale) / 2;
+            
+            // Ограничиваем границы
+            clampOffsets();
+            applyTransform();
+        }
+        
+        btnShowFullGrid.onclick = () => showFullGrid();
         
         // Экспорт координат всех карточек в файл
         function exportCoordinatesToFile() {
