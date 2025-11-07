@@ -1190,51 +1190,56 @@
                 return;
             }
             
-            // Рекурсивная функция для подсчета всех потомков на определенном уровне
-            function countDescendantsAtLevel(parentId, targetDisplayLevel, currentLevel = 5) {
-                if (currentLevel < targetDisplayLevel) return [];
-                
-                const children = Array.from(canvas.querySelectorAll(`.card[data-parent="${parentId}"]`));
-                if (currentLevel === targetDisplayLevel) {
-                    return children;
-                }
-                
-                // Рекурсивно собираем потомков
-                const descendants = [];
-                children.forEach(child => {
-                    const childDescendants = countDescendantsAtLevel(child.dataset.id, targetDisplayLevel, currentLevel - 1);
-                    descendants.push(...childDescendants);
-                });
-                return descendants;
+            // Функция для получения прямых детей карточки
+            function getDirectChildren(parentId) {
+                return Array.from(canvas.querySelectorAll(`.card[data-parent="${parentId}"]`));
             }
             
-            // Для каждого уровня считаем партнеров root
+            // Для каждого уровня считаем партнеров root (только прямые дети предыдущего уровня)
             const levelStats = {};
-            for (let displayLevel = 5; displayLevel >= 0; displayLevel--) {
-                if (displayLevel === 5) {
-                    // Уровень 5 - сам root
-                    levelStats[5] = {
-                        total: 1,
-                        filled: 1,
-                        max: 0
-                    };
-                } else {
-                    // Находим всех потомков root на этом уровне
-                    const levelCards = countDescendantsAtLevel('root', displayLevel);
-                    const filledCards = levelCards.filter(card => card.dataset.name && card.dataset.uid);
-                    
-                    // Максимум партнеров = количество карточек на предыдущем уровне * 3
-                    const prevLevelCards = displayLevel === 4 
-                        ? [rootCard] 
-                        : countDescendantsAtLevel('root', displayLevel + 1);
-                    const maxPartners = prevLevelCards.length * 3;
-                    
-                    levelStats[displayLevel] = {
-                        total: levelCards.length,
-                        filled: filledCards.length,
-                        max: maxPartners
-                    };
-                }
+            const cardsByLevel = {}; // Кэш карточек по уровням
+            
+            // Уровень 5 - сам root
+            levelStats[5] = {
+                total: 1,
+                filled: 1,
+                max: 0
+            };
+            cardsByLevel[5] = [rootCard];
+            
+            // Для уровней 4-0 считаем только прямых детей карточек предыдущего уровня
+            for (let displayLevel = 4; displayLevel >= 0; displayLevel--) {
+                const prevLevel = displayLevel + 1;
+                const prevLevelCards = cardsByLevel[prevLevel] || [];
+                
+                // Собираем всех прямых детей карточек предыдущего уровня
+                const levelCards = [];
+                prevLevelCards.forEach(parentCard => {
+                    const children = getDirectChildren(parentCard.dataset.id);
+                    levelCards.push(...children);
+                });
+                
+                // Убираем дубликаты по ID
+                const uniqueCards = [];
+                const seenIds = new Set();
+                levelCards.forEach(card => {
+                    if (!seenIds.has(card.dataset.id)) {
+                        seenIds.add(card.dataset.id);
+                        uniqueCards.push(card);
+                    }
+                });
+                
+                cardsByLevel[displayLevel] = uniqueCards;
+                const filledCards = uniqueCards.filter(card => card.dataset.name && card.dataset.uid);
+                
+                // Максимум партнеров = количество карточек на предыдущем уровне * 3
+                const maxPartners = prevLevelCards.length * 3;
+                
+                levelStats[displayLevel] = {
+                    total: uniqueCards.length,
+                    filled: filledCards.length,
+                    max: maxPartners
+                };
             }
             
             // Формируем HTML
