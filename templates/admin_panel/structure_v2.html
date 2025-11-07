@@ -1743,6 +1743,11 @@
                     // Формируем детальную статистику
                     let htmlRoot = '';
                     
+                    // Текущий уровень (показываем первым)
+                    htmlRoot += `<div class="stats-item" style="margin-bottom: 8px;">
+                        <span class="stats-level" style="color: #3b82f6; font-weight: 600;">${currentLevel} (ваш уровень)</span>
+                    </div>`;
+                    
                     // Заголовок: Повысить уровень (X)
                     htmlRoot += `<div class="stats-item" style="margin-bottom: 8px;">
                         <span class="stats-level" style="color: #3b82f6; font-weight: 600;">Повысить уровень (${nextLevel})</span>
