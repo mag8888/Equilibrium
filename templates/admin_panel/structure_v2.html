@@ -47,6 +47,10 @@
         .card .fill-children-btn { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); padding: 6px 12px; background: #10b981; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600; z-index: 10; white-space: nowrap; }
         .card .fill-children-btn:hover { background: #059669; }
         .card .fill-children-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .card .add-child-btn { position: absolute; top: -8px; left: -8px; width: 24px; height: 24px; background: #10b981; color: white; border: none; border-radius: 50%; cursor: pointer; font-size: 16px; font-weight: 600; z-index: 10; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.15); opacity: 0; transition: opacity 0.2s; line-height: 1; }
+        .card:hover .add-child-btn { opacity: 1; }
+        .card .add-child-btn:hover { background: #059669; }
+        .card .add-child-btn:disabled { opacity: 0.3; cursor: not-allowed; background: #9ca3af; }
         .point { position: absolute; width: 12px; height: 12px; border-radius: 50%; background: #22c55e; border: 2px solid #16a34a; top: 50%; transform: translateY(-50%); cursor: pointer; }
         .point.left { left: -8px; }
         .point.right { right: -8px; }
@@ -161,10 +165,20 @@
                 card.innerHTML = `
                     <div class="badge">${displayLevel}</div>
                     ${!isRoot ? '<button class="delete-btn" title="Удалить карточку и всех её детей">×</button>' : ''}
+                    <button class="add-child-btn" title="Добавить дочерний объект">+</button>
                     <div class="name">${card.dataset.name}</div>
                     <div class="uid">ID${card.dataset.uid}</div>
                     ${hasEmptyChildren ? '<button class="fill-children-btn" title="Заполнить дочерние объекты">Заполнить дочерние</button>' : ''}
                 `;
+                
+                // Добавляем обработчик для кнопки "+"
+                const addChildBtn = card.querySelector('.add-child-btn');
+                if (addChildBtn) {
+                    addChildBtn.addEventListener('click', async (e) => {
+                        e.stopPropagation();
+                        await fillNextChild(card);
+                    });
+                }
                 
                 // Добавляем обработчик для кнопки заполнения дочерних объектов (включая root)
                 const fillChildrenBtn = card.querySelector('.fill-children-btn');
@@ -218,6 +232,36 @@
                     await fillCard(child); // Рекурсивно заполняем дочерние объекты
                 }
             }
+        }
+        
+        // Заполнение следующего дочернего объекта (или дочернего дочернего если все 3 заняты)
+        async function fillNextChild(card) {
+            const cardId = card.dataset.id;
+            const children = Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`));
+            
+            // Ищем первый пустой дочерний объект
+            const emptyChild = children.find(child => !child.dataset.name || !child.dataset.uid);
+            
+            if (emptyChild) {
+                // Если есть пустой дочерний объект - заполняем его
+                await fillCard(emptyChild);
+            } else if (children.length >= 3) {
+                // Если все 3 дочерних объекта заполнены, ищем первый дочерний объект с пустыми дочерними
+                for (const child of children) {
+                    const grandchildren = Array.from(canvas.querySelectorAll(`.card[data-parent="${child.dataset.id}"]`));
+                    const emptyGrandchild = grandchildren.find(grandchild => !grandchild.dataset.name || !grandchild.dataset.uid);
+                    
+                    if (emptyGrandchild) {
+                        // Нашли пустого внука - заполняем его
+                        await fillCard(emptyGrandchild);
+                        break;
+                    }
+                }
+            }
+            
+            renderCardContents(card); // Обновляем кнопки
+            savePositions();
+            updateStats();
         }
         
         // Сохранение карточки в базу данных
