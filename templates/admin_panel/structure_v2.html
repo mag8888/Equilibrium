@@ -1677,16 +1677,39 @@
                 });
                 
                 // Сохраняем количество партнеров уровня targetLevel для повышения партнеров уровня level
-                if (!rootPartnersByLevel[targetLevel]) {
-                    rootPartnersByLevel[targetLevel] = new Set();
+                // НО: если это уровень 0, то мы НЕ добавляем их в rootPartnersByLevel[0], 
+                // потому что rootPartnersByLevel[0] уже содержит прямых детей root уровня 0
+                // Вместо этого мы сохраняем их отдельно для статистики
+                if (targetLevel !== level || level === 0) {
+                    // Для уровня 0 не добавляем в rootPartnersByLevel, так как это уже прямые дети root
+                    // Но для других уровней добавляем
+                    if (targetLevel !== 0) {
+                        if (!rootPartnersByLevel[targetLevel]) {
+                            rootPartnersByLevel[targetLevel] = new Set();
+                        }
+                        childrenAtTargetLevel.forEach(id => {
+                            rootPartnersByLevel[targetLevel].add(id);
+                        });
+                    }
                 }
-                // Объединяем с уже существующими партнерами уровня targetLevel
-                childrenAtTargetLevel.forEach(id => {
-                    rootPartnersByLevel[targetLevel].add(id);
-                });
                 
                 // Максимум = количество партнеров уровня level * 3
-                partnersMaxByLevel[targetLevel] = partnersAtLevel.length * 3;
+                // Но для уровня 0 считаем только детей партнеров уровня 0, а не всех потомков
+                if (level === 0) {
+                    // Для уровня 0: считаем только прямых детей партнеров уровня 0
+                    partnersMaxByLevel[0] = partnersAtLevel.length * 3;
+                    // И количество уже есть в childrenAtTargetLevel
+                    if (!rootPartnersByLevel[0]) {
+                        rootPartnersByLevel[0] = new Set();
+                    }
+                    // Очищаем и добавляем только детей партнеров уровня 0
+                    rootPartnersByLevel[0].clear();
+                    childrenAtTargetLevel.forEach(id => {
+                        rootPartnersByLevel[0].add(id);
+                    });
+                } else {
+                    partnersMaxByLevel[targetLevel] = partnersAtLevel.length * 3;
+                }
             });
             
             // Для повышения root нужны 3 партнера уровня rootLevel
