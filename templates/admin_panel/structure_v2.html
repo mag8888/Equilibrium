@@ -158,17 +158,13 @@
                     });
                 }
             } else {
-                // Заполненная карточка - добавляем кнопку для заполнения дочерних объектов
-                const hasChildren = Array.from(canvas.querySelectorAll(`.card[data-parent="${card.dataset.id}"]`)).length > 0;
-                const hasEmptyChildren = hasChildren && Array.from(canvas.querySelectorAll(`.card[data-parent="${card.dataset.id}"]`)).some(child => !child.dataset.name || !child.dataset.uid);
-                
+                // Заполненная карточка - добавляем кнопку "+" для добавления дочерних объектов
                 card.innerHTML = `
                     <div class="badge">${displayLevel}</div>
                     ${!isRoot ? '<button class="delete-btn" title="Удалить карточку и всех её детей">×</button>' : ''}
                     <button class="add-child-btn" title="Добавить дочерний объект">+</button>
                     <div class="name">${card.dataset.name}</div>
                     <div class="uid">ID${card.dataset.uid}</div>
-                    ${hasEmptyChildren ? '<button class="fill-children-btn" title="Заполнить дочерние объекты">Заполнить дочерние</button>' : ''}
                 `;
                 
                 // Добавляем обработчик для кнопки "+"
@@ -177,19 +173,6 @@
                     addChildBtn.addEventListener('click', async (e) => {
                         e.stopPropagation();
                         await fillNextChild(card);
-                    });
-                }
-                
-                // Добавляем обработчик для кнопки заполнения дочерних объектов (включая root)
-                const fillChildrenBtn = card.querySelector('.fill-children-btn');
-                if (fillChildrenBtn) {
-                    fillChildrenBtn.addEventListener('click', async (e) => {
-                        e.stopPropagation();
-                        fillChildrenBtn.disabled = true;
-                        fillChildrenBtn.textContent = 'Заполняется...';
-                        await fillCardChildren(card);
-                        fillChildrenBtn.disabled = false;
-                        renderCardContents(card); // Перерисовываем чтобы убрать кнопку если все заполнено
                     });
                 }
             }
