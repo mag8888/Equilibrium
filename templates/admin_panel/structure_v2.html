@@ -7,7 +7,9 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1f2937; }
-        .toolbar { position: fixed; top: 10px; left: 10px; z-index: 1000; }
+        .toolbar { position: fixed; top: 10px; left: 10px; z-index: 1000; display: flex; align-items: center; gap: 8px; }
+        .zoom-controls { display: flex; gap: 6px; }
+        .zoom-btn { width: 36px; justify-content: center; padding: 6px 0; font-size: 18px; line-height: 1; }
         .menu-dropdown { display: none; position: absolute; top: calc(100% + 8px); left: 0; background: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); min-width: 250px; max-height: 80vh; overflow-y: auto; padding: 12px; border: 1px solid #e5e7eb; }
         .menu-dropdown.show { display: block; }
         .menu-section { margin-bottom: 16px; }
@@ -103,6 +105,10 @@
 <body>
     <div class="toolbar">
         <button class="btn" id="menuToggle" style="background: #6366f1; color: white; font-weight: 600;">☰ Меню</button>
+        <div class="zoom-controls">
+            <button class="btn zoom-btn" id="quickZoomOut" title="Уменьшить масштаб">−</button>
+            <button class="btn zoom-btn" id="quickZoomIn" title="Увеличить масштаб">+</button>
+        </div>
         <div class="menu-dropdown" id="menuDropdown">
             <div class="menu-section">
                 <div class="menu-title">Навигация</div>
@@ -615,6 +621,8 @@
         const btnSnap = document.getElementById('snap');
         const btnZoomIn = document.getElementById('zoomIn');
         const btnZoomOut = document.getElementById('zoomOut');
+        const btnQuickZoomIn = document.getElementById('quickZoomIn');
+        const btnQuickZoomOut = document.getElementById('quickZoomOut');
         const btnShowAll = document.getElementById('showAll');
         const btnShowFullGrid = document.getElementById('showFullGrid');
         const btnAutoLayout = document.getElementById('autoLayout');
@@ -705,8 +713,19 @@
             applyTransform();
         }, { passive: false });
 
-        btnZoomIn.onclick = () => { scale = Math.min(2, scale * 1.1); applyTransform(); };
-        btnZoomOut.onclick = () => { scale = Math.max(0.5, scale * 0.9); applyTransform(); };
+        function handleZoomIn() {
+            scale = Math.min(2, scale * 1.1);
+            applyTransform();
+        }
+        function handleZoomOut() {
+            scale = Math.max(0.5, scale * 0.9);
+            applyTransform();
+        }
+        
+        btnZoomIn.onclick = handleZoomIn;
+        btnZoomOut.onclick = handleZoomOut;
+        if (btnQuickZoomIn) btnQuickZoomIn.onclick = handleZoomIn;
+        if (btnQuickZoomOut) btnQuickZoomOut.onclick = handleZoomOut;
         btnCenter.onclick = () => {
             // Центрируем полотно по горизонтали и вертикали относительно видимой области
             offsetX = (viewport.clientWidth - 6500 * scale) / 2;
@@ -1810,8 +1829,25 @@
                 };
             }
             
+            // Суммарная информация по уровням
+            const summaryLevels = Object.keys(cardsByLevel).map(levelStr => {
+                const level = parseInt(levelStr);
+                const total = (cardsByLevel[level] || []).length;
+                const filled = (cardsByLevel[level] || []).filter(card => card.dataset.name && card.dataset.uid).length;
+                return { level, total, filled };
+            }).sort((a, b) => a.level - b.level);
+            const overallTotals = summaryLevels.reduce((acc, item) => {
+                acc.total += item.total;
+                acc.filled += item.filled;
+                return acc;
+            }, { total: 0, filled: 0 });
+            const totalLevelsCount = summaryLevels.filter(item => item.total > 0).length;
+            
+            const requirementsSummary = {};
+            const requirementDetails = [];
+            
             // Формируем HTML от максимального уровня до root уровня
-            let html = '';
+            let htmlDetails = '';
             for (let level = maxLevel; level >= rootLevel; level--) {
                 const stats = levelStats[level];
                 if (!stats) continue;
@@ -1842,18 +1878,31 @@
                             ${partnersAtLevel}/3 ур ${currentLevel}${needed > 0 ? ` (не хватает: ${needed})` : ' (готов к повышению)'}</span>
                     </div>`;
                     
+                    requirementDetails.push({
+                        forLevel: nextLevel,
+                        fromLevel: currentLevel,
+                        have: partnersAtLevel,
+                        max: 3,
+                        need: needed
+                    });
+                    
                     // Показываем всех партнеров по уровням (от максимального к минимальному) в формате X/Y ур Z
                     const partnerLevels = Object.keys(partnersByLevel).map(l => parseInt(l)).sort((a, b) => b - a);
                     partnerLevels.forEach(partnerLevel => {
                         const count = partnersByLevel[partnerLevel].size;
                         const max = partnersMaxByLevel[partnerLevel] || 0;
+                        if (!requirementsSummary[partnerLevel]) {
+                            requirementsSummary[partnerLevel] = { have: 0, max: 0 };
+                        }
+                        requirementsSummary[partnerLevel].have += count;
+                        requirementsSummary[partnerLevel].max += max;
                         // Показываем в формате X/Y ур Z
                         htmlRoot += `<div class="stats-item">
                             <span style="color: #6b7280;">${count}/${max} ур ${partnerLevel}</span>
                         </div>`;
                     });
                     
-                    html += htmlRoot;
+                    htmlDetails += htmlRoot;
                 } else {
                     // Для других уровней показываем информацию о партнерах для повышения
                     const partnersAtLevel = stats.partnersAtLevel || 0;
@@ -1863,17 +1912,91 @@
                     const totalCards = stats.total || 0;
                     const filledCards = stats.filled || 0;
                     
-                    html += `<div class="stats-item" style="margin-bottom: 4px;">
+                    htmlDetails += `<div class="stats-item" style="margin-bottom: 4px;">
                         <span class="stats-level" style="color: #3b82f6;">Ур ${level}</span>
                         <span class="stats-count" style="font-weight: 600;">всего ${filledCards}/${totalCards}</span>
                     </div>`;
-                    html += `<div class="stats-item" style="font-size: 12px; color: ${needed > 0 ? '#ef4444' : '#22c55e'}; margin-bottom: 8px;">
+                    htmlDetails += `<div class="stats-item" style="font-size: 12px; color: ${needed > 0 ? '#ef4444' : '#22c55e'}; margin-bottom: 8px;">
                         <span>Прогресс: ${partnersAtLevel}/${max > 0 ? max : 3} ур ${targetPartnerLevel}</span>
                         <span>${needed > 0 ? `не хватает: ${needed}` : 'готов к повышению'}</span>
                     </div>`;
+                    
+                    const targetLevelKey = targetPartnerLevel;
+                    if (!requirementsSummary[targetLevelKey]) {
+                        requirementsSummary[targetLevelKey] = { have: 0, max: 0 };
+                    }
+                    const maxValue = max > 0 ? max : (filledCards.length > 0 ? filledCards.length * 3 : 3);
+                    requirementsSummary[targetLevelKey].have += partnersAtLevel;
+                    requirementsSummary[targetLevelKey].max += maxValue;
+                    
+                    requirementDetails.push({
+                        forLevel: level,
+                        fromLevel: targetPartnerLevel,
+                        have: partnersAtLevel,
+                        max: maxValue,
+                        need: needed
+                    });
                 }
             }
             
+            let htmlSummary = '';
+            if (summaryLevels.length > 0) {
+                htmlSummary += `<div class="stats-item" style="font-weight: 600; margin-bottom: 4px;">
+                    <span class="stats-level" style="color: #1f2937;">Всего карточек</span>
+                    <span class="stats-count" style="color: #1f2937;">${overallTotals.filled}/${overallTotals.total}</span>
+                </div>`;
+                htmlSummary += `<div class="stats-item" style="font-size: 12px;">
+                    <span class="stats-level" style="color: #4b5563;">Всего уровней</span>
+                    <span class="stats-count" style="color: #4b5563;">${totalLevelsCount}</span>
+                </div>`;
+                summaryLevels.forEach(item => {
+                    htmlSummary += `<div class="stats-item" style="font-size: 12px;">
+                        <span class="stats-level" style="color: #4b5563;">Ур ${item.level}</span>
+                        <span class="stats-count">${item.filled}/${item.total}</span>
+                    </div>`;
+                });
+            }
+            
+            let htmlRequirements = '';
+            const requirementLevels = Object.keys(requirementsSummary).map(l => parseInt(l)).sort((a, b) => b - a);
+            if (requirementLevels.length > 0) {
+                htmlRequirements += `<div class="stats-item" style="font-weight: 600; margin-top: 8px;">
+                    <span class="stats-level" style="color: #1f2937;">Требуется для повышения</span>
+                </div>`;
+                requirementLevels.forEach(levelKey => {
+                    const summary = requirementsSummary[levelKey];
+                    if (!summary || summary.max === 0) return;
+                    const need = Math.max(0, summary.max - summary.have);
+                    htmlRequirements += `<div class="stats-item" style="font-size: 12px;">
+                        <span class="stats-level" style="color: #4b5563;">ур ${levelKey}</span>
+                        <span class="stats-count" style="color: ${need > 0 ? '#ef4444' : '#22c55e'};">${summary.have}/${summary.max}${need > 0 ? ` (не хватает: ${need})` : ''}</span>
+                    </div>`;
+                });
+            }
+            
+            let htmlRequirementTransitions = '';
+            if (requirementDetails.length > 0) {
+                const sortedRequirements = requirementDetails.slice().sort((a, b) => b.forLevel - a.forLevel);
+                const focusLevel2 = sortedRequirements.find(item => item.forLevel === 2 && item.fromLevel === 1);
+                if (focusLevel2) {
+                    htmlRequirementTransitions += `<div class="stats-item" style="font-weight: 600; margin-top: 8px;">
+                        <span class="stats-level" style="color: #1f2937;">Переход на ур 2</span>
+                        <span class="stats-count" style="color: ${focusLevel2.need > 0 ? '#ef4444' : '#22c55e'};">${focusLevel2.have}/${focusLevel2.max}${focusLevel2.need > 0 ? ` (не хватает: ${focusLevel2.need} ур 1)` : ''}</span>
+                    </div>`;
+                }
+                htmlRequirementTransitions += `<div class="stats-item" style="font-weight: 600; margin-top: 4px;">
+                    <span class="stats-level" style="color: #1f2937;">Переходы уровней</span>
+                </div>`;
+                sortedRequirements.forEach(item => {
+                    const color = item.need > 0 ? '#ef4444' : '#22c55e';
+                    htmlRequirementTransitions += `<div class="stats-item" style="font-size: 12px;">
+                        <span class="stats-level" style="color: #4b5563;">ур ${item.forLevel} ← ур ${item.fromLevel}</span>
+                        <span class="stats-count" style="color: ${color};">${item.have}/${item.max}${item.need > 0 ? ` (не хватает: ${item.need})` : ''}</span>
+                    </div>`;
+                });
+            }
+            
+            let html = htmlSummary + htmlRequirements + htmlRequirementTransitions + htmlDetails;
             if (html === '') {
                 html = '<div class="stats-item">Нет данных</div>';
             }
