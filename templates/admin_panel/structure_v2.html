@@ -1620,7 +1620,6 @@
         
         // Гарантированно создаем root-карточку, если по каким-то причинам её нет
         ensureRootCardExists();
-        ensureDefaultStructure();
         updateAllConnections();
         updateStats();
 
@@ -2347,7 +2346,8 @@
         }
         
         // Удалить все карточки кроме root и сбросить сохранение
-        async function resetToRoot() {
+        async function resetToRoot(options = {}) {
+            const { seedPlaceholders = true } = options;
             await clearBackendStructure();
             
             // Очищаем localStorage и шаблоны, чтобы не восстановились старые данные
@@ -2390,7 +2390,9 @@
             
             await saveCardToDatabase(root);
 
-            ensureDefaultStructure();
+            if (seedPlaceholders) {
+                ensureDefaultStructure();
+            }
             
             recalculateAllLevels({
                 preserveRootLevel: true,
