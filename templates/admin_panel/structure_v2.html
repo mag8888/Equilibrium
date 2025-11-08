@@ -162,6 +162,7 @@
     <script>
         const GRID_SIZE = 40;
         const viewport = document.getElementById('viewport');
+        let isRestoringFromStorage = false;
         // Рендер содержимого карточки (имя, id, бейдж уровня)
         function renderCardContents(card) {
             const isRoot = card.dataset.id === 'root';
@@ -381,8 +382,10 @@
         }
         
         // Пересчет уровня карточки на основе количества партнеров того же уровня
-        function recalculateLevel(card) {
+        function recalculateLevel(card, options = {}) {
             if (!card) return;
+            
+            const { skipSave = false } = options;
             
             const cardId = card.dataset.id;
             const currentLevel = parseInt(card.dataset.level || '0');
@@ -412,7 +415,9 @@
                 if (newLevel !== oldLevel) {
                     card.dataset.level = String(newLevel);
                     renderCardContents(card);
-                    saveCardToDatabase(card);
+                    if (!skipSave && !isRestoringFromStorage) {
+                        saveCardToDatabase(card);
+                    }
                     
                     // Обновляем все дочерние карточки, чтобы они пересчитали свой прогресс
                     const children = Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`));
@@ -425,7 +430,7 @@
                     if (parentId) {
                         const parentCard = canvas.querySelector(`.card[data-id="${parentId}"]`);
                         if (parentCard) {
-                            recalculateLevel(parentCard);
+                            recalculateLevel(parentCard, options);
                         }
                     }
                 } else {
@@ -460,7 +465,9 @@
                 if (newLevel !== oldLevel) {
                     card.dataset.level = String(newLevel);
                     renderCardContents(card);
-                    saveCardToDatabase(card);
+                    if (!skipSave && !isRestoringFromStorage) {
+                        saveCardToDatabase(card);
+                    }
                     
                     // Обновляем все дочерние карточки
                     const children = Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`));
@@ -473,7 +480,7 @@
                     if (parentId) {
                         const parentCard = canvas.querySelector(`.card[data-id="${parentId}"]`);
                         if (parentCard) {
-                            recalculateLevel(parentCard);
+                            recalculateLevel(parentCard, options);
                         }
                     }
                 } else {
@@ -1098,15 +1105,58 @@
                 });
                 updateAllConnections();
                 
-                // Уровни уже загружены из сохраненных данных (строки 1080-1084)
-                // Обновляем содержимое всех карточек, чтобы отобразить правильные уровни
-                cardMap.forEach(card => {
-                    renderCardContents(card);
-                });
+                isRestoringFromStorage = true;
+                try {
+                    const depthCache = new Map();
+                    const getDepth = (card) => {
+                        const cardId = card.dataset.id;
+                        if (depthCache.has(cardId)) {
+                            return depthCache.get(cardId);
+                        }
+                        let depth = 0;
+                        const visited = new Set();
+                        let current = card;
+                        while (current && current.dataset.parent) {
+                            const parentId = current.dataset.parent;
+                            if (depthCache.has(parentId)) {
+                                depth += depthCache.get(parentId) + 1;
+                                break;
+                            }
+                            if (visited.has(parentId)) {
+                                break;
+                            }
+                            visited.add(parentId);
+                            depth += 1;
+                            current = cardMap.get(parentId);
+                        }
+                        depthCache.set(cardId, depth);
+                        return depth;
+                    };
+                    
+                    cardMap.forEach(card => {
+                        if (card.dataset.id !== 'root') {
+                            card.dataset.level = '0';
+                        }
+                    });
+                    
+                    const cardsByDepth = Array.from(cardMap.values())
+                        .filter(card => card.dataset.id !== 'root')
+                        .sort((a, b) => getDepth(b) - getDepth(a));
+                    
+                    cardsByDepth.forEach(card => {
+                        recalculateLevel(card, { skipSave: true });
+                    });
+                    
+                    const rootCard = cardMap.get('root');
+                    if (rootCard) {
+                        recalculateLevel(rootCard, { skipSave: true });
+                    }
+                } finally {
+                    isRestoringFromStorage = false;
+                }
                 
-                // НЕ пересчитываем уровни при загрузке - они уже сохранены правильно
-                // Пересчет уровней происходит только при добавлении/изменении структуры
-                
+                // После восстановления и пересчёта фиксируем актуальные уровни
+                savePositions();
                 updateStats();
                 return true;
             } catch (e) {
