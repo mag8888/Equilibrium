@@ -2146,13 +2146,30 @@
         btnClearTestData.onclick = () => clearTestData();
         btnClearAll.onclick = () => resetToRoot();
         
+        async function clearBackendStructure() {
+            try {
+                const response = await fetch('/admin-panel/api/clear-partners/', {
+                    method: 'POST'
+                });
+                if (!response.ok) {
+                    console.error('Ошибка очистки базы партнеров:', await response.text());
+                }
+            } catch (error) {
+                console.error('Ошибка при очистке партнеров в базе:', error);
+            }
+        }
+        
         // Удалить все карточки кроме root и сбросить сохранение
-        function resetToRoot() {
-            // Сначала очищаем localStorage, чтобы при следующей загрузке не восстановились карточки
+        async function resetToRoot() {
+            await clearBackendStructure();
+            
+            // Очищаем localStorage и шаблоны, чтобы не восстановились старые данные
             localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem(LAYOUT_TEMPLATE_KEY);
+            localStorage.removeItem(STATS_COLLAPSE_KEY);
             
             // Находим root карточку
-            const root = canvas.querySelector('.card[data-id="root"]');
+            let root = canvas.querySelector('.card[data-id="root"]');
             const rootId = root ? root.dataset.id : null;
             
             // Удаляем ВСЕ карточки кроме root
@@ -2171,21 +2188,24 @@
             uidCounter = 1;
             
             // Восстановить root карточку
-            if (root) {
-                root.dataset.level = '0';
-                root.dataset.parent = '';
-                renderCardContents(root);
-                // Удалить старые точки и добавить новые
-                root.querySelectorAll('.point').forEach(p => p.remove());
-                attachPoints(root);
-                enableDrag(root);
-            }
+            root = ensureRootCardExists();
+            root.dataset.level = '0';
+            root.dataset.parent = '';
+            renderCardContents(root);
+            root.querySelectorAll('.point').forEach(p => p.remove());
+            attachPoints(root);
+            enableDrag(root);
             
-            recalculateAllLevels();
-            // Сохранить текущее состояние (только root)
+            recalculateAllLevels({
+                preserveRootLevel: true,
+                preserveExistingLevels: false,
+                skipSave: true
+            });
+            
             savePositions();
             updateAllConnections();
             updateStats();
+            await ensureRootInDatabase();
         }
     </script>
 </body>
