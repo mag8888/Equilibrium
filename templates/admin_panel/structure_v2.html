@@ -19,11 +19,16 @@
         .menu-btn:last-child { margin-bottom: 0; }
         .menu-btn:hover { background: #f3f4f6; }
         .stats-panel { position: fixed; top: 10px; right: 10px; z-index: 1000; background: rgba(255,255,255,0.95); padding: 12px 16px; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); min-width: 200px; }
-        .stats-title { font-weight: 600; margin-bottom: 8px; font-size: 14px; color: #333; }
+        .stats-panel.collapsed { padding-bottom: 12px; }
+        .stats-panel.collapsed #statsContent { display: none; }
+        .stats-title { font-weight: 600; margin-bottom: 8px; font-size: 14px; color: #333; padding-right: 32px; }
         .stats-item { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; border-bottom: 1px solid #eee; }
         .stats-item:last-child { border-bottom: none; }
         .stats-level { color: #666; }
         .stats-count { font-weight: 600; color: #2563eb; }
+        .stats-toggle-btn { position: absolute; top: 8px; right: 8px; width: 26px; height: 26px; border: 1px solid #e5e7eb; background: #fff; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 16px; line-height: 1; color: #1f2937; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .stats-toggle-btn:hover { background: #f3f4f6; }
+        .stats-panel.collapsed .stats-toggle-btn { color: #2563eb; }
         .btn { padding: 6px 10px; border: 1px solid #ddd; background: #fff; border-radius: 6px; cursor: pointer; color: #1f2937; font-weight: 500; }
         .btn:hover { background: #f3f4f6; }
         .viewport { position: relative; width: 100vw; height: 100vh; overflow: hidden; background: #fafafa; }
@@ -108,6 +113,7 @@
         <div class="zoom-controls">
             <button class="btn zoom-btn" id="quickZoomOut" title="Уменьшить масштаб">−</button>
             <button class="btn zoom-btn" id="quickZoomIn" title="Увеличить масштаб">+</button>
+            <button class="btn zoom-btn" id="quickZoomFit" title="Показать всю карту">⤢</button>
         </div>
         <div class="menu-dropdown" id="menuDropdown">
             <div class="menu-section">
@@ -141,6 +147,7 @@
         </div>
     </div>
     <div class="stats-panel" id="statsPanel">
+        <button class="stats-toggle-btn" id="statsToggle" type="button" title="Свернуть статистику" aria-label="Свернуть статистику">−</button>
         <div class="stats-title">📊 Статистика по уровням</div>
         <div id="statsContent"></div>
     </div>
@@ -623,6 +630,7 @@
         const btnZoomOut = document.getElementById('zoomOut');
         const btnQuickZoomIn = document.getElementById('quickZoomIn');
         const btnQuickZoomOut = document.getElementById('quickZoomOut');
+        const btnQuickZoomFit = document.getElementById('quickZoomFit');
         const btnShowAll = document.getElementById('showAll');
         const btnShowFullGrid = document.getElementById('showFullGrid');
         const btnAutoLayout = document.getElementById('autoLayout');
@@ -634,6 +642,8 @@
         const btnMenuToggle = document.getElementById('menuToggle');
         const menuDropdown = document.getElementById('menuDropdown');
         const statsContent = document.getElementById('statsContent');
+        const statsPanel = document.getElementById('statsPanel');
+        const statsToggle = document.getElementById('statsToggle');
         
         // Переключение меню
         btnMenuToggle.addEventListener('click', (e) => {
@@ -648,7 +658,32 @@
             }
         });
 
-        let scale = 1; // 0.5..2
+        let statsCollapsed = false;
+        function applyStatsCollapsed(collapsed) {
+            statsCollapsed = collapsed;
+            if (statsPanel) {
+                statsPanel.classList.toggle('collapsed', collapsed);
+            }
+            if (statsToggle) {
+                const title = collapsed ? 'Развернуть статистику' : 'Свернуть статистику';
+                statsToggle.textContent = collapsed ? '+' : '−';
+                statsToggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+                statsToggle.setAttribute('title', title);
+                statsToggle.setAttribute('aria-label', title);
+            }
+        }
+        if (statsPanel && statsToggle) {
+            const savedStatsState = localStorage.getItem(STATS_COLLAPSE_KEY);
+            applyStatsCollapsed(savedStatsState === 'true');
+            statsToggle.addEventListener('click', () => {
+                applyStatsCollapsed(!statsCollapsed);
+                localStorage.setItem(STATS_COLLAPSE_KEY, statsCollapsed ? 'true' : 'false');
+            });
+        }
+
+        const MIN_SCALE = 0.05;
+        const MAX_SCALE = 2;
+        let scale = 1;
         let offsetX = 0; // панорама
         let offsetY = 0;
         let isPanning = false;
@@ -666,9 +701,18 @@
             offsetX = Math.max(minX, Math.min(maxX, offsetX));
             offsetY = Math.max(minY, Math.min(maxY, offsetY));
         }
+        function updateZoomButtons() {
+            const canZoomIn = scale < MAX_SCALE - 0.001;
+            const canZoomOut = scale > MIN_SCALE + 0.001;
+            if (btnZoomIn) btnZoomIn.disabled = !canZoomIn;
+            if (btnQuickZoomIn) btnQuickZoomIn.disabled = !canZoomIn;
+            if (btnZoomOut) btnZoomOut.disabled = !canZoomOut;
+            if (btnQuickZoomOut) btnQuickZoomOut.disabled = !canZoomOut;
+        }
         function applyTransform() {
             clampOffsets();
             canvas.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+            updateZoomButtons();
         }
 
         // Панорамирование по пустому месту
@@ -703,7 +747,7 @@
             e.preventDefault();
             const delta = e.deltaY < 0 ? 1.1 : 0.9;
             const prevScale = scale;
-            scale = Math.min(2, Math.max(0.5, scale * delta));
+            scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale * delta));
             // Масштаб вокруг курсора
             const rect = viewport.getBoundingClientRect();
             const cx = e.clientX - rect.left;
@@ -714,11 +758,11 @@
         }, { passive: false });
 
         function handleZoomIn() {
-            scale = Math.min(2, scale * 1.1);
+            scale = Math.min(MAX_SCALE, scale * 1.1);
             applyTransform();
         }
         function handleZoomOut() {
-            scale = Math.max(0.5, scale * 0.9);
+            scale = Math.max(MIN_SCALE, scale * 0.9);
             applyTransform();
         }
         
@@ -726,6 +770,10 @@
         btnZoomOut.onclick = handleZoomOut;
         if (btnQuickZoomIn) btnQuickZoomIn.onclick = handleZoomIn;
         if (btnQuickZoomOut) btnQuickZoomOut.onclick = handleZoomOut;
+        if (btnQuickZoomFit) btnQuickZoomFit.onclick = () => {
+            showAllCards();
+        };
+        updateZoomButtons();
         btnCenter.onclick = () => {
             // Центрируем полотно по горизонтали и вертикали относительно видимой области
             offsetX = (viewport.clientWidth - 6500 * scale) / 2;
@@ -776,7 +824,7 @@
             // Вычисляем оптимальный масштаб
             const scaleX = viewport.clientWidth / cardsWidth;
             const scaleY = viewport.clientHeight / cardsHeight;
-            scale = Math.min(2, Math.max(0.3, Math.min(scaleX, scaleY) * 0.9)); // 90% чтобы был небольшой отступ
+            scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, Math.min(scaleX, scaleY) * 0.9)); // 90% чтобы был небольшой отступ
             
             // Центрируем на карточках
             offsetX = (viewport.clientWidth - 6500 * scale) / 2 + (3250 - centerX) * scale;
@@ -797,7 +845,7 @@
             // Вычисляем масштаб, чтобы весь canvas поместился в viewport
             const scaleX = viewport.clientWidth / CANVAS_WIDTH;
             const scaleY = viewport.clientHeight / CANVAS_HEIGHT;
-            scale = Math.min(2, Math.max(0.1, Math.min(scaleX, scaleY) * 0.95)); // 95% чтобы был небольшой отступ
+            scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, Math.min(scaleX, scaleY) * 0.95)); // 95% чтобы был небольшой отступ
             
             // Центрируем canvas
             offsetX = (viewport.clientWidth - CANVAS_WIDTH * scale) / 2;
@@ -1017,6 +1065,7 @@
         // Сохранение/восстановление позиций
         const STORAGE_KEY = 'structure_v2_positions';
         const LAYOUT_TEMPLATE_KEY = 'structure_v2_layout_template';
+        const STATS_COLLAPSE_KEY = 'structure_v2_stats_collapsed';
         
         // Сохраняем шаблон расположения детей для каждого родителя
         function saveLayoutTemplate() {
@@ -1092,6 +1141,7 @@
                 }
                 // Восстанавливаем карточки
                 const cardMap = new Map();
+                const savedLevels = new Map();
                 data.cards.forEach(item => {
                     let card = canvas.querySelector(`.card[data-id="${item.id}"]`);
                     if (!card) {
@@ -1103,11 +1153,17 @@
                     // Устанавливаем все атрибуты
                     if (item.parent) card.dataset.parent = item.parent;
                     // Загружаем уровень из сохраненных данных (для root тоже)
-                    if (item.level !== undefined) {
-                        card.dataset.level = String(item.level);
-                    } else {
-                        card.dataset.level = '0';
+                    let levelValue = 0;
+                    if (item.level !== undefined && item.level !== null) {
+                        if (typeof item.level === 'number') {
+                            levelValue = item.level;
+                        } else {
+                            const parsed = parseInt(item.level, 10);
+                            levelValue = Number.isNaN(parsed) ? 0 : parsed;
+                        }
                     }
+                    card.dataset.level = String(levelValue);
+                    savedLevels.set(item.id, levelValue);
                     if (item.name) card.dataset.name = item.name;
                     if (item.uid) card.dataset.uid = item.uid;
                     card.style.left = item.left + 'px';
@@ -1170,9 +1226,27 @@
                     if (rootCard) {
                         recalculateLevel(rootCard, { skipSave: true });
                     }
+
+                    // Восстанавливаем сохраненные уровни (не понижаем рассчитанный уровень)
+                    savedLevels.forEach((savedLevel, cardId) => {
+                        const card = cardMap.get(cardId);
+                        if (!card) return;
+                        const currentLevel = parseInt(card.dataset.level || '0');
+                        const finalLevel = Math.max(currentLevel, savedLevel);
+                        if (finalLevel !== currentLevel) {
+                            card.dataset.level = String(finalLevel);
+                        }
+                    });
                 } finally {
                     isRestoringFromStorage = false;
                 }
+
+                // После восстановления обновляем представление карточек с учетом финальных уровней
+                cardMap.forEach(card => {
+                    renderCardContents(card);
+                    attachPoints(card);
+                    updatePointsState(card);
+                });
                 
                 // После восстановления и пересчёта фиксируем актуальные уровни
                 savePositions();
@@ -1412,7 +1486,13 @@
                 renderCardContents(card);
             }
         });
-        btnCenter.click();
+        if (canvas.querySelectorAll('.card').length > 1) {
+            showAllCards();
+        } else if (btnCenter) {
+            btnCenter.click();
+        } else {
+            applyTransform();
+        }
         // Показываем начальную статистику
         updateStats();
         // Инициализируем перетаскиваемые линии-ориентиры

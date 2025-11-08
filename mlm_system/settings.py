@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'admin_panel',
     'mlm',
     'api',
+    'telegram_bot',
 ]
 
 MIDDLEWARE = [
@@ -254,3 +255,17 @@ CORS_ALLOWED_ORIGINS = [
 
 CORS_ALLOW_CREDENTIALS = True
 # RELOAD CACHE BUSTER - APPLY MIGRATIONS v65: 1761642001
+
+# Telegram bot configuration
+TELEGRAM_BOT_TOKEN = config(
+    "TELEGRAM_BOT_TOKEN", default=os.environ.get("TELEGRAM_BOT_TOKEN", "")
+)
+TELEGRAM_WEBAPP_URL = config(
+    "TELEGRAM_WEBAPP_URL",
+    default=os.environ.get(
+        "TELEGRAM_WEBAPP_URL", "https://equilibrium.up.railway.app/admin-panel/structure-v2/"
+    ),
+)
+TELEGRAM_SUPPORT_CHAT = config(
+    "TELEGRAM_SUPPORT_CHAT", default=os.environ.get("TELEGRAM_SUPPORT_CHAT", "")
+)
