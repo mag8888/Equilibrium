@@ -378,90 +378,50 @@
             let directReferrals = parseInt(card.dataset.directReferrals || '0', 10);
             let children = Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`));
             
+            let targetChild = null;
+            let countedThisAction = false;
+            
             if (children.length < 3) {
                 const side = chooseSideForNewChild(card, children);
                 const newChild = createChild(card, side);
                 if (!newChild) return;
+                targetChild = newChild;
+                countedThisAction = true;
                 directReferrals += 1;
                 card.dataset.directReferrals = String(directReferrals);
-                renderCardContents(card);
-                savePositions();
-                updateStats();
-                children = Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`));
-            }
-            
-            let levelChanged = false;
-            
-            const emptyChildren = children.filter(child => !child.dataset.name || !child.dataset.uid);
-            
-            if (emptyChildren.length > 0) {
-                emptyChildren.sort((a, b) => {
-                    const topA = parseInt(a.style.top) || 0;
-                    const topB = parseInt(b.style.top) || 0;
-                    return topA - topB;
-                });
-                
-                const emptyChild = emptyChildren[0];
-                const wasEmpty = !emptyChild.dataset.name || !emptyChild.dataset.uid;
-                if (!emptyChild.dataset.name) emptyChild.dataset.name = generateRandomName();
-                if (!emptyChild.dataset.uid) emptyChild.dataset.uid = generateRandomId();
-                emptyChild.dataset.level = '0';
-                renderCardContents(emptyChild);
-                await saveCardToDatabase(emptyChild);
-                levelChanged = true;
-                if (wasEmpty) {
-                    directReferrals += 1;
-                    card.dataset.directReferrals = String(directReferrals);
-                }
-            } else if (children.length >= 3) {
-                const childrenWithStats = children.map(child => {
-                    const grandchildren = Array.from(canvas.querySelectorAll(`.card[data-parent="${child.dataset.id}"]`));
-                    const filledGrandchildren = grandchildren.filter(gc => gc.dataset.name && gc.dataset.uid);
-                    return {
-                        child: child,
-                        filledCount: filledGrandchildren.length,
-                        emptyGrandchildren: grandchildren.filter(gc => !gc.dataset.name || !gc.dataset.uid)
-                    };
-                });
-                
-                // Сортируем по количеству заполненных внуков (меньше = приоритет выше), затем по позиции сверху вниз
-                childrenWithStats.sort((a, b) => {
-                    if (a.filledCount !== b.filledCount) {
-                        return a.filledCount - b.filledCount; // Меньше заполненных = выше приоритет
-                    }
-                    // Если одинаковое количество, сортируем по позиции сверху вниз
-                    const topA = parseInt(a.child.style.top) || 0;
-                    const topB = parseInt(b.child.style.top) || 0;
-                    return topA - topB;
-                });
-                
-                // Ищем первого с пустыми внуками
-                for (const stat of childrenWithStats) {
-                    if (stat.emptyGrandchildren.length > 0) {
-                        // Сортируем внуков сверху вниз
-                        stat.emptyGrandchildren.sort((a, b) => {
-                            const topA = parseInt(a.style.top) || 0;
-                            const topB = parseInt(b.style.top) || 0;
-                            return topA - topB;
-                        });
-                        
-                        const emptyGrandchild = stat.emptyGrandchildren[0];
-                        if (!emptyGrandchild.dataset.name) emptyGrandchild.dataset.name = generateRandomName();
-                        if (!emptyGrandchild.dataset.uid) emptyGrandchild.dataset.uid = generateRandomId();
-                        // Новые карточки создаются с уровнем 0
-                        emptyGrandchild.dataset.level = '0';
-                        renderCardContents(emptyGrandchild);
-                        await saveCardToDatabase(emptyGrandchild);
-                        levelChanged = true;
-                        break;
-                    }
+                children.push(newChild);
+            } else {
+                const emptyChildren = children.filter(child => !child.dataset.name || !child.dataset.uid);
+                if (emptyChildren.length > 0) {
+                    emptyChildren.sort((a, b) => {
+                        const topA = parseInt(a.style.top) || 0;
+                        const topB = parseInt(b.style.top) || 0;
+                        return topA - topB;
+                    });
+                    targetChild = emptyChildren[0];
                 }
             }
             
-            if (levelChanged) {
-                await recalculateAllLevels();
+            if (!targetChild) {
+                return;
             }
             
+            const wasEmpty = !targetChild.dataset.name || !targetChild.dataset.uid;
+            if (!targetChild.dataset.name) targetChild.dataset.name = generateRandomName();
+            if (!targetChild.dataset.uid) targetChild.dataset.uid = generateRandomId();
+            targetChild.dataset.level = '0';
+            renderCardContents(targetChild);
+            await saveCardToDatabase(targetChild);
+            
+            if (wasEmpty && !countedThisAction) {
+                directReferrals += 1;
+                card.dataset.directReferrals = String(directReferrals);
+            }
+            
+            await recalculateAllLevels();
+            renderCardContents(card);
+            savePositions();
+            updateStats();
         }
         
         function getCardLevel(card) {
