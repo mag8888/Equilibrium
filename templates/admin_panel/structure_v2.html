@@ -314,10 +314,32 @@
             recalculateLevel(card);
         }
         
+        function chooseSideForNewChild(parentCard, existingChildren) {
+            if (existingChildren.length === 0) return 'left';
+            const parentX = parseInt(parentCard.style.left) || 0;
+            let leftCount = 0;
+            let rightCount = 0;
+            existingChildren.forEach(child => {
+                const childX = parseInt(child.style.left) || 0;
+                if (childX < parentX) {
+                    leftCount += 1;
+                } else {
+                    rightCount += 1;
+                }
+            });
+            return leftCount <= rightCount ? 'left' : 'right';
+        }
+        
         // Заполнение одного дочернего объекта (или дочернего дочернего если все 3 заняты)
         async function fillNextChild(card) {
             const cardId = card.dataset.id;
             const children = Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`));
+            
+            if (children.length < 3) {
+                const side = chooseSideForNewChild(card, children);
+                createChild(card, side);
+                return fillNextChild(card); // Повторяем уже с созданным слотом
+            }
             
             // Ищем пустые дочерние объекты
             const emptyChildren = children.filter(child => !child.dataset.name || !child.dataset.uid);
