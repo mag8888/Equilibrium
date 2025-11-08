@@ -401,7 +401,7 @@
             const added = await internalFill(card);
             if (added) {
                 incrementDirectInvites(card);
-                await recalculateAllLevels({ preserveRootLevel: true });
+                await recalculateAllLevels();
                 renderCardContents(card);
                 savePositions();
                 updateStats();
@@ -470,16 +470,18 @@
         }
 
         function calculateLevelFromChildren(node, nodes) {
-            if (node.children.length === 0) return 0;
-            const childLevels = node.children
+            const directInvites = node.directInvites || 0;
+            const childNodes = node.children
                 .map(childId => nodes.get(childId))
-                .filter(child => child && child.filled)
-                .map(child => child.newLevel);
-            if (childLevels.length < 3) return 0;
+                .filter(child => child && child.filled);
 
             let level = 0;
-            while (childLevels.filter(childLevel => childLevel >= level).length >= 3) {
+            let required = 3;
+            while (directInvites >= required) {
+                const supporters = childNodes.filter(child => child.newLevel >= level);
+                if (supporters.length < 3) break;
                 level += 1;
+                required = required * 3;
             }
             return level;
         }
