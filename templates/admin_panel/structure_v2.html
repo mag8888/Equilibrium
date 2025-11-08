@@ -1129,6 +1129,10 @@
             if (!saved) return false;
             try {
                 const data = JSON.parse(saved);
+                if (!data.cards || data.cards.length === 0) {
+                    console.warn('loadPositions: no saved cards found, fallback to default layout');
+                    return false;
+                }
                 uidCounter = data.uidCounter || 1;
                 // Очищаем существующие карточки
                 canvas.querySelectorAll('.card').forEach(card => card.remove());
@@ -1247,6 +1251,23 @@
                     attachPoints(card);
                     updatePointsState(card);
                 });
+
+                // Гарантируем наличие root карточки
+                if (!cardMap.has('root')) {
+                    const rootCard = document.createElement('div');
+                    rootCard.className = 'card';
+                    rootCard.dataset.id = 'root';
+                    rootCard.dataset.level = '0';
+                    rootCard.dataset.name = 'IVA';
+                    rootCard.dataset.uid = '0000001';
+                    rootCard.style.left = '2400px';
+                    rootCard.style.top = '200px';
+                    canvas.appendChild(rootCard);
+                    renderCardContents(rootCard);
+                    attachPoints(rootCard);
+                    enableDrag(rootCard);
+                    cardMap.set('root', rootCard);
+                }
                 
                 // После восстановления и пересчёта фиксируем актуальные уровни
                 savePositions();
