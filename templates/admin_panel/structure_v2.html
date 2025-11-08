@@ -210,13 +210,19 @@
             // Все карточки показывают свой реальный уровень (включая root)
             const displayLevel = depth;
             const isEmpty = !card.dataset.name || !card.dataset.uid;
+            const directInvites = parseInt(
+                card.dataset.directInvites !== undefined
+                    ? card.dataset.directInvites
+                    : card.dataset.directReferrals || '0',
+                10
+            );
             const directReferrals = parseInt(card.dataset.directReferrals || '0', 10);
             const totalReferrals = parseInt(card.dataset.totalReferrals || '0', 10);
             const bonusYellow = parseFloat(card.dataset.bonusYellow || '0');
             const payoutGreen = parseFloat(card.dataset.payoutGreen || '0');
             const financialHtml = `
                 <div class="financial-summary">
-                    <span title="Прямые рефералы">🤝 ${directReferrals}</span>
+                    <span title="Приглашено">🤝 ${directInvites}</span>
                     <span title="Всего рефералов">🌐 ${totalReferrals}</span>
                     <span title="Бонусы">🟡 ${formatMoney(bonusYellow)}</span>
                     <span title="К выводу">🟢 ${formatMoney(payoutGreen)}</span>
@@ -340,39 +346,65 @@
         
         // Заполнение одного дочернего объекта (или дочернего дочернего если все 3 заняты)
         async function fillNextChild(card) {
-            const cardId = card.dataset.id;
-            const children = Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`));
-            
-            let targetChild = null;
-            
-            if (children.length < 3) {
-                const side = chooseSideForNewChild(card, children);
-                targetChild = createChild(card, side);
-                if (!targetChild) return;
-            } else {
-                const emptyChildren = children.filter(child => !child.dataset.name || !child.dataset.uid);
-                if (emptyChildren.length > 0) {
-                    emptyChildren.sort((a, b) => {
+            async function internalFill(targetCard) {
+                const cardId = targetCard.dataset.id;
+                let children = Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`));
+
+                if (children.length < 3) {
+                    const side = chooseSideForNewChild(targetCard, children);
+                    const newChild = createChild(targetCard, side);
+                    if (newChild) {
+                        children = Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`));
+                    }
+                }
+
+                const emptyChildren = children
+                    .filter(child => !child.dataset.name || !child.dataset.uid)
+                    .sort((a, b) => {
                         const topA = parseInt(a.style.top) || 0;
                         const topB = parseInt(b.style.top) || 0;
                         return topA - topB;
                     });
-                    targetChild = emptyChildren[0];
+
+                if (emptyChildren.length > 0) {
+                    const child = emptyChildren[0];
+                    if (!child.dataset.name) child.dataset.name = generateRandomName();
+                    if (!child.dataset.uid) child.dataset.uid = generateRandomId();
+                    child.dataset.level = '0';
+                    await saveCardToDatabase(child);
+                    await recalculateAllLevels();
+                    savePositions();
+                    updateStats();
+                    return true;
                 }
+
+                if (children.length === 0) {
+                    return false;
+                }
+
+                const candidates = children
+                    .map(child => ({
+                        element: child,
+                        invites: parseInt(child.dataset.directInvites || child.dataset.directReferrals || '0', 10),
+                        descendants: parseInt(child.dataset.totalReferrals || '0', 10),
+                        top: parseInt(child.style.top) || 0,
+                    }))
+                    .sort((a, b) => {
+                        if (a.invites !== b.invites) return a.invites - b.invites;
+                        if (a.descendants !== b.descendants) return a.descendants - b.descendants;
+                        return a.top - b.top;
+                    });
+
+                for (const candidate of candidates) {
+                    const added = await internalFill(candidate.element);
+                    if (added) {
+                        return true;
+                    }
+                }
+                return false;
             }
-            
-            if (!targetChild) return;
-            
-            if (!targetChild.dataset.name) targetChild.dataset.name = generateRandomName();
-            if (!targetChild.dataset.uid) targetChild.dataset.uid = generateRandomId();
-            targetChild.dataset.level = '0';
-            renderCardContents(targetChild);
-            await saveCardToDatabase(targetChild);
-            
-            await recalculateAllLevels();
-            renderCardContents(card);
-            savePositions();
-            updateStats();
+
+            await internalFill(card);
         }
         
         function getCardLevel(card) {
@@ -393,6 +425,7 @@
                 card.dataset.bonusYellow = card.dataset.bonusYellow || '0';
                 card.dataset.transitionRed = card.dataset.transitionRed || '0';
                 card.dataset.payoutGreen = card.dataset.payoutGreen || '0';
+                card.dataset.directInvites = card.dataset.directInvites || card.dataset.directReferrals || '0';
                 const node = {
                     id,
                     element: card,
@@ -532,6 +565,7 @@
                 const financial = calculateFinancialSummary(node);
                 node.element.dataset.directReferrals = String(node.directFilled);
                 node.element.dataset.totalReferrals = String(node.activeDescendants);
+                node.element.dataset.directInvites = node.element.dataset.totalReferrals;
                 node.element.dataset.bonusYellow = financial.yellow.toFixed(2);
                 node.element.dataset.transitionRed = financial.red.toFixed(2);
                 node.element.dataset.payoutGreen = financial.green.toFixed(2);
@@ -1139,7 +1173,13 @@
                     top: parseInt(card.style.top) || 0,
                     level: parseInt(card.dataset.level || '0'),
                     name: card.dataset.name || '',
-                    uid: card.dataset.uid || ''
+                    uid: card.dataset.uid || '',
+                    directInvites: parseInt(card.dataset.directInvites || card.dataset.directReferrals || '0', 10),
+                    directReferrals: parseInt(card.dataset.directReferrals || '0', 10),
+                    totalReferrals: parseInt(card.dataset.totalReferrals || '0', 10),
+                    bonusYellow: parseFloat(card.dataset.bonusYellow || '0'),
+                    transitionRed: parseFloat(card.dataset.transitionRed || '0'),
+                    payoutGreen: parseFloat(card.dataset.payoutGreen || '0')
                 })),
                 childMap: Array.from(childMap.entries()).map(([parent, children]) => [parent, Array.from(children)])
             };
@@ -1175,6 +1215,7 @@
             rootCard.dataset.bonusYellow = rootCard.dataset.bonusYellow || '0';
             rootCard.dataset.transitionRed = rootCard.dataset.transitionRed || '0';
             rootCard.dataset.payoutGreen = rootCard.dataset.payoutGreen || '0';
+            rootCard.dataset.directInvites = rootCard.dataset.directInvites || rootCard.dataset.directReferrals || '0';
             return rootCard;
         }
 
@@ -1222,6 +1263,25 @@
                     card.dataset.level = String(levelValue);
                     if (item.name) card.dataset.name = item.name;
                     if (item.uid) card.dataset.uid = item.uid;
+                    if (item.directInvites !== undefined || item.totalReferrals !== undefined || card.dataset.directInvites !== undefined) {
+                        const invitesValue = item.directInvites ?? item.totalReferrals ?? card.dataset.directInvites ?? card.dataset.directReferrals ?? '0';
+                        card.dataset.directInvites = String(invitesValue);
+                    }
+                    if (item.directReferrals !== undefined) {
+                        card.dataset.directReferrals = String(item.directReferrals);
+                    }
+                    if (item.totalReferrals !== undefined) {
+                        card.dataset.totalReferrals = String(item.totalReferrals);
+                    }
+                    if (item.bonusYellow !== undefined) {
+                        card.dataset.bonusYellow = String(item.bonusYellow);
+                    }
+                    if (item.transitionRed !== undefined) {
+                        card.dataset.transitionRed = String(item.transitionRed);
+                    }
+                    if (item.payoutGreen !== undefined) {
+                        card.dataset.payoutGreen = String(item.payoutGreen);
+                    }
                     card.style.left = item.left + 'px';
                     card.style.top = item.top + 'px';
                     // Рендерим содержимое
@@ -1371,7 +1431,9 @@
             if (resetServerStats) {
                 serverStructureStats = null;
             }
-            updateStats();
+            Promise.resolve(
+                recalculateAllLevels({ preserveRootLevel: true, skipSave: true })
+            ).then(() => updateStats());
             return true;
         }
 
@@ -1395,6 +1457,7 @@
             card.appendChild(left); card.appendChild(right);
             updatePointsState(card);
         }
+
 
         function createChild(parentCard, side, options = {}) {
             const {
@@ -1460,6 +1523,7 @@
             child.dataset.bonusYellow = child.dataset.bonusYellow || '0';
             child.dataset.transitionRed = child.dataset.transitionRed || '0';
             child.dataset.payoutGreen = child.dataset.payoutGreen || '0';
+            child.dataset.directInvites = child.dataset.directInvites || '0';
             children.add(id);
             updatePointsState(parentCard);
             updateConnectionFor(child);
@@ -1582,6 +1646,7 @@
             rootCard.dataset.bonusYellow = '0';
             rootCard.dataset.transitionRed = '0';
             rootCard.dataset.payoutGreen = '0';
+            rootCard.dataset.directInvites = '0';
             
             if (!rootCard.dataset.name) rootCard.dataset.name = 'IVA';
             if (!rootCard.dataset.uid) rootCard.dataset.uid = '0000001';
@@ -1894,10 +1959,6 @@
 
         // Подсчет статистики по уровням - считаем партнеров первого аккаунта (root)
         function updateStats() {
-            if (serverStructureStats) {
-                renderStatsFromServer(serverStructureStats);
-                return;
-            }
             const cards = Array.from(canvas.querySelectorAll('.card'));
             const rootCard = cards.find(card => card.dataset.id === 'root');
             
@@ -1905,7 +1966,19 @@
                 statsContent.innerHTML = '<div class="stats-item">Нет root карточки</div>';
                 return;
             }
-            const directReferralsRoot = parseInt(rootCard.dataset.directReferrals || '0', 10);
+            if (serverStructureStats) {
+                const serverNodes = serverStructureStats?.totals?.nodes || 0;
+                if (cards.length > 1 && serverNodes === 0) {
+                    serverStructureStats = null;
+                } else {
+                    renderStatsFromServer(serverStructureStats);
+                    return;
+                }
+            }
+            const directReferralsRoot = parseInt(
+                rootCard.dataset.directInvites || rootCard.dataset.directReferrals || '0',
+                10
+            );
             const totalReferralsRoot = parseInt(rootCard.dataset.totalReferrals || '0', 10);
             const bonusYellowRoot = parseFloat(rootCard.dataset.bonusYellow || '0');
             const transitionRedRoot = parseFloat(rootCard.dataset.transitionRed || '0');
@@ -2371,6 +2444,7 @@
                 delete card.dataset.uid;
                 card.dataset.level = '0'; // Сбрасываем уровень на 0
                 card.dataset.directReferrals = '0';
+                card.dataset.directInvites = '0';
                 card.dataset.totalReferrals = '0';
                 card.dataset.bonusYellow = '0';
                 card.dataset.transitionRed = '0';
@@ -2444,6 +2518,7 @@
             root = ensureRootCardExists();
             root.dataset.level = '0';
             root.dataset.parent = '';
+            root.dataset.directInvites = '0';
             root.dataset.directReferrals = '0';
             root.dataset.totalReferrals = '0';
             root.dataset.bonusYellow = '0';

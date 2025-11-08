@@ -130,6 +130,7 @@ def build_structure_dataset(
                 "rank": node.user.rank,
                 "directReferrals": direct_referrals,
                 "totalReferrals": total_referrals,
+                "directInvites": total_referrals,
             }
         )
         if parent_id:
@@ -154,6 +155,7 @@ def build_structure_dataset(
                 "rank": root_user.rank,
                 "directReferrals": len(children_map.get(root_user.id, [])),
                 "totalReferrals": descendants_cache.get(root_user.id, 0),
+                "directInvites": descendants_cache.get(root_user.id, 0),
             },
         )
 
