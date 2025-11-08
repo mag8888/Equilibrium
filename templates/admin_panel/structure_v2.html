@@ -604,8 +604,7 @@
                 .map(childId => nodes.get(childId))
                 .filter(Boolean);
 
-            const isRootNode = node.id === 'root';
-            node.directFilled = childNodes.filter(child => isRootNode || child.filled).length;
+            node.directFilled = childNodes.filter(child => child.filled).length;
             node.activeDescendants = childNodes.reduce((sum, child) => {
                     return sum + (child.activeDescendantsIncludingSelf || 0);
                 }, 0);
