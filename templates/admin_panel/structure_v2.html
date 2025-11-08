@@ -1824,25 +1824,22 @@
                     const partnersAtLevel = stats.partnersAtLevel || 0;
                     const partnersByLevel = stats.partnersByLevel || {};
                     const partnersMaxByLevel = stats.partnersMaxByLevel || {};
+                    const totalRootLevelCards = (cardsByLevel[rootLevel] || []).length;
+                    const filledRootLevelCards = (cardsByLevel[rootLevel] || []).filter(card => card.dataset.name && card.dataset.uid).length;
                     
                     // Формируем детальную статистику
                     let htmlRoot = '';
                     
                     // Текущий уровень (показываем первым)
                     htmlRoot += `<div class="stats-item" style="margin-bottom: 8px;">
-                        <span class="stats-level" style="color: #3b82f6; font-weight: 600;">${currentLevel} (ваш уровень)</span>
+                        <span class="stats-level" style="color: #3b82f6; font-weight: 600;">Ур ${currentLevel} (ваш уровень)</span>
+                        <span class="stats-count" style="font-weight: 600;">всего ${filledRootLevelCards}/${totalRootLevelCards}</span>
                     </div>`;
                     
-                    // Заголовок: Повысить уровень (X)
                     htmlRoot += `<div class="stats-item" style="margin-bottom: 8px;">
-                        <span class="stats-level" style="color: #3b82f6; font-weight: 600;">Повысить уровень (${nextLevel})</span>
-                    </div>`;
-                    
-                    // Показываем партнеров уровня currentLevel для повышения
-                    htmlRoot += `<div class="stats-item" style="margin-bottom: 8px;">
-                        <span style="color: ${needed > 0 ? '#ef4444' : '#22c55e'};">
-                            ${partnersAtLevel}/3 ур ${currentLevel}
-                        </span>
+                        <span class="stats-level" style="color: #3b82f6;">Повысить уровень (${nextLevel})</span>
+                        <span class="stats-count" style="color: ${needed > 0 ? '#ef4444' : '#22c55e'};">
+                            ${partnersAtLevel}/3 ур ${currentLevel}${needed > 0 ? ` (не хватает: ${needed})` : ' (готов к повышению)'}</span>
                     </div>`;
                     
                     // Показываем всех партнеров по уровням (от максимального к минимальному) в формате X/Y ур Z
@@ -1863,23 +1860,16 @@
                     const needed = stats.neededForNextLevel || 0;
                     const max = stats.max || 0;
                     const targetPartnerLevel = stats.targetPartnerLevel !== undefined ? stats.targetPartnerLevel : (level - 1);
+                    const totalCards = stats.total || 0;
+                    const filledCards = stats.filled || 0;
                     
-                    let displayText;
-                    if (max === 0) {
-                        displayText = `${stats.filled}`;
-                    } else if (needed === 0 && partnersAtLevel >= max) {
-                        displayText = `${partnersAtLevel}/${max} (готов к повышению)`;
-                    } else if (needed > 0) {
-                        displayText = `${partnersAtLevel}/${max} (не хватает: ${needed})`;
-                    } else {
-                        displayText = `${partnersAtLevel}/${max}`;
-                    }
-                    
-                    const color = (needed === 0 && partnersAtLevel >= max && max > 0) ? '#22c55e' : '#ef4444';
-                    
-                    html += `<div class="stats-item">
+                    html += `<div class="stats-item" style="margin-bottom: 4px;">
                         <span class="stats-level" style="color: #3b82f6;">Ур ${level}</span>
-                        <span class="stats-count" style="color: ${color};">${displayText} ур ${targetPartnerLevel}</span>
+                        <span class="stats-count" style="font-weight: 600;">всего ${filledCards}/${totalCards}</span>
+                    </div>`;
+                    html += `<div class="stats-item" style="font-size: 12px; color: ${needed > 0 ? '#ef4444' : '#22c55e'}; margin-bottom: 8px;">
+                        <span>Прогресс: ${partnersAtLevel}/${max > 0 ? max : 3} ур ${targetPartnerLevel}</span>
+                        <span>${needed > 0 ? `не хватает: ${needed}` : 'готов к повышению'}</span>
                     </div>`;
                 }
             }
