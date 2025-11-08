@@ -612,7 +612,13 @@
                 .filter(Boolean);
 
             const isRootNode = node.id === 'root';
-            node.directFilled = childNodes.filter(child => isRootNode || child.filled).length;
+            let directFilled;
+            if (node.element.dataset.directReferrals !== undefined) {
+                directFilled = parseInt(node.element.dataset.directReferrals || '0', 10);
+            } else {
+                directFilled = childNodes.filter(child => child.filled).length;
+            }
+            node.directFilled = directFilled;
             node.activeDescendants = childNodes.reduce((sum, child) => {
                     return sum + (child.activeDescendantsIncludingSelf || 0);
                 }, 0);
@@ -1585,6 +1591,11 @@
         async function ensureRootInDatabase() {
             const rootCard = canvas.querySelector('.card[data-id="root"]');
             if (!rootCard) return;
+            rootCard.dataset.directReferrals = '0';
+            rootCard.dataset.totalReferrals = '0';
+            rootCard.dataset.bonusYellow = '0';
+            rootCard.dataset.transitionRed = '0';
+            rootCard.dataset.payoutGreen = '0';
             
             if (!rootCard.dataset.name) rootCard.dataset.name = 'IVA';
             if (!rootCard.dataset.uid) rootCard.dataset.uid = '0000001';
