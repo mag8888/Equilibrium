@@ -1973,13 +1973,15 @@
                 return;
             }
             if (serverStructureStats) {
-                const serverNodes = serverStructureStats?.totals?.nodes || 0;
-                if (cards.length > 1 && serverNodes === 0) {
-                    serverStructureStats = null;
-                } else {
+                const domFilledCount = cards.filter(isCardFilled).length;
+                const domDirectInvites = parseInt(rootCard.dataset.directInvites || rootCard.dataset.directReferrals || '0', 10);
+                const serverNodes = parseInt(serverStructureStats?.totals?.nodes ?? '0', 10);
+                const serverDirect = parseInt(serverStructureStats?.root?.direct_referrals ?? '0', 10);
+                if (serverNodes === domFilledCount && serverDirect === domDirectInvites) {
                     renderStatsFromServer(serverStructureStats);
                     return;
                 }
+                serverStructureStats = null;
             }
             const directReferralsRoot = parseInt(
                 rootCard.dataset.directInvites || rootCard.dataset.directReferrals || '0',
