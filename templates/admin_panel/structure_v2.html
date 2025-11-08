@@ -465,26 +465,25 @@
             return { nodes, root };
         }
 
-        function calculateLevelFromChildren(node, nodes, options) {
+        function calculateLevelFromChildren(node, nodes) {
             if (node.children.length === 0) return 0;
             const childLevels = node.children
                 .map(childId => nodes.get(childId))
                 .filter(Boolean)
                 .map(child => child.newLevel);
-            if (childLevels.length < 3) return options.preserveExistingLevels ? node.level : 0;
+            if (childLevels.length < 3) return 0;
 
             let level = 0;
             while (childLevels.filter(childLevel => childLevel >= level).length >= 3) {
                 level += 1;
             }
-            const preserved = options.preserveExistingLevels ? node.level : 0;
-            return Math.max(level, preserved);
+            return level;
         }
 
         function recalculateAllLevels(options = {}) {
             const {
                 preserveRootLevel = false,
-                preserveExistingLevels = false,
+                forceRootLevel = null,
                 skipSave = false,
             } = options;
             const { nodes, root } = buildStructureState();
@@ -495,9 +494,13 @@
                 if (node.id === 'root' && preserveRootLevel) {
                     node.newLevel = node.level;
                 } else {
-                    node.newLevel = calculateLevelFromChildren(node, nodes, { preserveExistingLevels });
+                    node.newLevel = calculateLevelFromChildren(node, nodes);
                 }
             });
+
+            if (root && forceRootLevel !== null) {
+                root.newLevel = forceRootLevel;
+            }
 
             let changed = false;
             const changedNodes = [];
@@ -1229,7 +1232,6 @@
                 try {
                     recalculateAllLevels({
                         preserveRootLevel: true,
-                        preserveExistingLevels: true,
                         skipSave: true
                     });
                 } finally {
@@ -2196,9 +2198,11 @@
             attachPoints(root);
             enableDrag(root);
             
+            await saveCardToDatabase(root);
+            
             recalculateAllLevels({
                 preserveRootLevel: true,
-                preserveExistingLevels: false,
+                forceRootLevel: 0,
                 skipSave: true
             });
             
