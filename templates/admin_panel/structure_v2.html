@@ -658,6 +658,7 @@
             }
         });
 
+        const STATS_COLLAPSE_KEY = 'structure_v2_stats_collapsed';
         let statsCollapsed = false;
         function applyStatsCollapsed(collapsed) {
             statsCollapsed = collapsed;
@@ -1065,7 +1066,6 @@
         // Сохранение/восстановление позиций
         const STORAGE_KEY = 'structure_v2_positions';
         const LAYOUT_TEMPLATE_KEY = 'structure_v2_layout_template';
-        const STATS_COLLAPSE_KEY = 'structure_v2_stats_collapsed';
         
         // Сохраняем шаблон расположения детей для каждого родителя
         function saveLayoutTemplate() {
@@ -1124,31 +1124,30 @@
             // Сохраняем шаблон расположения
             saveLayoutTemplate();
         }
-        function ensureRootCardExists({ saveIfCreated = true } = {}) {
+        function ensureRootCardExists() {
             let rootCard = canvas.querySelector('.card[data-id="root"]');
-            let created = false;
             if (!rootCard) {
                 rootCard = document.createElement('div');
                 rootCard.className = 'card';
                 rootCard.dataset.id = 'root';
+                rootCard.dataset.level = '0';
+                rootCard.dataset.name = 'IVA';
+                rootCard.dataset.uid = '0000001';
+                rootCard.style.left = '2400px';
+                rootCard.style.top = '200px';
                 canvas.appendChild(rootCard);
-                created = true;
+            } else {
+                if (!rootCard.dataset.level) rootCard.dataset.level = '0';
+                if (!rootCard.dataset.name) rootCard.dataset.name = 'IVA';
+                if (!rootCard.dataset.uid) rootCard.dataset.uid = '0000001';
+                if (!rootCard.style.left) rootCard.style.left = '2400px';
+                if (!rootCard.style.top) rootCard.style.top = '200px';
             }
-            if (!rootCard.dataset.level) rootCard.dataset.level = '0';
-            if (!rootCard.dataset.name) rootCard.dataset.name = 'IVA';
-            if (!rootCard.dataset.uid) rootCard.dataset.uid = '0000001';
-            if (!rootCard.style.left) rootCard.style.left = '2400px';
-            if (!rootCard.style.top) rootCard.style.top = '200px';
             renderCardContents(rootCard);
             attachPoints(rootCard);
             enableDrag(rootCard);
             updatePointsState(rootCard);
-            if (saveIfCreated && created) {
-                savePositions();
-                updateAllConnections();
-                updateStats();
-            }
-            return { card: rootCard, created };
+            return rootCard;
         }
 
         function loadPositions() {
@@ -1527,11 +1526,9 @@
         }
         
         // Гарантированно создаем root-карточку, если по каким-то причинам её нет
-        const { created: rootCreated } = ensureRootCardExists({ saveIfCreated: true });
-        if (!rootCreated) {
-            updateAllConnections();
-            updateStats();
-        }
+        ensureRootCardExists();
+        updateAllConnections();
+        updateStats();
 
         // Создаем root в базе при загрузке
         ensureRootInDatabase();
