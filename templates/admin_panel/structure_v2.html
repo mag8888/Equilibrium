@@ -111,12 +111,8 @@
         .point.left { left: -8px; }
         .point.right { right: -8px; }
         .point.disabled { background: #e5e7eb; border-color: #cbd5e1; cursor: not-allowed; }
-        .guide-line { position: absolute; left: 0; width: 100%; height: 2px; background: #ef4444; cursor: ns-resize; z-index: 1500; opacity: 0.7; }
-        .guide-line:hover { opacity: 1; background: #dc2626; }
-        .guide-line::before { content: ''; position: absolute; left: 0; top: -4px; width: 100%; height: 10px; cursor: ns-resize; }
-        .guide-line-vertical { position: absolute; top: 0; width: 2px; height: 100%; background: #ef4444; cursor: ew-resize; z-index: 1500; opacity: 0.7; }
-        .guide-line-vertical:hover { opacity: 1; background: #dc2626; }
-        .guide-line-vertical::before { content: ''; position: absolute; top: 0; left: -4px; width: 10px; height: 100%; cursor: ew-resize; }
+        .guide-line,
+        .guide-line-vertical { display: none; }
     </style>
 </head>
 <body>
@@ -372,9 +368,6 @@
                     if (!child.dataset.uid) child.dataset.uid = generateRandomId();
                     child.dataset.level = '0';
                     await saveCardToDatabase(child);
-                    await recalculateAllLevels();
-                    savePositions();
-                    updateStats();
                     return true;
                 }
 
@@ -404,7 +397,14 @@
                 return false;
             }
 
-            await internalFill(card);
+            const added = await internalFill(card);
+            if (added) {
+                incrementDirectInvites(card);
+                await recalculateAllLevels({ preserveRootLevel: true });
+                renderCardContents(card);
+                savePositions();
+                updateStats();
+            }
         }
         
         function getCardLevel(card) {
@@ -434,7 +434,8 @@
                     newLevel: getCardLevel(card),
                     children: [],
                     filled: isCardFilled(card),
-                    depth: 0
+                    depth: 0,
+                    directInvites: parseInt(card.dataset.directInvites || card.dataset.directReferrals || '0', 10),
                 };
                 nodes.set(id, node);
             });
@@ -483,12 +484,13 @@
         }
 
         function calculateFinancialSummary(node) {
+            const personalInvites = node.directInvites || 0;
             const directFilled = node.directFilled || 0;
             const completedLevel = node.level || 0;
 
-            let yellow = 0;
+            let yellow = Math.min(personalInvites, 3) * LEVEL_FINANCIALS[0].bonusPerReferral;
             let red = Math.min(directFilled, 3) * LEVEL_FINANCIALS[0].bonusPerReferral;
-            let green = directFilled * LEVEL_FINANCIALS[0].bonusPerReferral;
+            let green = personalInvites * LEVEL_FINANCIALS[0].bonusPerReferral;
 
             if (completedLevel >= 1) {
                 red = LEVEL_FINANCIALS[0].transition;
@@ -557,6 +559,7 @@
 
             const directFilled = childNodes.filter(child => child && child.filled).length;
             node.directFilled = directFilled;
+            node.directInvites = parseInt(node.element.dataset.directInvites || node.element.dataset.directReferrals || '0', 10);
             node.activeDescendants = childNodes.reduce((sum, child) => {
                     return sum + (child.activeDescendantsIncludingSelf || 0);
                 }, 0);
@@ -565,7 +568,6 @@
                 const financial = calculateFinancialSummary(node);
                 node.element.dataset.directReferrals = String(node.directFilled);
                 node.element.dataset.totalReferrals = String(node.activeDescendants);
-                node.element.dataset.directInvites = node.element.dataset.totalReferrals;
                 node.element.dataset.bonusYellow = financial.yellow.toFixed(2);
                 node.element.dataset.transitionRed = financial.red.toFixed(2);
                 node.element.dataset.payoutGreen = financial.green.toFixed(2);
@@ -1446,6 +1448,10 @@
             const count = (getChildSet(pid)).size;
             const disabled = count >= 3;
             card.querySelectorAll('.point').forEach(p => p.classList.toggle('disabled', disabled));
+        }
+        function incrementDirectInvites(card, amount = 1) {
+            const current = parseInt(card.dataset.directInvites || card.dataset.directReferrals || '0', 10);
+            card.dataset.directInvites = String(current + amount);
         }
         function attachPoints(card) {
             // Удаляем старые точки если есть
