@@ -12,5 +12,6 @@ urlpatterns = [
     path('structure-v3/', demo_views.admin_demo_structure_v3, name='structure_v3_view'),
     path('structure-v2/', demo_views.admin_demo_structure_v2, name='structure_v2_view'),
     # API endpoints
+    path('api/structure-data/', demo_views.structure_data_api, name='structure_data_api'),
     path('api/save-card/', demo_views.save_card_api, name='save_card_api'),
 ]

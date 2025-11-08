@@ -127,6 +127,7 @@
             <button class="btn zoom-btn" id="quickZoomIn" title="Увеличить масштаб">+</button>
             <button class="btn zoom-btn" id="quickZoomFit" title="Показать всю карту">⤢</button>
         </div>
+        <button class="btn" id="refreshData" style="background: #14b8a6; color: white;">⟳ Обновить данные</button>
         <div class="menu-dropdown" id="menuDropdown">
             <div class="menu-section">
                 <div class="menu-title">Навигация</div>
@@ -196,6 +197,7 @@
         ];
         const viewport = document.getElementById('viewport');
         let isRestoringFromStorage = false;
+        let serverStructureStats = null;
         
         function formatMoney(value) {
             const amount = Number(value || 0);
@@ -762,6 +764,7 @@
         const btnQuickZoomIn = document.getElementById('quickZoomIn');
         const btnQuickZoomOut = document.getElementById('quickZoomOut');
         const btnQuickZoomFit = document.getElementById('quickZoomFit');
+        const btnRefreshData = document.getElementById('refreshData');
         const btnShowAll = document.getElementById('showAll');
         const btnShowFullGrid = document.getElementById('showFullGrid');
         const btnAutoLayout = document.getElementById('autoLayout');
@@ -924,6 +927,27 @@
                 btn.style.background = '#10b981';
             }, 2000);
         };
+
+        if (btnRefreshData) {
+            btnRefreshData.addEventListener('click', async () => {
+                const originalText = btnRefreshData.textContent;
+                btnRefreshData.disabled = true;
+                btnRefreshData.textContent = 'Обновляем...';
+                const success = await fetchStructureFromServer({ showErrors: true });
+                btnRefreshData.disabled = false;
+                if (success) {
+                    btnRefreshData.textContent = '✓ Обновлено';
+                    btnRefreshData.style.background = '#22c55e';
+                } else {
+                    btnRefreshData.textContent = 'Ошибка';
+                    btnRefreshData.style.background = '#ef4444';
+                }
+                setTimeout(() => {
+                    btnRefreshData.textContent = originalText;
+                    btnRefreshData.style.background = '#14b8a6';
+                }, 2000);
+            });
+        }
         
         // Функция для показа всех карточек
         function showAllCards() {
@@ -1008,91 +1032,18 @@
                             alert('Неверный формат файла. Ожидается массив cards.');
                             return;
                         }
-                        
-                        // Очищаем существующие карточки (кроме root, если он есть)
-                        const rootCard = canvas.querySelector('.card[data-id="root"]');
-                        canvas.querySelectorAll('.card').forEach(card => {
-                            if (card !== rootCard) card.remove();
+
+                        const hydrated = hydrateStructureFromPayload(importData, {
+                            autoLayoutAfter: false,
+                            saveState: true,
+                            resetServerStats: true,
                         });
-                        
-                        // Очищаем childMap
-                        childMap.clear();
-                        
-                        // Восстанавливаем uidCounter
-                        if (importData.uidCounter) {
-                            uidCounter = importData.uidCounter;
+
+                        if (!hydrated) {
+                            alert('Не удалось применить данные из файла.');
+                            return;
                         }
-                        
-                        // Восстанавливаем карточки
-                        const cardMap = new Map();
-                        if (rootCard) {
-                            cardMap.set('root', rootCard);
-                        }
-                        
-                        importData.cards.forEach(item => {
-                            // Пропускаем root, если он уже есть
-                            if (item.id === 'root' && rootCard) {
-                                // Обновляем позицию root, если она изменилась
-                                if (item.left !== undefined) rootCard.style.left = item.left + 'px';
-                                if (item.top !== undefined) rootCard.style.top = item.top + 'px';
-                                return;
-                            }
-                            
-                            let card = canvas.querySelector(`.card[data-id="${item.id}"]`);
-                            if (!card) {
-                                card = document.createElement('div');
-                                card.className = 'card';
-                                card.dataset.id = item.id;
-                                canvas.appendChild(card);
-                            }
-                            
-                            // Устанавливаем все атрибуты
-                            if (item.parent) card.dataset.parent = item.parent;
-                            if (typeof item.level === 'number') card.dataset.level = String(item.level);
-                            if (item.name) card.dataset.name = item.name;
-                            if (item.uid) card.dataset.uid = item.uid;
-                            if (item.left !== undefined) card.style.left = item.left + 'px';
-                            if (item.top !== undefined) card.style.top = item.top + 'px';
-                            
-                            // Рендерим содержимое
-                            renderCardContents(card);
-                            // Включаем drag и точки
-                            enableDrag(card);
-                            cardMap.set(item.id, card);
-                        });
-                        
-                        // Восстанавливаем childMap из импортированных данных
-                        if (importData.childMap) {
-                            importData.childMap.forEach(([parent, children]) => {
-                                childMap.set(parent, new Set(children));
-                            });
-                        } else {
-                            // Если childMap нет в файле, строим его из данных карточек
-                            importData.cards.forEach(item => {
-                                if (item.parent) {
-                                    if (!childMap.has(item.parent)) {
-                                        childMap.set(item.parent, new Set());
-                                    }
-                                    childMap.get(item.parent).add(item.id);
-                                }
-                            });
-                        }
-                        
-                        // Обновляем состояние точек
-                        cardMap.forEach(card => {
-                            updatePointsState(card);
-                        });
-                        
-                        // Обновляем связи
-                        updateAllConnections();
-                        
-                        // Сохраняем импортированные данные в localStorage
-                        savePositions();
-                        
-                        // Обновляем статистику
-                        updateStats();
-                        
-                        // Показываем уведомление
+
                         const btn = btnImportCoords;
                         const originalText = btn.textContent;
                         btn.textContent = '✓ Импортировано!';
@@ -1102,7 +1053,6 @@
                             btn.style.background = '#06b6d4';
                         }, 2000);
                         
-                        // Показываем все карточки после импорта
                         setTimeout(() => showAllCards(), 300);
                         
                     } catch (error) {
@@ -1116,6 +1066,43 @@
         }
         
         btnImportCoords.onclick = () => importCoordinatesFromFile();
+
+        async function fetchStructureFromServer(options = {}) {
+            const { showErrors = false, autoLayout = true } = options;
+            try {
+                const response = await fetch(`/admin-panel/api/structure-data/?_=${Date.now()}`, {
+                    headers: { 'Accept': 'application/json' }
+                });
+                if (!response.ok) {
+                    const text = await response.text();
+                    throw new Error(text || `HTTP ${response.status}`);
+                }
+                const payload = await response.json();
+                if (payload && payload.structure && Array.isArray(payload.structure.cards)) {
+                    isRestoringFromStorage = true;
+                    hydrateStructureFromPayload(payload.structure, {
+                        autoLayoutAfter: autoLayout,
+                        saveState: true,
+                        resetServerStats: false,
+                    });
+                    isRestoringFromStorage = false;
+                    serverStructureStats = payload.stats || null;
+                    updateStats();
+                    setTimeout(() => showAllCards(), 200);
+                    return true;
+                }
+                serverStructureStats = payload?.stats || null;
+                updateStats();
+                return false;
+            } catch (error) {
+                console.error('Ошибка загрузки структуры из базы', error);
+                if (showErrors) {
+                    alert('Ошибка загрузки структуры: ' + error.message);
+                }
+                isRestoringFromStorage = false;
+                return false;
+            }
+        }
         
         // Экспорт координат всех карточек в файл
         function exportCoordinatesToFile() {
@@ -1387,6 +1374,102 @@
                 return false;
             }
         }
+
+        function hydrateStructureFromPayload(payload, options = {}) {
+            const {
+                autoLayoutAfter = false,
+                saveState = true,
+                resetServerStats = false,
+            } = options;
+            if (!payload || !Array.isArray(payload.cards)) {
+                console.warn('hydrateStructureFromPayload: invalid payload', payload);
+                return false;
+            }
+            const rootCard = ensureRootCardExists();
+            canvas.querySelectorAll('.card').forEach(card => {
+                if (card !== rootCard) {
+                    card.remove();
+                }
+            });
+            childMap.clear();
+            uidCounter = payload.uidCounter || payload.cards.length + 1;
+            const cardMap = new Map();
+            if (rootCard) {
+                cardMap.set('root', rootCard);
+            }
+
+            payload.cards.forEach(item => {
+                const isRootCard = item.id === 'root' && rootCard;
+                let card = isRootCard ? rootCard : document.createElement('div');
+                if (!isRootCard) {
+                    card.className = 'card';
+                    card.dataset.id = item.id || genId();
+                    canvas.appendChild(card);
+                }
+
+                if (item.parent) {
+                    card.dataset.parent = item.parent;
+                } else {
+                    delete card.dataset.parent;
+                }
+                const levelValue = typeof item.level === 'number'
+                    ? item.level
+                    : parseInt(card.dataset.level || '0', 10) || 0;
+                card.dataset.level = String(levelValue);
+                if (item.name) card.dataset.name = item.name;
+                if (item.uid) card.dataset.uid = item.uid;
+                if (item.status) card.dataset.status = item.status;
+                if (item.rank !== undefined) card.dataset.rank = item.rank;
+                card.dataset.directReferrals = String(
+                    item.directReferrals ?? card.dataset.directReferrals ?? '0'
+                );
+                card.dataset.totalReferrals = String(
+                    item.totalReferrals ?? card.dataset.totalReferrals ?? '0'
+                );
+                if (item.left !== undefined) card.style.left = item.left + 'px';
+                if (item.top !== undefined) card.style.top = item.top + 'px';
+
+                card.querySelectorAll('.point').forEach(point => point.remove());
+                renderCardContents(card);
+                attachPoints(card);
+                enableDrag(card);
+                cardMap.set(card.dataset.id, card);
+            });
+
+            if (payload.childMap && Array.isArray(payload.childMap)) {
+                payload.childMap.forEach(entry => {
+                    const [parentId, children] = entry;
+                    childMap.set(parentId, new Set(children));
+                });
+            } else {
+                cardMap.forEach(card => {
+                    const parentId = card.dataset.parent;
+                    if (!parentId) return;
+                    if (!childMap.has(parentId)) {
+                        childMap.set(parentId, new Set());
+                    }
+                    childMap.get(parentId).add(card.dataset.id);
+                });
+            }
+
+            cardMap.forEach(card => updatePointsState(card));
+
+            if (autoLayoutAfter) {
+                autoLayoutCards();
+            } else {
+                updateAllConnections();
+                if (saveState) {
+                    savePositions();
+                }
+            }
+
+            if (resetServerStats) {
+                serverStructureStats = null;
+            }
+            updateStats();
+            return true;
+        }
+
         function getChildSet(parentId) {
             if (!childMap.has(parentId)) childMap.set(parentId, new Set());
             return childMap.get(parentId);
@@ -1606,52 +1689,60 @@
             }
         }
         
-        // Старт: загружаем сохранённые позиции или используем дефолтные
-        if (!loadPositions()) {
-            // Если нет сохранённых данных, удаляем все карточки кроме root
+        async function initializeStructureCanvas() {
+            let loadedFromServer = false;
+            try {
+                loadedFromServer = await fetchStructureFromServer();
+            } catch (error) {
+                console.warn('Не удалось получить структуру при старте', error);
+            }
+
+            if (!loadedFromServer) {
+                serverStructureStats = null;
+                if (!loadPositions()) {
+                    canvas.querySelectorAll('.card').forEach(card => {
+                        if (card.dataset.id !== 'root') {
+                            card.remove();
+                        }
+                    });
+                    childMap.clear();
+                    const root = canvas.querySelector('.card[data-id="root"]');
+                    if (root) {
+                        if (!root.dataset.level) root.dataset.level = '0';
+                        if (!root.dataset.name) root.dataset.name = 'IVA';
+                        if (!root.dataset.uid) root.dataset.uid = '0000001';
+                        renderCardContents(root);
+                        enableDrag(root);
+                    }
+                }
+            }
+            
+            const rootCard = ensureRootCardExists();
+            if (rootCard) {
+                renderCardContents(rootCard);
+            }
+            updateAllConnections();
+            updateStats();
+
+            await ensureRootInDatabase();
+
             canvas.querySelectorAll('.card').forEach(card => {
-                if (card.dataset.id !== 'root') {
-                    card.remove();
+                if (!card.querySelector('.badge')) {
+                    renderCardContents(card);
                 }
             });
-            // Очищаем childMap
-            childMap.clear();
-            // Подготавливаем root карточку
-            const root = canvas.querySelector('.card[data-id="root"]');
-            if (root) {
-                // Убеждаемся, что у root есть правильные атрибуты
-                if (!root.dataset.level) root.dataset.level = '0';
-                if (!root.dataset.name) root.dataset.name = 'IVA';
-                if (!root.dataset.uid) root.dataset.uid = '0000001';
-                renderCardContents(root);
-                enableDrag(root);
+            if (canvas.querySelectorAll('.card').length > 1) {
+                showAllCards();
+            } else if (btnCenter) {
+                btnCenter.click();
+            } else {
+                applyTransform();
             }
+            updateStats();
+            initGuideLines();
         }
-        
-        // Гарантированно создаем root-карточку, если по каким-то причинам её нет
-        ensureRootCardExists();
-        updateAllConnections();
-        updateStats();
 
-        // Создаем root в базе при загрузке
-        ensureRootInDatabase();
-        // Убеждаемся, что все карточки отрендерены
-        canvas.querySelectorAll('.card').forEach(card => {
-            if (!card.querySelector('.badge')) {
-                renderCardContents(card);
-            }
-        });
-        if (canvas.querySelectorAll('.card').length > 1) {
-            showAllCards();
-        } else if (btnCenter) {
-            btnCenter.click();
-        } else {
-            applyTransform();
-        }
-        // Показываем начальную статистику
-        updateStats();
-        // Инициализируем перетаскиваемые линии-ориентиры
-        initGuideLines();
+        initializeStructureCanvas();
 
         // ----- Связи (как в Miro): гибкие кривые, следуют за карточками -----
         function getAnchorRight(card) {
@@ -1898,6 +1989,10 @@
 
         // Подсчет статистики по уровням - считаем партнеров первого аккаунта (root)
         function updateStats() {
+            if (serverStructureStats) {
+                renderStatsFromServer(serverStructureStats);
+                return;
+            }
             const cards = Array.from(canvas.querySelectorAll('.card'));
             const rootCard = cards.find(card => card.dataset.id === 'root');
             
@@ -2252,6 +2347,62 @@
             statsContent.innerHTML = html;
         }
 
+        function renderStatsFromServer(stats) {
+            if (!statsContent) return;
+            if (!stats) {
+                statsContent.innerHTML = '<div class="stats-item">Нет данных</div>';
+                return;
+            }
+
+            let html = '';
+            if (stats.root) {
+                html += `<div class="stats-item" style="font-weight:600;">
+                    <span class="stats-level" style="color:#1f2937;">${stats.root.name || 'Root'} (уровень ${stats.root.level || 0})</span>
+                    <span class="stats-count">${stats.root.direct_referrals || 0} / ${stats.root.total_descendants || 0}</span>
+                </div>`;
+                html += `<div class="stats-item" style="font-size:12px;">
+                    <span class="stats-level" style="color:#4b5563;">Партнеры первой линии</span>
+                    <span class="stats-count">${stats.root.partners_on_first_line || 0}</span>
+                </div>`;
+            }
+
+            if (stats.totals) {
+                html += `<div class="stats-item" style="font-weight:600; margin-top:8px;">
+                    <span class="stats-level" style="color:#1f2937;">Всего в структуре</span>
+                    <span class="stats-count">${stats.totals.nodes || 0}</span>
+                </div>`;
+                html += `<div class="stats-item" style="font-size:12px;">
+                    <span class="stats-level" style="color:#4b5563;">Партнёры</span>
+                    <span class="stats-count">${stats.totals.partners || 0}</span>
+                </div>`;
+                html += `<div class="stats-item" style="font-size:12px;">
+                    <span class="stats-level" style="color:#4b5563;">Участники</span>
+                    <span class="stats-count">${stats.totals.participants || 0}</span>
+                </div>`;
+            }
+
+            if (Array.isArray(stats.levels) && stats.levels.length > 0) {
+                html += `<div class="stats-item" style="font-weight:600; margin-top:8px;">
+                    <span class="stats-level" style="color:#1f2937;">По уровням</span>
+                </div>`;
+                stats.levels.forEach(levelInfo => {
+                    html += `<div class="stats-item" style="font-size:12px;">
+                        <span class="stats-level" style="color:#4b5563;">Ур ${levelInfo.level}</span>
+                        <span class="stats-count">${levelInfo.total || 0} (${levelInfo.partners || 0} парт.)</span>
+                    </div>`;
+                });
+            }
+
+            if (stats.generated_at) {
+                const formatted = new Date(stats.generated_at).toLocaleString();
+                html += `<div class="stats-item" style="font-size:11px; color:#6b7280; margin-top:8px;">
+                    Обновлено: ${formatted}
+                </div>`;
+            }
+
+            statsContent.innerHTML = html || '<div class="stats-item">Нет данных</div>';
+        }
+
         function ensureDefaultStructure(options = {}) {
             const { depth = DEFAULT_PLACEHOLDER_DEPTH } = options;
             const root = ensureRootCardExists();
@@ -2418,5 +2569,3 @@
     </script>
 </body>
 </html>
-
-

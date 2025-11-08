@@ -5,6 +5,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from .structure_data import build_structure_dataset
 
 
 def admin_demo_dashboard(request):
@@ -212,6 +213,28 @@ def admin_demo_structure_v6(request):
 def admin_demo_structure_v2(request):
     """Новая страница структуры v2: сетка, панорама, drag карточек"""
     return render(request, 'admin_panel/structure_v2.html', {})
+
+
+def structure_data_api(request):
+    """Возвращает актуальные данные структуры и статистику для визуализации v2."""
+    try:
+        dataset, stats = build_structure_dataset()
+        response = {
+            'structure': {
+                'cards': dataset.cards,
+                'childMap': dataset.child_map,
+                'uidCounter': dataset.uid_counter,
+            },
+            'stats': {
+                'root': stats.root,
+                'levels': stats.levels,
+                'totals': stats.totals,
+                'generated_at': stats.generated_at,
+            }
+        }
+        return JsonResponse(response, json_dumps_params={'ensure_ascii': False})
+    except Exception as exc:
+        return JsonResponse({'error': str(exc)}, status=500)
 
 
 @csrf_exempt
