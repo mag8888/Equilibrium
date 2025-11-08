@@ -373,6 +373,7 @@
         // Заполнение одного дочернего объекта (или дочернего дочернего если все 3 заняты)
         async function fillNextChild(card) {
             const cardId = card.dataset.id;
+            const prevChildrenCount = parseInt(card.dataset.directReferrals || '0', 10);
             const children = Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`));
             
             if (children.length < 3) {
