@@ -322,40 +322,6 @@
         }
         
         // Заполнение карточки данными
-        async function fillCard(card) {
-            if (!card.dataset.name) card.dataset.name = generateRandomName();
-            if (!card.dataset.uid) card.dataset.uid = generateRandomId();
-            renderCardContents(card);
-            
-            // Сохраняем карточку в базу
-            await saveCardToDatabase(card);
-            
-            // Заполняем все дочерние объекты этой карточки
-            await fillCardChildren(card);
-            
-            // Пересчитываем уровень после заполнения
-            await recalculateAllLevels();
-            
-            savePositions();
-            updateStats();
-        }
-        
-        // Заполнение дочерних объектов карточки
-        async function fillCardChildren(card) {
-            const cardId = card.dataset.id;
-            const prevChildrenCount = parseInt(card.dataset.directReferrals || '0', 10);
-            const children = Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`));
-            
-            for (const child of children) {
-                if (!child.dataset.name || !child.dataset.uid) {
-                    await fillCard(child); // Рекурсивно заполняем дочерние объекты
-                }
-            }
-            
-            // Пересчитываем уровень после заполнения всех дочерних объектов
-            await recalculateAllLevels();
-        }
-        
         function chooseSideForNewChild(parentCard, existingChildren) {
             if (existingChildren.length === 0) return 'left';
             const parentX = parseInt(parentCard.style.left) || 0;
@@ -375,21 +341,14 @@
         // Заполнение одного дочернего объекта (или дочернего дочернего если все 3 заняты)
         async function fillNextChild(card) {
             const cardId = card.dataset.id;
-            let directReferrals = parseInt(card.dataset.directReferrals || '0', 10);
-            let children = Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`));
+            const children = Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`));
             
             let targetChild = null;
-            let countedThisAction = false;
             
             if (children.length < 3) {
                 const side = chooseSideForNewChild(card, children);
-                const newChild = createChild(card, side);
-                if (!newChild) return;
-                targetChild = newChild;
-                countedThisAction = true;
-                directReferrals += 1;
-                card.dataset.directReferrals = String(directReferrals);
-                children.push(newChild);
+                targetChild = createChild(card, side);
+                if (!targetChild) return;
             } else {
                 const emptyChildren = children.filter(child => !child.dataset.name || !child.dataset.uid);
                 if (emptyChildren.length > 0) {
@@ -402,21 +361,13 @@
                 }
             }
             
-            if (!targetChild) {
-                return;
-            }
+            if (!targetChild) return;
             
-            const wasEmpty = !targetChild.dataset.name || !targetChild.dataset.uid;
             if (!targetChild.dataset.name) targetChild.dataset.name = generateRandomName();
             if (!targetChild.dataset.uid) targetChild.dataset.uid = generateRandomId();
             targetChild.dataset.level = '0';
             renderCardContents(targetChild);
             await saveCardToDatabase(targetChild);
-            
-            if (wasEmpty && !countedThisAction) {
-                directReferrals += 1;
-                card.dataset.directReferrals = String(directReferrals);
-            }
             
             await recalculateAllLevels();
             renderCardContents(card);
