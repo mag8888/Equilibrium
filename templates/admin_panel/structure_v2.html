@@ -373,23 +373,26 @@
         // Заполнение одного дочернего объекта (или дочернего дочернего если все 3 заняты)
         async function fillNextChild(card) {
             const cardId = card.dataset.id;
-            const prevChildrenCount = parseInt(card.dataset.directReferrals || '0', 10);
-            const children = Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`));
+            let directReferrals = parseInt(card.dataset.directReferrals || '0', 10);
+            let children = Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`));
             
             if (children.length < 3) {
                 const side = chooseSideForNewChild(card, children);
-                createChild(card, side);
-                return fillNextChild(card); // Повторяем уже с созданным слотом
+                const newChild = createChild(card, side);
+                if (!newChild) return;
+                directReferrals += 1;
+                card.dataset.directReferrals = String(directReferrals);
+                renderCardContents(card);
+                savePositions();
+                updateStats();
+                children = Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`));
             }
             
             let levelChanged = false;
             
-            // Ищем пустые дочерние объекты
             const emptyChildren = children.filter(child => !child.dataset.name || !child.dataset.uid);
             
             if (emptyChildren.length > 0) {
-                // Если есть пустые дочерние объекты - заполняем первый по порядку сверху вниз
-                // Сортируем по координате top (сверху вниз)
                 emptyChildren.sort((a, b) => {
                     const topA = parseInt(a.style.top) || 0;
                     const topB = parseInt(b.style.top) || 0;
@@ -397,15 +400,18 @@
                 });
                 
                 const emptyChild = emptyChildren[0];
+                const wasEmpty = !emptyChild.dataset.name || !emptyChild.dataset.uid;
                 if (!emptyChild.dataset.name) emptyChild.dataset.name = generateRandomName();
                 if (!emptyChild.dataset.uid) emptyChild.dataset.uid = generateRandomId();
-                // Новые карточки создаются с уровнем 0
                 emptyChild.dataset.level = '0';
                 renderCardContents(emptyChild);
                 await saveCardToDatabase(emptyChild);
                 levelChanged = true;
+                if (wasEmpty) {
+                    directReferrals += 1;
+                    card.dataset.directReferrals = String(directReferrals);
+                }
             } else if (children.length >= 3) {
-                // Если все 3 дочерних объекта заполнены, ищем дочерний объект с наименьшим количеством заполненных внуков
                 const childrenWithStats = children.map(child => {
                     const grandchildren = Array.from(canvas.querySelectorAll(`.card[data-parent="${child.dataset.id}"]`));
                     const filledGrandchildren = grandchildren.filter(gc => gc.dataset.name && gc.dataset.uid);
@@ -454,10 +460,10 @@
                 await recalculateAllLevels();
             }
             
-            const newChildrenCount = Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`)).length;
-            if (newChildrenCount > prevChildrenCount) {
-                card.dataset.directReferrals = String(newChildrenCount);
-            }
+            renderCardContents(card);
+            savePositions();
+            updateStats();
+        }
             
             renderCardContents(card); // Обновляем кнопки родительской карточки
             savePositions();
