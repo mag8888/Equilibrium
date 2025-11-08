@@ -394,110 +394,80 @@
             updateStats();
         }
         
-        // Пересчет уровня карточки на основе количества партнеров того же уровня
+        function getCardLevel(card) {
+            return parseInt(card.dataset.level || '0', 10) || 0;
+        }
+
+        function getFilledPartners(card) {
+            const cardId = card.dataset.id;
+            return Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`))
+                .filter(child => child.dataset.name && child.dataset.uid);
+        }
+
+        function groupPartnersByLevel(partners) {
+            const levelMap = new Map();
+            partners.forEach(partner => {
+                const level = getCardLevel(partner);
+                if (!levelMap.has(level)) {
+                    levelMap.set(level, []);
+                }
+                levelMap.get(level).push(partner);
+            });
+            return levelMap;
+        }
+
+        function determineTargetLevel(currentLevel, partnersByLevel) {
+            const partnersAtCurrent = partnersByLevel.get(currentLevel) || [];
+            if (partnersAtCurrent.length >= 3) {
+                return currentLevel + 1;
+            }
+
+            if (currentLevel > 0) {
+                const partnersAtPrev = partnersByLevel.get(currentLevel - 1) || [];
+                if (partnersAtPrev.length >= 3) {
+                    return currentLevel;
+                }
+            }
+
+            let highestLevelWithThree = -1;
+            partnersByLevel.forEach((list, level) => {
+                if (list.length >= 3 && level > highestLevelWithThree) {
+                    highestLevelWithThree = level;
+                }
+            });
+
+            return highestLevelWithThree >= 0 ? highestLevelWithThree + 1 : 0;
+        }
+
+        // Пересчет уровня карточки на основе количества партнеров
         function recalculateLevel(card, options = {}) {
             if (!card) return;
-            
             const { skipSave = false } = options;
-            
-            const cardId = card.dataset.id;
-            const currentLevel = parseInt(card.dataset.level || '0');
-            
-            // Находим всех прямых дочерних объектов (партнеров) - только заполненные
-            const partners = Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`))
-                .filter(child => child.dataset.name && child.dataset.uid);
-            
-            // Группируем партнеров по уровням
-            const partnersByLevel = {};
-            partners.forEach(partner => {
-                const partnerLevel = parseInt(partner.dataset.level || '0');
-                if (!partnersByLevel[partnerLevel]) {
-                    partnersByLevel[partnerLevel] = [];
-                }
-                partnersByLevel[partnerLevel].push(partner);
-            });
-            
-            // Проверяем партнеров ТЕКУЩЕГО уровня карточки
-            const partnersAtCurrentLevel = partnersByLevel[currentLevel] || [];
-            
-            // Если есть 3+ партнера текущего уровня - повышаем уровень
-            if (partnersAtCurrentLevel.length >= 3) {
-                const newLevel = currentLevel + 1;
-                const oldLevel = parseInt(card.dataset.level || '0');
-                
-                if (newLevel !== oldLevel) {
-                    card.dataset.level = String(newLevel);
-                    renderCardContents(card);
-                    if (!skipSave && !isRestoringFromStorage) {
-                        saveCardToDatabase(card);
-                    }
-                    
-                    // Обновляем все дочерние карточки, чтобы они пересчитали свой прогресс
-                    const children = Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`));
-                    children.forEach(child => {
-                        renderCardContents(child);
-                    });
-                    
-                    // Рекурсивно пересчитываем уровень родителя (если есть)
-                    const parentId = card.dataset.parent;
-                    if (parentId) {
-                        const parentCard = canvas.querySelector(`.card[data-id="${parentId}"]`);
-                        if (parentCard) {
-                            recalculateLevel(parentCard, options);
-                        }
-                    }
-                } else {
-                    renderCardContents(card);
+
+            const currentLevel = getCardLevel(card);
+            const partners = getFilledPartners(card);
+            const partnersByLevel = groupPartnersByLevel(partners);
+            const targetLevel = determineTargetLevel(currentLevel, partnersByLevel);
+
+            if (targetLevel !== currentLevel) {
+                card.dataset.level = String(targetLevel);
+                renderCardContents(card);
+                if (!skipSave && !isRestoringFromStorage) {
+                    saveCardToDatabase(card);
                 }
             } else {
-                // Если партнеров текущего уровня менее 3 - проверяем, можем ли остаться на текущем уровне
-                // Для уровня N нужно проверить, есть ли 3 партнера уровня N-1
-                const prevLevel = currentLevel - 1;
-                const partnersAtPrevLevel = partnersByLevel[prevLevel] || [];
-                
-                let newLevel;
-                if (currentLevel > 0 && partnersAtPrevLevel.length >= 3) {
-                    // Если есть 3 партнера предыдущего уровня - остаемся на текущем уровне
-                    newLevel = currentLevel;
-                } else {
-                    // Ищем максимальный уровень, для которого есть 3 партнера
-                    let maxLevelWith3Partners = -1;
-                    for (const level in partnersByLevel) {
-                        const levelNum = parseInt(level);
-                        if (partnersByLevel[level].length >= 3 && levelNum > maxLevelWith3Partners) {
-                            maxLevelWith3Partners = levelNum;
-                        }
-                    }
-                    
-                    // Новый уровень = maxLevelWith3Partners + 1 (или 0 если нет такого уровня)
-                    newLevel = maxLevelWith3Partners >= 0 ? maxLevelWith3Partners + 1 : 0;
-                }
-                
-                const oldLevel = parseInt(card.dataset.level || '0');
-                
-                if (newLevel !== oldLevel) {
-                    card.dataset.level = String(newLevel);
-                    renderCardContents(card);
-                    if (!skipSave && !isRestoringFromStorage) {
-                        saveCardToDatabase(card);
-                    }
-                    
-                    // Обновляем все дочерние карточки
-                    const children = Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`));
-                    children.forEach(child => {
-                        renderCardContents(child);
-                    });
-                    
-                    // Рекурсивно пересчитываем уровень родителя (если есть)
-                    const parentId = card.dataset.parent;
-                    if (parentId) {
-                        const parentCard = canvas.querySelector(`.card[data-id="${parentId}"]`);
-                        if (parentCard) {
-                            recalculateLevel(parentCard, options);
-                        }
-                    }
-                } else {
-                    renderCardContents(card);
+                renderCardContents(card);
+            }
+
+            // Обновляем отображение партнеров (прогресс-индикаторы)
+            partners.forEach(partner => renderCardContents(partner));
+
+            // Пересчитываем родителя
+            const parentId = card.dataset.parent;
+            if (parentId) {
+                const parentCard = canvas.querySelector(`.card[data-id="${parentId}"]`);
+                if (parentCard) {
+                    recalculateLevel(parentCard, options);
                 }
             }
         }
