@@ -522,13 +522,7 @@
                 .map(childId => nodes.get(childId))
                 .filter(Boolean);
 
-            const isRootNode = node.id === 'root';
-            let directFilled;
-            if (node.element.dataset.directReferrals !== undefined) {
-                directFilled = parseInt(node.element.dataset.directReferrals || '0', 10);
-            } else {
-                directFilled = childNodes.filter(child => child.filled).length;
-            }
+            const directFilled = childNodes.filter(child => child && child.filled).length;
             node.directFilled = directFilled;
             node.activeDescendants = childNodes.reduce((sum, child) => {
                     return sum + (child.activeDescendantsIncludingSelf || 0);

@@ -5,7 +5,11 @@
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.db import transaction
+
 from .structure_data import build_structure_dataset
+from users.models import User
+from mlm.models import MLMStructure
 
 
 def admin_demo_dashboard(request):
@@ -27,7 +31,6 @@ def admin_demo_dashboard(request):
     recent_withdrawals = []
     
     try:
-        from users.models import User
         from mlm.models import Payment, Bonus, Withdrawal
         
         # Пытаемся получить реальные данные
@@ -245,8 +248,6 @@ def save_card_api(request):
     
     try:
         import json
-        from django.db import transaction
-        from users.models import User
         
         data = json.loads(request.body)
         uid = data.get('uid')
@@ -299,20 +300,74 @@ def save_card_api(request):
                 user.save()
             
             # Устанавливаем пригласителя
+            parent_user = None
             if inviter_uid:
                 try:
                     inviter_code = str(inviter_uid)[:8].upper()
                     inviter = User.objects.get(referral_code=inviter_code)
+                    parent_user = inviter
                     if user.invited_by != inviter:
                         user.invited_by = inviter
-                        user.save()
                 except User.DoesNotExist:
-                    pass  # Пригласитель не найден, пропускаем
-            
+                    parent_user = None
+            # Обновляем статус пользователя как партнера
+            if user.status != 'partner':
+                user.status = 'partner'
+            user.save()
+
+            level = int(data.get('level', 0))
+            if parent_user and level == 0:
+                parent_structure = getattr(parent_user, 'mlm_structure', None)
+                if parent_structure:
+                    level = parent_structure.level + 1
+
+            # Рассчитываем позицию в структуре
+            position = data.get('position')
+            if position is None and parent_user:
+                existing_positions = set(
+                    MLMStructure.objects.filter(parent=parent_user).values_list('position', flat=True)
+                )
+                for slot in range(1, 4):
+                    if slot not in existing_positions:
+                        position = slot
+                        break
+                if position is None:
+                    position = (len(existing_positions) % 3) + 1
+            elif position is None:
+                position = 0
+
+            structure_defaults = {
+                'parent': parent_user,
+                'level': level,
+                'position': position,
+                'is_active': True,
+            }
+            structure, structure_created = MLMStructure.objects.get_or_create(
+                user=user,
+                defaults=structure_defaults,
+            )
+            if not structure_created:
+                updated = False
+                if structure.parent != parent_user:
+                    structure.parent = parent_user
+                    updated = True
+                if structure.level != level:
+                    structure.level = level
+                    updated = True
+                if structure.position != position:
+                    structure.position = position
+                    updated = True
+                if not structure.is_active:
+                    structure.is_active = True
+                    updated = True
+                if updated:
+                    structure.save()
+
             return JsonResponse({
                 'success': True,
                 'user_id': user.id,
-                'created': created
+                'created': created,
+                'structure_created': structure_created,
             })
             
     except Exception as e:
