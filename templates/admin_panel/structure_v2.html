@@ -468,17 +468,13 @@
             return { nodes, root, ordered };
         }
 
-        function calculateLevelFromChildren(node, nodes) {
-            if (node.children.length === 0) return 0;
-            const childLevels = node.children
-                .map(childId => nodes.get(childId))
-                .filter(child => child && child.filled)
-                .map(child => child.newLevel);
-            if (childLevels.length < 3) return 0;
-
+        function calculateLevelFromInvites(node) {
+            const invites = node.directInvites || 0;
             let level = 0;
-            while (childLevels.filter(childLevel => childLevel >= level).length >= 3) {
+            let required = 3;
+            while (invites >= required) {
                 level += 1;
+                required *= 3;
             }
             return level;
         }
@@ -525,7 +521,7 @@
                 if (node.id === 'root' && preserveRootLevel) {
                     node.newLevel = node.level;
                 } else {
-                    node.newLevel = calculateLevelFromChildren(node, nodes);
+                    node.newLevel = calculateLevelFromInvites(node);
                 }
             });
 
