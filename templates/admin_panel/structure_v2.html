@@ -2298,6 +2298,11 @@
                 delete card.dataset.name;
                 delete card.dataset.uid;
                 card.dataset.level = '0'; // Сбрасываем уровень на 0
+                card.dataset.directReferrals = '0';
+                card.dataset.totalReferrals = '0';
+                card.dataset.bonusYellow = '0';
+                card.dataset.transitionRed = '0';
+                card.dataset.payoutGreen = '0';
                 renderCardContents(card);
             });
             
@@ -2366,6 +2371,11 @@
             root = ensureRootCardExists();
             root.dataset.level = '0';
             root.dataset.parent = '';
+            root.dataset.directReferrals = '0';
+            root.dataset.totalReferrals = '0';
+            root.dataset.bonusYellow = '0';
+            root.dataset.transitionRed = '0';
+            root.dataset.payoutGreen = '0';
             renderCardContents(root);
             root.querySelectorAll('.point').forEach(p => p.remove());
             attachPoints(root);
