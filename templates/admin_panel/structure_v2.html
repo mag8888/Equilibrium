@@ -1124,6 +1124,33 @@
             // Сохраняем шаблон расположения
             saveLayoutTemplate();
         }
+        function ensureRootCardExists({ saveIfCreated = true } = {}) {
+            let rootCard = canvas.querySelector('.card[data-id="root"]');
+            let created = false;
+            if (!rootCard) {
+                rootCard = document.createElement('div');
+                rootCard.className = 'card';
+                rootCard.dataset.id = 'root';
+                canvas.appendChild(rootCard);
+                created = true;
+            }
+            if (!rootCard.dataset.level) rootCard.dataset.level = '0';
+            if (!rootCard.dataset.name) rootCard.dataset.name = 'IVA';
+            if (!rootCard.dataset.uid) rootCard.dataset.uid = '0000001';
+            if (!rootCard.style.left) rootCard.style.left = '2400px';
+            if (!rootCard.style.top) rootCard.style.top = '200px';
+            renderCardContents(rootCard);
+            attachPoints(rootCard);
+            enableDrag(rootCard);
+            updatePointsState(rootCard);
+            if (saveIfCreated && created) {
+                savePositions();
+                updateAllConnections();
+                updateStats();
+            }
+            return { card: rootCard, created };
+        }
+
         function loadPositions() {
             const saved = localStorage.getItem(STORAGE_KEY);
             if (!saved) return false;
@@ -1499,6 +1526,13 @@
             }
         }
         
+        // Гарантированно создаем root-карточку, если по каким-то причинам её нет
+        const { created: rootCreated } = ensureRootCardExists({ saveIfCreated: true });
+        if (!rootCreated) {
+            updateAllConnections();
+            updateStats();
+        }
+
         // Создаем root в базе при загрузке
         ensureRootInDatabase();
         // Убеждаемся, что все карточки отрендерены
