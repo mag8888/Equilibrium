@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import json
 from collections import defaultdict
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 from django.utils import timezone
@@ -103,6 +105,7 @@ def build_structure_dataset(
     children_map = _build_children_map(structures)
     count_descendants, descendants_cache = _build_descendants_counter(children_map)
     calculate_level, levels_cache = _build_level_calculator(children_map)
+    layout_coordinates = _load_layout_coordinates()
 
     # Посчитаем для всех пользователей, чтобы кэши были заполнены
     for node in structures:
@@ -140,6 +143,10 @@ def build_structure_dataset(
         direct_referrals = len(children_map.get(node.user_id, []))
         total_referrals = descendants_cache.get(node.user_id, 0)
         computed_level = levels_cache.get(node.user_id, node.level or 0)
+        coord_key = (node.user.referral_code or f"{node.user.id:07d}").strip()
+        layout = layout_coordinates.get(coord_key)
+        left = layout.get('left') if layout else 400 + node.level * 320
+        top = layout.get('top') if layout else 200 + idx * 200
 
         cards.append(
             {
@@ -152,8 +159,8 @@ def build_structure_dataset(
                 "username": node.user.username,
                 "level": computed_level,
                 "displayLevel": computed_level,
-                "left": 400 + node.level * 320,
-                "top": 200 + idx * 200,
+                "left": left,
+                "top": top,
                 "status": node.user.status,
                 "rank": node.user.rank,
                 "directReferrals": direct_referrals,
@@ -168,6 +175,10 @@ def build_structure_dataset(
         root_level = levels_cache.get(root_user.id, 0)
         root_direct = len(children_map.get(root_user.id, []))
         root_total = descendants_cache.get(root_user.id, 0)
+        root_coord_key = (root_user.referral_code or f"{root_user.id:07d}").strip()
+        root_layout = layout_coordinates.get(root_coord_key)
+        root_left = root_layout.get('left') if root_layout else 2400
+        root_top = root_layout.get('top') if root_layout else 200
         cards.insert(
             0,
             {
@@ -180,8 +191,8 @@ def build_structure_dataset(
                 "username": root_user.username,
                 "level": root_level,
                 "displayLevel": root_level,
-                "left": 2400,
-                "top": 200,
+                "left": root_left,
+                "top": root_top,
                 "status": root_user.status,
                 "rank": root_user.rank,
                 "directReferrals": root_direct,
@@ -256,3 +267,30 @@ def build_structure_dataset(
     )
 
     return dataset, stats
+
+
+LAYOUT_COORDINATES_PATH = Path(__file__).resolve().parent / 'layout_coordinates.json'
+
+
+def _load_layout_coordinates() -> Dict[str, Dict[str, int]]:
+    if not LAYOUT_COORDINATES_PATH.exists():
+        return {}
+    try:
+        data = json.loads(LAYOUT_COORDINATES_PATH.read_text(encoding='utf-8'))
+    except Exception:
+        return {}
+    cards = data.get('cards', [])
+    coordinates: Dict[str, Dict[str, int]] = {}
+    for card in cards:
+        uid = str(card.get('uid') or card.get('id') or '').strip()
+        if not uid:
+            continue
+        left = card.get('left')
+        top = card.get('top')
+        if left is None or top is None:
+            continue
+        coordinates[uid] = {
+            'left': int(left),
+            'top': int(top),
+        }
+    return coordinates

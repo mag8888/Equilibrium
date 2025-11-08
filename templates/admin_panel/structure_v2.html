@@ -968,7 +968,7 @@
                 if (!file) return;
                 
                 const reader = new FileReader();
-                reader.onload = (event) => {
+                reader.onload = async (event) => {
                     try {
                         const importData = JSON.parse(event.target.result);
                         
@@ -981,11 +981,24 @@
                             autoLayoutAfter: false,
                             saveState: true,
                             resetServerStats: true,
+                            recalcLevels: true,
                         });
 
                         if (!hydrated) {
                             alert('Не удалось применить данные из файла.');
                             return;
+                        }
+
+                        try {
+                            await fetch('/admin-panel/api/upload-layout/', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify(importData),
+                            });
+                        } catch (uploadError) {
+                            console.warn('Не удалось сохранить координаты на сервере:', uploadError);
                         }
 
                         const btn = btnImportCoords;
