@@ -79,6 +79,18 @@
             border-radius: 0 0 8px 8px;
             transition: width 0.3s ease;
         }
+        .card .financial-summary {
+            margin-top: 6px;
+            display: flex;
+            gap: 10px;
+            font-size: 12px;
+            color: #1f2937;
+        }
+        .card .financial-summary span {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
         .card .name { font-weight: 600; color: #1f2937; }
         .card .uid { font-size: 12px; opacity: 0.6; color: #4b5563; }
         .card .delete-btn { position: absolute; top: -8px; right: -8px; width: 20px; height: 20px; background: #ef4444; color: white; border: none; border-radius: 50%; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; z-index: 10; line-height: 1; }
@@ -175,8 +187,20 @@
     <script>
         const GRID_SIZE = 40;
         const DEFAULT_PLACEHOLDER_DEPTH = 2;
+        const LEVEL_FINANCIALS = [
+            { bonusPerReferral: 50, transition: 150 },
+            { bonusTotal: 150, transition: 300 },
+            { bonusTotal: 300, transition: 600 },
+            { bonusTotal: 600, transition: 1200 },
+            { bonusTotal: 1100, payout: 2500 },
+        ];
         const viewport = document.getElementById('viewport');
         let isRestoringFromStorage = false;
+        
+        function formatMoney(value) {
+            const amount = Number(value || 0);
+            return `$${amount.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+        }
         // Рендер содержимого карточки (имя, id, бейдж уровня)
         function renderCardContents(card) {
             const isRoot = card.dataset.id === 'root';
@@ -184,6 +208,18 @@
             // Все карточки показывают свой реальный уровень (включая root)
             const displayLevel = depth;
             const isEmpty = !card.dataset.name || !card.dataset.uid;
+            const directReferrals = parseInt(card.dataset.directReferrals || '0', 10);
+            const totalReferrals = parseInt(card.dataset.totalReferrals || '0', 10);
+            const bonusYellow = parseFloat(card.dataset.bonusYellow || '0');
+            const payoutGreen = parseFloat(card.dataset.payoutGreen || '0');
+            const financialHtml = `
+                <div class="financial-summary">
+                    <span title="Прямые рефералы">🤝 ${directReferrals}</span>
+                    <span title="Всего рефералов">🌐 ${totalReferrals}</span>
+                    <span title="Бонусы">🟡 ${formatMoney(bonusYellow)}</span>
+                    <span title="К выводу">🟢 ${formatMoney(payoutGreen)}</span>
+                </div>
+            `;
             
             // Вычисляем прогресс для повышения уровня
             const cardId = card.dataset.id;
@@ -227,6 +263,7 @@
                     <button class="fill-btn" title="Заполнить карточку и её дочерние объекты">Заполнить</button>
                     <button class="add-child-btn" title="Добавить дочерний объект">+</button>
                     <button class="delete-btn" title="Удалить карточку и всех её детей">×</button>
+                    ${financialHtml}
                     ${!isEmpty ? `<div class="progress-indicator"><div class="progress-bar" style="width: ${progressPercent}%"></div></div>` : ''}
                 `;
                 // Добавляем обработчик заполнения
@@ -256,6 +293,7 @@
                     <button class="add-child-btn" title="Добавить дочерний объект">+</button>
                     <div class="name">${card.dataset.name}</div>
                     <div class="uid">ID${card.dataset.uid}</div>
+                    ${financialHtml}
                     ${partners.length > 0 ? `<div class="progress-indicator"><div class="progress-bar" style="width: ${progressPercent}%"></div></div>` : ''}
                 `;
                 
@@ -432,6 +470,11 @@
             canvas.querySelectorAll('.card').forEach(card => {
                 const id = card.dataset.id;
                 if (!id) return;
+                card.dataset.directReferrals = card.dataset.directReferrals || '0';
+                card.dataset.totalReferrals = card.dataset.totalReferrals || '0';
+                card.dataset.bonusYellow = card.dataset.bonusYellow || '0';
+                card.dataset.transitionRed = card.dataset.transitionRed || '0';
+                card.dataset.payoutGreen = card.dataset.payoutGreen || '0';
                 const node = {
                     id,
                     element: card,
@@ -468,7 +511,9 @@
                 }
             }
 
-            return { nodes, root };
+            const ordered = Array.from(nodes.values()).sort((a, b) => b.depth - a.depth);
+
+            return { nodes, root, ordered };
         }
 
         function calculateLevelFromChildren(node, nodes) {
@@ -486,16 +531,43 @@
             return level;
         }
 
+        function calculateFinancialSummary(node) {
+            const directFilled = node.directFilled || 0;
+            const completedLevel = node.level || 0;
+
+            let yellow = Math.min(directFilled, 3) * LEVEL_FINANCIALS[0].bonusPerReferral;
+            let red = Math.min(directFilled, 3) * LEVEL_FINANCIALS[0].bonusPerReferral;
+            let green = 0;
+
+            if (completedLevel >= 1) {
+                red = LEVEL_FINANCIALS[0].transition;
+            }
+
+            for (let levelIndex = 1; levelIndex < LEVEL_FINANCIALS.length; levelIndex++) {
+                const config = LEVEL_FINANCIALS[levelIndex];
+                if (completedLevel >= levelIndex + 1) {
+                    yellow += config.bonusTotal || 0;
+                    if (config.transition) {
+                        red += config.transition;
+                    }
+                    if (config.payout) {
+                        green += config.payout;
+                    }
+                }
+            }
+
+            return { yellow, red, green };
+        }
+
         function recalculateAllLevels(options = {}) {
             const {
                 preserveRootLevel = false,
                 forceRootLevel = null,
                 skipSave = false,
             } = options;
-            const { nodes, root } = buildStructureState();
+            const { nodes, root, ordered } = buildStructureState();
             if (!root) return false;
 
-            const ordered = Array.from(nodes.values()).sort((a, b) => b.depth - a.depth);
             ordered.forEach(node => {
                 if (node.id === 'root' && preserveRootLevel) {
                     node.newLevel = node.level;
@@ -517,7 +589,6 @@
                     changed = true;
                     changedNodes.push(node);
                 }
-                renderCardContents(node.element);
             });
 
             if (changed && !skipSave && !isRestoringFromStorage) {
@@ -527,6 +598,25 @@
                     }
                 });
             }
+
+            ordered.forEach(node => {
+                const childNodes = node.children
+                    .map(childId => nodes.get(childId))
+                    .filter(Boolean);
+                node.directFilled = childNodes.filter(child => child.filled).length;
+                node.activeDescendants = childNodes.reduce((sum, child) => {
+                    return sum + (child.activeDescendantsIncludingSelf || 0);
+                }, 0);
+                node.activeDescendantsIncludingSelf = node.activeDescendants + (node.filled ? 1 : 0);
+
+                const financial = calculateFinancialSummary(node);
+                node.element.dataset.directReferrals = String(node.directFilled);
+                node.element.dataset.totalReferrals = String(node.activeDescendants);
+                node.element.dataset.bonusYellow = financial.yellow.toFixed(2);
+                node.element.dataset.transitionRed = financial.red.toFixed(2);
+                node.element.dataset.payoutGreen = financial.green.toFixed(2);
+                renderCardContents(node.element);
+            });
             return changed;
         }
         
@@ -1175,6 +1265,11 @@
             attachPoints(rootCard);
             enableDrag(rootCard);
             updatePointsState(rootCard);
+            rootCard.dataset.directReferrals = rootCard.dataset.directReferrals || '0';
+            rootCard.dataset.totalReferrals = rootCard.dataset.totalReferrals || '0';
+            rootCard.dataset.bonusYellow = rootCard.dataset.bonusYellow || '0';
+            rootCard.dataset.transitionRed = rootCard.dataset.transitionRed || '0';
+            rootCard.dataset.payoutGreen = rootCard.dataset.payoutGreen || '0';
             return rootCard;
         }
 
@@ -1359,6 +1454,11 @@
             canvas.appendChild(child);
             attachPoints(child);
             enableDrag(child);
+            child.dataset.directReferrals = child.dataset.directReferrals || '0';
+            child.dataset.totalReferrals = child.dataset.totalReferrals || '0';
+            child.dataset.bonusYellow = child.dataset.bonusYellow || '0';
+            child.dataset.transitionRed = child.dataset.transitionRed || '0';
+            child.dataset.payoutGreen = child.dataset.payoutGreen || '0';
             children.add(id);
             updatePointsState(parentCard);
             updateConnectionFor(child);
@@ -1788,6 +1888,11 @@
                 statsContent.innerHTML = '<div class="stats-item">Нет root карточки</div>';
                 return;
             }
+            const directReferralsRoot = parseInt(rootCard.dataset.directReferrals || '0', 10);
+            const totalReferralsRoot = parseInt(rootCard.dataset.totalReferrals || '0', 10);
+            const bonusYellowRoot = parseFloat(rootCard.dataset.bonusYellow || '0');
+            const transitionRedRoot = parseFloat(rootCard.dataset.transitionRed || '0');
+            const payoutGreenRoot = parseFloat(rootCard.dataset.payoutGreen || '0');
             
             // Функция для получения прямых детей карточки
             function getDirectChildren(parentId) {
@@ -2057,7 +2162,16 @@
                 }
             }
             
-            let htmlSummary = '';
+            let htmlSummary = `
+                <div class="stats-item" style="font-weight: 600; margin-bottom: 4px;">
+                    <span class="stats-level" style="color: #1f2937;">Прямые / всего</span>
+                    <span class="stats-count" style="color: #1f2937;">${directReferralsRoot}/${totalReferralsRoot}</span>
+                </div>
+                <div class="stats-item" style="font-size: 12px;">
+                    <span class="stats-level" style="color: #4b5563;">Финансы</span>
+                    <span class="stats-count">🟡 ${formatMoney(bonusYellowRoot)} · 🔴 ${formatMoney(transitionRedRoot)} · 🟢 ${formatMoney(payoutGreenRoot)}</span>
+                </div>
+            `;
             if (summaryLevels.length > 0) {
                 htmlSummary += `<div class="stats-item" style="font-weight: 600; margin-bottom: 4px;">
                     <span class="stats-level" style="color: #1f2937;">Всего карточек</span>
