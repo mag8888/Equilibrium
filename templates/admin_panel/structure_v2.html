@@ -341,6 +341,7 @@
         // Заполнение дочерних объектов карточки
         async function fillCardChildren(card) {
             const cardId = card.dataset.id;
+            const prevChildrenCount = parseInt(card.dataset.directReferrals || '0', 10);
             const children = Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`));
             
             for (const child of children) {
@@ -450,6 +451,11 @@
             
             if (levelChanged) {
                 await recalculateAllLevels();
+            }
+            
+            const newChildrenCount = Array.from(canvas.querySelectorAll(`.card[data-parent="${cardId}"]`)).length;
+            if (newChildrenCount > prevChildrenCount) {
+                card.dataset.directReferrals = String(newChildrenCount);
             }
             
             renderCardContents(card); // Обновляем кнопки родительской карточки
