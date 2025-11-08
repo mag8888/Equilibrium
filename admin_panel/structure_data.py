@@ -60,6 +60,30 @@ def _build_descendants_counter(children_map: Dict[int, List[int]]):
     return _count, cache
 
 
+def _build_level_calculator(children_map: Dict[int, List[int]]):
+    cache: Dict[int, int] = {}
+
+    def _calculate(user_id: int) -> int:
+        if user_id in cache:
+            return cache[user_id]
+
+        child_ids = children_map.get(user_id, [])
+        if len(child_ids) < 3:
+            cache[user_id] = 0
+            return 0
+
+        child_levels = [_calculate(child_id) for child_id in child_ids]
+
+        level = 0
+        while sum(1 for child_level in child_levels if child_level >= level) >= 3:
+            level += 1
+
+        cache[user_id] = level
+        return level
+
+    return _calculate, cache
+
+
 def build_structure_dataset(
     root_user: Optional[User] = None,
 ) -> Tuple[StructureDataset, StructureStats]:
@@ -78,12 +102,15 @@ def build_structure_dataset(
 
     children_map = _build_children_map(structures)
     count_descendants, descendants_cache = _build_descendants_counter(children_map)
+    calculate_level, levels_cache = _build_level_calculator(children_map)
 
     # Посчитаем для всех пользователей, чтобы кэши были заполнены
     for node in structures:
         count_descendants(node.user_id)
+        calculate_level(node.user_id)
     if root_user:
         count_descendants(root_user.id)
+        calculate_level(root_user.id)
 
     user_card_ids: Dict[int, str] = {}
     if root_user:
@@ -112,6 +139,7 @@ def build_structure_dataset(
 
         direct_referrals = len(children_map.get(node.user_id, []))
         total_referrals = descendants_cache.get(node.user_id, 0)
+        computed_level = levels_cache.get(node.user_id, node.level or 0)
 
         cards.append(
             {
@@ -122,21 +150,24 @@ def build_structure_dataset(
                 "uid": node.user.referral_code
                 or f"{node.user.id:07d}",
                 "username": node.user.username,
-                "level": node.level,
-                "displayLevel": node.level,
+                "level": computed_level,
+                "displayLevel": computed_level,
                 "left": 400 + node.level * 320,
                 "top": 200 + idx * 200,
                 "status": node.user.status,
                 "rank": node.user.rank,
                 "directReferrals": direct_referrals,
                 "totalReferrals": total_referrals,
-                "directInvites": total_referrals,
+                "directInvites": direct_referrals,
             }
         )
         if parent_id:
             child_map_for_front[parent_id].append(card_id)
 
     if root_user and all(card["id"] != "root" for card in cards):
+        root_level = levels_cache.get(root_user.id, 0)
+        root_direct = len(children_map.get(root_user.id, []))
+        root_total = descendants_cache.get(root_user.id, 0)
         cards.insert(
             0,
             {
@@ -147,15 +178,15 @@ def build_structure_dataset(
                 "uid": root_user.referral_code
                 or f"{root_user.id:07d}",
                 "username": root_user.username,
-                "level": 0,
-                "displayLevel": 0,
+                "level": root_level,
+                "displayLevel": root_level,
                 "left": 2400,
                 "top": 200,
                 "status": root_user.status,
                 "rank": root_user.rank,
-                "directReferrals": len(children_map.get(root_user.id, [])),
-                "totalReferrals": descendants_cache.get(root_user.id, 0),
-                "directInvites": descendants_cache.get(root_user.id, 0),
+                "directReferrals": root_direct,
+                "totalReferrals": root_total,
+                "directInvites": root_direct,
             },
         )
 
@@ -173,7 +204,8 @@ def build_structure_dataset(
     total_partners = 0
     total_participants = 0
     for node in structures:
-        level_entry = level_stats[node.level]
+        computed_level = levels_cache.get(node.user_id, node.level or 0)
+        level_entry = level_stats[computed_level]
         level_entry["total"] += 1
         if node.user.status == "partner":
             level_entry["partners"] += 1
@@ -193,9 +225,7 @@ def build_structure_dataset(
             "name": (root_user.get_full_name() or "").strip() or root_user.username,
             "username": root_user.username,
             "rank": root_user.rank,
-            "level": next(
-                (node.level for node in structures if node.user_id == root_user.id), 0
-            ),
+            "level": levels_cache.get(root_user.id, 0),
             "direct_referrals": len(children_map.get(root_user.id, [])),
             "partners_on_first_line": sum(
                 1
@@ -217,7 +247,10 @@ def build_structure_dataset(
             "nodes": len(structures),
             "partners": total_partners,
             "participants": total_participants,
-            "max_depth": max((node.level for node in structures), default=0),
+            "max_depth": max(
+                (levels_cache.get(node.user_id, node.level or 0) for node in structures),
+                default=0,
+            ),
         },
         generated_at=timezone.now().isoformat(),
     )
