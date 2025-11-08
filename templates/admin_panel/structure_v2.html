@@ -2330,7 +2330,7 @@
         }
         
         btnClearTestData.onclick = () => clearTestData();
-        btnClearAll.onclick = () => resetToRoot();
+        btnClearAll.onclick = () => resetToRoot({ seedPlaceholders: true });
         
         async function clearBackendStructure() {
             try {
