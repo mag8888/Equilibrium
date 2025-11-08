@@ -375,6 +375,50 @@ def save_card_api(request):
         return JsonResponse({'error': str(e), 'traceback': traceback.format_exc()}, status=500)
 
 
+@csrf_exempt
+def clear_partners_api(request):
+    """Удаляет всех партнеров из MLM структуры, сохраняя только корневого пользователя"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+    try:
+        with transaction.atomic():
+            structures = list(MLMStructure.objects.select_related('user'))
+            root_structure = next((item for item in structures if item.parent_id is None), None)
+
+            if root_structure:
+                MLMStructure.objects.exclude(pk=root_structure.pk).delete()
+                root_structure.level = 0
+                root_structure.position = 0
+                root_structure.is_active = True
+                root_structure.save()
+                root_user = root_structure.user
+            else:
+                root_user = (
+                    User.objects.filter(is_superuser=True).first()
+                    or User.objects.filter(is_staff=True).first()
+                    or User.objects.first()
+                )
+                MLMStructure.objects.all().delete()
+                if root_user:
+                    root_structure = MLMStructure.objects.create(
+                        user=root_user,
+                        parent=None,
+                        level=0,
+                        position=0,
+                        is_active=True,
+                    )
+
+            if root_user and hasattr(root_user, 'status'):
+                if root_user.status != 'partner':
+                    root_user.status = 'partner'
+                    root_user.save()
+
+        return JsonResponse({'success': True})
+    except Exception as exc:
+        return JsonResponse({'error': str(exc)}, status=500)
+
+
 def admin_users_management(request):
     """Админка для управления пользователями с балансом"""
     from users.models import User

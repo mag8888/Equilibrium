@@ -14,4 +14,5 @@ urlpatterns = [
     # API endpoints
     path('api/structure-data/', demo_views.structure_data_api, name='structure_data_api'),
     path('api/save-card/', demo_views.save_card_api, name='save_card_api'),
+    path('api/clear-partners/', demo_views.clear_partners_api, name='clear_partners_api'),
 ]

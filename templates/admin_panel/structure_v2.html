@@ -2484,7 +2484,9 @@
                     method: 'POST'
                 });
                 if (!response.ok) {
-                    console.error('Ошибка очистки базы партнеров:', await response.text());
+                    if (response.status !== 404) {
+                        console.error('Ошибка очистки базы партнеров:', await response.text());
+                    }
                 }
             } catch (error) {
                 console.error('Ошибка при очистке партнеров в базе:', error);
