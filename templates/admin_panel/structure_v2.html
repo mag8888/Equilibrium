@@ -495,22 +495,9 @@
             const directFilled = node.directFilled || 0;
             const completedLevel = node.level || 0;
 
-            const cappedInvites = Math.min(personalInvites, 3);
-            let yellow = cappedInvites * DIRECT_INVITE_BONUS;
+            let yellow = personalInvites * DIRECT_INVITE_BONUS;
             let red = Math.min(directFilled, 3) * DIRECT_INVITE_BONUS;
             let green = personalInvites * DIRECT_INVITE_BONUS;
-            let transitionAccumulator = 0;
-
-            LEVEL_TRANSITION_REWARDS.forEach(rule => {
-                if (completedLevel >= rule.level) {
-                    yellow += rule.yellow;
-                    transitionAccumulator += rule.transition || 0;
-                }
-            });
-
-            if (transitionAccumulator > 0) {
-                red = transitionAccumulator;
-            }
 
             if (LEVEL_WITHDRAWAL_REWARD && completedLevel >= LEVEL_WITHDRAWAL_REWARD.level) {
                 green += LEVEL_WITHDRAWAL_REWARD.amount;
