@@ -471,18 +471,13 @@
         }
 
         function calculateLevelFromChildren(node, nodes) {
-            const directInvites = node.directInvites || 0;
             const childNodes = node.children
                 .map(childId => nodes.get(childId))
                 .filter(child => child && child.filled);
 
             let level = 0;
-            let required = 3;
-            while (directInvites >= required) {
-                const supporters = childNodes.filter(child => child.newLevel >= level);
-                if (supporters.length < 3) break;
+            while (childNodes.filter(child => child.newLevel >= level).length >= 3) {
                 level += 1;
-                required = required * 3;
             }
             return level;
         }
