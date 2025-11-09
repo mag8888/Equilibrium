@@ -326,27 +326,19 @@
         
         // Заполнение карточки данными
         function chooseSideForNewChild(parentCard, existingChildren) {
-            if (existingChildren.length === 0) return 'middle';
-            if (existingChildren.length === 1) {
-                const existing = existingChildren[0];
-                const parentX = parseInt(parentCard.style.left) || 0;
-                const childX = parseInt(existing.style.left) || 0;
-                if (childX < parentX) return 'right';
-                if (childX > parentX) return 'left';
-                return 'left';
-            }
             const parentX = parseInt(parentCard.style.left) || 0;
-            let leftCount = 0;
-            let rightCount = 0;
-            existingChildren.forEach(child => {
+            const detectSlot = (child) => {
                 const childX = parseInt(child.style.left) || 0;
-                if (childX < parentX) {
-                    leftCount += 1;
-                } else {
-                    rightCount += 1;
-                }
-            });
-            return leftCount <= rightCount ? 'left' : 'right';
+                const delta = childX - parentX;
+                if (Math.abs(delta) < 60) return 'middle';
+                return delta < 0 ? 'left' : 'right';
+            };
+
+            const slots = new Set(existingChildren.map(detectSlot));
+            if (!slots.has('middle')) return 'middle';
+            if (!slots.has('left')) return 'left';
+            if (!slots.has('right')) return 'right';
+            return 'right';
         }
         
         // Заполнение одного дочернего объекта (или дочернего дочернего если все 3 заняты)
@@ -387,14 +379,15 @@
                 const candidates = children
                     .map(child => ({
                         element: child,
-                        invites: parseInt(child.dataset.directInvites || child.dataset.directReferrals || '0', 10),
-                        descendants: parseInt(child.dataset.totalReferrals || '0', 10),
+                        filled: countFilledChildren(child),
                         top: parseInt(child.style.top) || 0,
+                        left: parseInt(child.style.left) || 0,
                     }))
                     .sort((a, b) => {
-                        if (a.invites !== b.invites) return a.invites - b.invites;
-                        if (a.descendants !== b.descendants) return a.descendants - b.descendants;
-                        return a.top - b.top;
+                        if (a.filled !== b.filled) return a.filled - b.filled;
+                        if (a.top !== b.top) return a.top - b.top;
+                        if (a.left !== b.left) return a.left - b.left;
+                        return (a.element.dataset.id || '').localeCompare(b.element.dataset.id || '');
                     });
 
                 for (const candidate of candidates) {
@@ -410,7 +403,6 @@
             if (added) {
                 incrementDirectInvites(card);
                 await recalculateAllLevels();
-                autoLayoutCards();
                 renderCardContents(card);
                 savePositions();
                 updateStats();
@@ -1609,8 +1601,6 @@
             
             // Обновляем связи и сохраняем
             recalculateAllLevels();
-            autoLayoutCards();
-
             savePositions();
             updateStats();
         }
@@ -2556,6 +2546,27 @@
             updateAllConnections();
             updateStats();
             await ensureRootInDatabase();
+        }
+
+        function countFilledChildren(card) {
+            return Array.from(canvas.querySelectorAll(`.card[data-parent="${card.dataset.id}"]`)).filter(isCardFilled).length;
+        }
+
+        function sortNodesByCapacity(nodeIds) {
+            return nodeIds.slice().sort((a, b) => {
+                const aCard = canvas.querySelector(`.card[data-id="${a}"]`);
+                const bCard = canvas.querySelector(`.card[data-id="${b}"]`);
+                const aFilled = aCard ? countFilledChildren(aCard) : 0;
+                const bFilled = bCard ? countFilledChildren(bCard) : 0;
+                if (aFilled !== bFilled) return aFilled - bFilled;
+                const aTop = aCard ? parseInt(aCard.style.top) || 0 : 0;
+                const bTop = bCard ? parseInt(bCard.style.top) || 0 : 0;
+                if (aTop !== bTop) return aTop - bTop;
+                const aLeft = aCard ? parseInt(aCard.style.left) || 0 : 0;
+                const bLeft = bCard ? parseInt(bCard.style.left) || 0 : 0;
+                if (aLeft !== bLeft) return aLeft - bLeft;
+                return a.localeCompare(b);
+            });
         }
     </script>
 </body>
