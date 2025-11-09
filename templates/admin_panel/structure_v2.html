@@ -1843,18 +1843,13 @@
                 }
             });
 
-            nodeMap.forEach((node, id) => {
+            nodeMap.forEach(node => {
                 node.children.sort((a, b) => {
-                    const aNode = nodeMap.get(a);
-                    const bNode = nodeMap.get(b);
-                    const aFilled = aNode ? (aNode.children.length || 0) : 0;
-                    const bFilled = bNode ? (bNode.children.length || 0) : 0;
-                    if (aFilled !== bFilled) return aFilled - bFilled;
-                    const aCard = aNode?.card;
-                    const bCard = bNode?.card;
-                    const aTop = aCard ? parseInt(aCard.style.top) || 0 : 0;
-                    const bTop = bCard ? parseInt(bCard.style.top) || 0 : 0;
-                    if (aTop !== bTop) return aTop - bTop;
+                    const aCard = nodeMap.get(a)?.card;
+                    const bCard = nodeMap.get(b)?.card;
+                    const aLeft = aCard ? parseInt(aCard.style.left) || 0 : 0;
+                    const bLeft = bCard ? parseInt(bCard.style.left) || 0 : 0;
+                    if (aLeft !== bLeft) return aLeft - bLeft;
                     return a.localeCompare(b);
                 });
             });
@@ -1866,15 +1861,6 @@
                 }
             });
             if (roots.length === 0) return;
-
-            roots.sort((a, b) => {
-                const aNode = nodeMap.get(a);
-                const bNode = nodeMap.get(b);
-                const aFilled = aNode ? (aNode.children.length || 0) : 0;
-                const bFilled = bNode ? (bNode.children.length || 0) : 0;
-                if (aFilled !== bFilled) return aFilled - bFilled;
-                return a.localeCompare(b);
-            });
 
             const MIN_SUBTREE_WIDTH = CARD_WIDTH + SUBTREE_MARGIN * 2;
             const subtreeWidth = new Map();
