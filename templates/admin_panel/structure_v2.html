@@ -326,7 +326,15 @@
         
         // Заполнение карточки данными
         function chooseSideForNewChild(parentCard, existingChildren) {
-            if (existingChildren.length === 0) return 'left';
+            if (existingChildren.length === 0) return 'middle';
+            if (existingChildren.length === 1) {
+                const existing = existingChildren[0];
+                const parentX = parseInt(parentCard.style.left) || 0;
+                const childX = parseInt(existing.style.left) || 0;
+                if (childX < parentX) return 'right';
+                if (childX > parentX) return 'left';
+                return 'left';
+            }
             const parentX = parseInt(parentCard.style.left) || 0;
             let leftCount = 0;
             let rightCount = 0;
@@ -1509,22 +1517,24 @@
                 ny = py + templatePos.offsetY;
             } else {
                 // Используем стандартную логику
-                const horizontalOffset = side === 'left' ? -240 : 240;
-                // Вертикальные уровни: первый выше, второй по центру, третий ниже
-                // Берём расстояние из первого существующего ребёнка, если есть, иначе дефолт 120
-                let dy = 120;
-                const existing = Array.from(canvas.querySelectorAll(`.card[data-parent="${parentId}"]`));
-                if (existing.length > 0) {
-                    const base = py + 200;
-                    // Берём смещение первого ребёнка (по модулю)
-                    const firstChild = existing[0];
-                    const firstOffset = Math.abs((parseInt(firstChild.style.top) || 0) - base);
-                    if (firstOffset > 0) dy = Math.max(40, Math.min(240, firstOffset));
+                const horizontalOffset = side === 'left' ? -240 : side === 'right' ? 240 : 0;
+                const offsetMap = { 0: -240, 1: 0, 2: 240 };
+                let indexOffset = offsetMap[Math.min(index, 2)];
+                if (side === 'right' && index === 1) {
+                    indexOffset = 240;
+                } else if (side === 'left' && index === 1) {
+                    indexOffset = -240;
+                } else if (side === 'middle') {
+                    indexOffset = 0;
                 }
-                const verticalLevels = [-dy, 0, dy]; // выше, центр, ниже
+                const verticalLevels = [-dy, 0, dy];
                 const baseY = py + 200;
                 const vy = verticalLevels[Math.min(index, 2)];
-                nx = px + horizontalOffset + (side === 'left' ? -index * 0 : 0);
+                if (side === 'middle') {
+                    nx = px;
+                } else {
+                    nx = px + indexOffset;
+                }
                 ny = baseY + vy;
             }
             
