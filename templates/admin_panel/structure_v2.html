@@ -403,6 +403,7 @@
             if (added) {
                 incrementDirectInvites(card);
                 await recalculateAllLevels();
+                autoLayoutCards();
                 renderCardContents(card);
                 savePositions();
                 updateStats();
@@ -1601,6 +1602,7 @@
             
             // Обновляем связи и сохраняем
             recalculateAllLevels();
+            autoLayoutCards();
             savePositions();
             updateStats();
         }
@@ -1827,6 +1829,11 @@
             });
 
             nodeMap.forEach((node, id) => {
+                const orderedChildren = Array.from(getChildSet(id)).filter(childId => nodeMap.has(childId));
+                node.children = orderedChildren;
+            });
+
+            nodeMap.forEach((node, id) => {
                 const parentId = parentOf.get(id);
                 if (parentId && nodeMap.has(parentId)) {
                     nodeMap.get(parentId).children.push(id);
@@ -1857,14 +1864,17 @@
             });
             if (roots.length === 0) return;
 
-            roots.sort((a, b) => {
-                const aNode = nodeMap.get(a);
-                const bNode = nodeMap.get(b);
-                const aFilled = aNode ? (aNode.children.length || 0) : 0;
-                const bFilled = bNode ? (bNode.children.length || 0) : 0;
-                if (aFilled !== bFilled) return aFilled - bFilled;
-                return a.localeCompare(b);
-            });
+            const getExistingLeft = (id) => {
+                const card = nodeMap.get(id)?.card;
+                return card ? parseInt(card.style.left) || 0 : 0;
+            };
+
+            if (roots.includes('root')) {
+                const others = roots.filter(id => id !== 'root').sort((a, b) => getExistingLeft(a) - getExistingLeft(b));
+                roots = ['root', ...others];
+            } else {
+                roots.sort((a, b) => getExistingLeft(a) - getExistingLeft(b));
+            }
 
             const MIN_SUBTREE_WIDTH = CARD_WIDTH + SUBTREE_MARGIN * 2;
             const subtreeWidth = new Map();
