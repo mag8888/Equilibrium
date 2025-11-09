@@ -402,6 +402,7 @@
             if (added) {
                 incrementDirectInvites(card);
                 await recalculateAllLevels();
+                autoLayoutCards();
                 renderCardContents(card);
                 savePositions();
                 updateStats();
@@ -1595,8 +1596,9 @@
             }
             
             // Обновляем связи и сохраняем
-            updateAllConnections();
             recalculateAllLevels();
+            autoLayoutCards();
+
             savePositions();
             updateStats();
         }
@@ -1738,22 +1740,23 @@
         initializeStructureCanvas();
 
         // ----- Связи (как в Miro): гибкие кривые, следуют за карточками -----
-        function getAnchorRight(card) {
+        function getAnchorBottom(card) {
             const left = parseInt(card.style.left) || 0;
             const top = parseInt(card.style.top) || 0;
-            const w = Math.max(card.offsetWidth, 140);
-            const h = Math.max(card.offsetHeight, 64);
-            return { x: left + w, y: top + h / 2 };
+            const width = Math.max(card.offsetWidth, 160);
+            const height = Math.max(card.offsetHeight, 80);
+            return { x: left + width / 2, y: top + height };
         }
-        function getAnchorLeft(card) {
+        function getAnchorTop(card) {
             const left = parseInt(card.style.left) || 0;
             const top = parseInt(card.style.top) || 0;
-            return { x: left, y: top + (Math.max(card.offsetHeight, 64) / 2) };
+            const width = Math.max(card.offsetWidth, 160);
+            return { x: left + width / 2, y: top };
         }
         function pathCubic(start, end) {
-            const dx = Math.max(40, Math.abs(end.x - start.x) * 0.5);
-            const c1 = { x: start.x + dx, y: start.y };
-            const c2 = { x: end.x - dx, y: end.y };
+            const dy = Math.max(60, Math.abs(end.y - start.y) * 0.5);
+            const c1 = { x: start.x, y: start.y + dy };
+            const c2 = { x: end.x, y: end.y - dy };
             return `M ${start.x} ${start.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${end.x} ${end.y}`;
         }
         function ensureLinkPath(id) {
@@ -1776,8 +1779,8 @@
             if (!parentId) return;
             const parentCard = canvas.querySelector(`.card[data-id="${parentId}"]`);
             if (!parentCard) return;
-            const start = getAnchorRight(parentCard);
-            const end = getAnchorLeft(childCard);
+            const start = getAnchorBottom(parentCard);
+            const end = getAnchorTop(childCard);
             const d = pathCubic(start, end);
             const g = ensureLinkPath(childCard.dataset.id);
             g.firstChild.setAttribute('d', d);
@@ -1800,184 +1803,105 @@
         function autoLayoutCards() {
             const cards = Array.from(canvas.querySelectorAll('.card'));
             if (cards.length === 0) return;
-            
+
             const CARD_WIDTH = 160;
             const CARD_HEIGHT = 80;
-            const HORIZONTAL_GAP = 250; // Отступ между карточками на одном уровне по горизонтали
-            const SAFETY_MARGIN = 100; // Отступ при проверке пересечений
-            const CANVAS_WIDTH = 6500; // Ширина canvas
-            const CANVAS_HEIGHT = 8450; // Высота canvas
+            const HORIZONTAL_MARGIN = 20;
+            const VERTICAL_GAP = 200;
             const GRID_SIZE = 40;
-            
-            // Конфигурация для каждого уровня (логичное распределение)
-            const centerY = CANVAS_HEIGHT / 2 + 800; // Центр по вертикали + смещение вниз
-            const levelConfig = {
-                5: { 
-                    x: 300, 
-                    y: centerY, 
-                    verticalGap: null 
-                }, // Root: слева, по центру вертикально
-                4: { 
-                    x: 1200, 
-                    y: null, 
-                    verticalGap: 500 
-                }, // Увеличенный отступ для линий
-                3: { 
-                    x: 2200, 
-                    y: null, 
-                    verticalGap: 450 
-                }, // Увеличенный отступ
-                2: { 
-                    x: 3400, 
-                    y: null, 
-                    verticalGap: 350 
-                }, // Увеличенный отступ
-                1: { 
-                    x: 4600, 
-                    y: null, 
-                    verticalGap: 250 
-                }, // Увеличенный отступ
-                0: { 
-                    x: 5800, 
-                    y: null, 
-                    verticalGap: null 
-                } // Максимально справа, равномерно по высоте
-            };
-            
-            // Создаем карту карточек по ID
-            const cardMap = new Map();
+            const TOP_MARGIN = 120;
+            const CANVAS_WIDTH = 6500;
+
+            const nodeMap = new Map();
+            const parentOf = new Map();
             cards.forEach(card => {
-                cardMap.set(card.dataset.id, card);
-            });
-            
-            // Группируем карточки по уровням
-            const cardsByLevel = {};
-            cards.forEach(card => {
-                const depth = parseInt(card.dataset.level || '0');
-                const displayLevel = depth;
-                if (!cardsByLevel[displayLevel]) cardsByLevel[displayLevel] = [];
-                cardsByLevel[displayLevel].push(card);
-            });
-            
-            // Храним все размещенные карточки для проверки пересечений
-            const allPlacedRects = [];
-            
-            // Функция проверки пересечения прямоугольника с уже размещенными
-            function hasCollision(rect, excludeCard = null) {
-                for (const placed of allPlacedRects) {
-                    if (excludeCard && placed.card === excludeCard) continue;
-                    if (!(rect.right + SAFETY_MARGIN < placed.left || 
-                          rect.left - SAFETY_MARGIN > placed.right ||
-                          rect.bottom + SAFETY_MARGIN < placed.top || 
-                          rect.top - SAFETY_MARGIN > placed.bottom)) {
-                        return true;
-                    }
+                const id = card.dataset.id;
+                nodeMap.set(id, { card, children: [] });
+                const parentId = card.dataset.parent || null;
+                if (parentId) {
+                    parentOf.set(id, parentId);
                 }
-                return false;
+            });
+
+            nodeMap.forEach((node, id) => {
+                const parentId = parentOf.get(id);
+                if (parentId && nodeMap.has(parentId)) {
+                    nodeMap.get(parentId).children.push(id);
+                }
+            });
+
+            let rootId = 'root';
+            if (!nodeMap.has(rootId)) {
+                rootId = null;
+                nodeMap.forEach((_, id) => {
+                    if (rootId) return;
+                    if (!parentOf.has(id)) {
+                        rootId = id;
+                    }
+                });
             }
-            
-            // Размещаем карточки по уровням
-            [5, 4, 3, 2, 1, 0].forEach(displayLevel => {
-                const levelCards = cardsByLevel[displayLevel] || [];
-                if (levelCards.length === 0) return;
-                
-                const config = levelConfig[displayLevel];
-                const levelX = config.x;
-                
-                // Сортируем карточки по позиции родителя (если есть)
-                levelCards.sort((a, b) => {
-                    const aParentId = a.dataset.parent || 'root';
-                    const bParentId = b.dataset.parent || 'root';
-                    const aParent = cardMap.get(aParentId);
-                    const bParent = cardMap.get(bParentId);
-                    
-                    if (aParent && bParent) {
-                        const aX = parseInt(aParent.style.left) || 0;
-                        const bX = parseInt(bParent.style.left) || 0;
-                        if (aX !== bX) return aX - bX;
-                    }
-                    return (a.dataset.id || '').localeCompare(b.dataset.id || '');
+            if (!rootId) return;
+
+            const levels = [];
+            const queue = [{ id: rootId, depth: 0 }];
+            const visited = new Set();
+            while (queue.length > 0) {
+                const { id, depth } = queue.shift();
+                if (visited.has(id)) continue;
+                visited.add(id);
+                if (!levels[depth]) levels[depth] = [];
+                levels[depth].push(id);
+                const node = nodeMap.get(id);
+                if (!node) continue;
+                const children = node.children.slice().sort((a, b) => {
+                    const aCard = nodeMap.get(a)?.card;
+                    const bCard = nodeMap.get(b)?.card;
+                    const aLeft = aCard ? parseInt(aCard.style.left) || 0 : 0;
+                    const bLeft = bCard ? parseInt(bCard.style.left) || 0 : 0;
+                    if (aLeft !== bLeft) return aLeft - bLeft;
+                    return a.localeCompare(b);
                 });
-                
-                // Вычисляем позиции Y для карточек
-                let cardYPositions = [];
-                
-                if (displayLevel === 5) {
-                    // Уровень 5: фиксированная позиция Y
-                    cardYPositions = levelCards.map(() => config.y);
-                } else if (displayLevel === 0) {
-                    // Уровень 0: равномерно по всей высоте с смещением вниз
-                    const topMargin = 600;
-                    const bottomMargin = 600;
-                    const availableHeight = CANVAS_HEIGHT - topMargin - bottomMargin;
-                    const spacing = levelCards.length > 1 
-                        ? availableHeight / (levelCards.length - 1) 
-                        : 0;
-                    cardYPositions = levelCards.map((_, index) => topMargin + index * spacing);
+                children.forEach(childId => queue.push({ id: childId, depth: depth + 1 }));
+            }
+
+            const widthAvailable = CANVAS_WIDTH - HORIZONTAL_MARGIN * 2 - CARD_WIDTH;
+            levels.forEach((levelIds = [], depth) => {
+                if (levelIds.length === 0) return;
+                const count = levelIds.length;
+                let positionsX;
+                if (count === 1) {
+                    positionsX = [(CANVAS_WIDTH - CARD_WIDTH) / 2];
                 } else {
-                    // Уровни 4, 3, 2, 1: центрирование с указанным расстоянием между карточками
-                    const totalHeight = (levelCards.length - 1) * config.verticalGap;
-                    const startY = (CANVAS_HEIGHT - totalHeight) / 2 + 600; // Смещение вниз
-                    cardYPositions = levelCards.map((_, index) => startY + index * config.verticalGap);
+                    const step = widthAvailable / (count - 1);
+                    positionsX = levelIds.map((_, index) => HORIZONTAL_MARGIN + index * step);
                 }
-                
-                // Вычисляем ширину всех карточек на этом уровне
-                const totalCardsWidth = levelCards.length * CARD_WIDTH + (levelCards.length - 1) * HORIZONTAL_GAP;
-                
-                // Центрируем группу карточек относительно levelX
-                let currentX = levelX - totalCardsWidth / 2;
-                
-                // Размещаем карточки
-                levelCards.forEach((child, index) => {
-                    const y = cardYPositions[index];
-                    let cardX = currentX;
-                    
-                    // Проверяем пересечения и сдвигаем при необходимости
-                    let attempts = 0;
-                    let hasOverlap = true;
-                    while (hasOverlap && attempts < 300) {
-                        const testRect = {
-                            left: cardX,
-                            right: cardX + CARD_WIDTH,
-                            top: y,
-                            bottom: y + CARD_HEIGHT
-                        };
-                        
-                        if (hasCollision(testRect)) {
-                            cardX += HORIZONTAL_GAP / 3;
-                            attempts++;
-                        } else {
-                            hasOverlap = false;
-                        }
-                    }
-                    
-                    const x = Math.round(cardX / GRID_SIZE) * GRID_SIZE;
-                    child.style.left = x + 'px';
-                    child.style.top = Math.round(y / GRID_SIZE) * GRID_SIZE + 'px';
-                    
-                    allPlacedRects.push({
-                        card: child,
-                        left: x,
-                        right: x + CARD_WIDTH,
-                        top: y,
-                        bottom: y + CARD_HEIGHT
-                    });
-                    
-                    currentX = x + CARD_WIDTH + HORIZONTAL_GAP;
+                levelIds.forEach((id, index) => {
+                    const node = nodeMap.get(id);
+                    if (!node) return;
+                    const card = node.card;
+                    const rawX = positionsX[index];
+                    const rawY = TOP_MARGIN + depth * (CARD_HEIGHT + VERTICAL_GAP);
+                    const snappedX = Math.round(rawX / GRID_SIZE) * GRID_SIZE;
+                    const snappedY = Math.round(rawY / GRID_SIZE) * GRID_SIZE;
+                    card.style.left = snappedX + 'px';
+                    card.style.top = snappedY + 'px';
                 });
             });
-            
-            // Обновляем связи и сохраняем
+
             updateAllConnections();
             savePositions();
             updateStats();
-            
-            // Автоматически центрируем canvas после расстановки
             setTimeout(() => {
-                btnCenter.click();
+                if (typeof showAllCards === 'function') {
+                    showAllCards();
+                } else if (btnCenter) {
+                    btnCenter.click();
+                } else {
+                    applyTransform();
+                }
             }, 100);
         }
-        
+
         btnAutoLayout.onclick = () => autoLayoutCards();
 
         // Подсчет статистики по уровням - считаем партнеров первого аккаунта (root)
