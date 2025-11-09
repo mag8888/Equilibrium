@@ -1517,7 +1517,14 @@
                 ny = py + templatePos.offsetY;
             } else {
                 // Используем стандартную логику
-                const horizontalOffset = side === 'left' ? -240 : side === 'right' ? 240 : 0;
+                let dy = 120;
+                const existing = Array.from(canvas.querySelectorAll(`.card[data-parent="${parentId}"]`));
+                if (existing.length > 0) {
+                    const base = py + 200;
+                    const firstChild = existing[0];
+                    const firstOffset = Math.abs((parseInt(firstChild.style.top) || 0) - base);
+                    if (firstOffset > 0) dy = Math.max(40, Math.min(240, firstOffset));
+                }
                 const offsetMap = { 0: -240, 1: 0, 2: 240 };
                 let indexOffset = offsetMap[Math.min(index, 2)];
                 if (side === 'right' && index === 1) {
