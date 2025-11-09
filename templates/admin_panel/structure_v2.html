@@ -1806,10 +1806,11 @@
 
             const CARD_WIDTH = 160;
             const CARD_HEIGHT = 80;
-            const HORIZONTAL_MARGIN = 20;
-            const VERTICAL_GAP = 200;
+            const VERTICAL_GAP = 220;
             const GRID_SIZE = 40;
             const TOP_MARGIN = 120;
+            const NODE_GAP_X = 40;
+            const SUBTREE_MARGIN = 40;
             const CANVAS_WIDTH = 6500;
 
             const nodeMap = new Map();
@@ -1830,30 +1831,8 @@
                 }
             });
 
-            let rootId = 'root';
-            if (!nodeMap.has(rootId)) {
-                rootId = null;
-                nodeMap.forEach((_, id) => {
-                    if (rootId) return;
-                    if (!parentOf.has(id)) {
-                        rootId = id;
-                    }
-                });
-            }
-            if (!rootId) return;
-
-            const levels = [];
-            const queue = [{ id: rootId, depth: 0 }];
-            const visited = new Set();
-            while (queue.length > 0) {
-                const { id, depth } = queue.shift();
-                if (visited.has(id)) continue;
-                visited.add(id);
-                if (!levels[depth]) levels[depth] = [];
-                levels[depth].push(id);
-                const node = nodeMap.get(id);
-                if (!node) continue;
-                const children = node.children.slice().sort((a, b) => {
+            nodeMap.forEach(node => {
+                node.children.sort((a, b) => {
                     const aCard = nodeMap.get(a)?.card;
                     const bCard = nodeMap.get(b)?.card;
                     const aLeft = aCard ? parseInt(aCard.style.left) || 0 : 0;
@@ -1861,31 +1840,86 @@
                     if (aLeft !== bLeft) return aLeft - bLeft;
                     return a.localeCompare(b);
                 });
-                children.forEach(childId => queue.push({ id: childId, depth: depth + 1 }));
+            });
+
+            let roots = [];
+            nodeMap.forEach((_, id) => {
+                if (!parentOf.has(id)) {
+                    roots.push(id);
+                }
+            });
+            if (roots.length === 0) return;
+
+            const MIN_SUBTREE_WIDTH = CARD_WIDTH + SUBTREE_MARGIN * 2;
+            const subtreeWidth = new Map();
+
+            function measureSubtree(id) {
+                const node = nodeMap.get(id);
+                if (!node) {
+                    return MIN_SUBTREE_WIDTH;
+                }
+                if (!node.children.length) {
+                    subtreeWidth.set(id, MIN_SUBTREE_WIDTH);
+                    return MIN_SUBTREE_WIDTH;
+                }
+                let total = 0;
+                node.children.forEach((childId, index) => {
+                    const childWidth = measureSubtree(childId);
+                    total += childWidth;
+                    if (index < node.children.length - 1) {
+                        total += NODE_GAP_X;
+                    }
+                });
+                total = Math.max(total, MIN_SUBTREE_WIDTH);
+                subtreeWidth.set(id, total);
+                return total;
             }
 
-            const widthAvailable = CANVAS_WIDTH - HORIZONTAL_MARGIN * 2 - CARD_WIDTH;
-            levels.forEach((levelIds = [], depth) => {
-                if (levelIds.length === 0) return;
-                const count = levelIds.length;
-                let positionsX;
-                if (count === 1) {
-                    positionsX = [(CANVAS_WIDTH - CARD_WIDTH) / 2];
-                } else {
-                    const step = widthAvailable / (count - 1);
-                    positionsX = levelIds.map((_, index) => HORIZONTAL_MARGIN + index * step);
+            roots.forEach(rootId => measureSubtree(rootId));
+
+            const rootGap = 200;
+            let totalRootsWidth = 0;
+            roots.forEach((rootId, index) => {
+                const w = subtreeWidth.get(rootId) || MIN_SUBTREE_WIDTH;
+                totalRootsWidth += w;
+                if (index < roots.length - 1) {
+                    totalRootsWidth += rootGap;
                 }
-                levelIds.forEach((id, index) => {
-                    const node = nodeMap.get(id);
-                    if (!node) return;
-                    const card = node.card;
-                    const rawX = positionsX[index];
-                    const rawY = TOP_MARGIN + depth * (CARD_HEIGHT + VERTICAL_GAP);
-                    const snappedX = Math.round(rawX / GRID_SIZE) * GRID_SIZE;
-                    const snappedY = Math.round(rawY / GRID_SIZE) * GRID_SIZE;
-                    card.style.left = snappedX + 'px';
-                    card.style.top = snappedY + 'px';
+            });
+            let currentLeft = Math.max((CANVAS_WIDTH - totalRootsWidth) / 2, SUBTREE_MARGIN);
+
+            function layoutSubtree(id, depth, left) {
+                const node = nodeMap.get(id);
+                if (!node) return;
+                const width = subtreeWidth.get(id) || MIN_SUBTREE_WIDTH;
+                const centerX = left + width / 2;
+                const y = TOP_MARGIN + depth * (CARD_HEIGHT + VERTICAL_GAP);
+                const snappedX = Math.round((centerX - CARD_WIDTH / 2) / GRID_SIZE) * GRID_SIZE;
+                const snappedY = Math.round(y / GRID_SIZE) * GRID_SIZE;
+                node.card.style.left = snappedX + 'px';
+                node.card.style.top = snappedY + 'px';
+
+                if (!node.children.length) {
+                    return;
+                }
+                let childLeft = left;
+                node.children.forEach((childId, index) => {
+                    const childWidth = subtreeWidth.get(childId) || MIN_SUBTREE_WIDTH;
+                    layoutSubtree(childId, depth + 1, childLeft);
+                    childLeft += childWidth;
+                    if (index < node.children.length - 1) {
+                        childLeft += NODE_GAP_X;
+                    }
                 });
+            }
+
+            roots.forEach((rootId, index) => {
+                const width = subtreeWidth.get(rootId) || MIN_SUBTREE_WIDTH;
+                layoutSubtree(rootId, 0, currentLeft);
+                currentLeft += width;
+                if (index < roots.length - 1) {
+                    currentLeft += rootGap;
+                }
             });
 
             updateAllConnections();
