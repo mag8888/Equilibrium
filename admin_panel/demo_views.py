@@ -2,9 +2,6 @@
 Демо-версия админ-панели без требования аутентификации
 Используется для демонстрации функционала
 """
-import json
-from pathlib import Path
-
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -13,8 +10,6 @@ from django.db import transaction
 from .structure_data import build_structure_dataset
 from users.models import User
 from mlm.models import MLMStructure
-
-LAYOUT_COORDINATES_PATH = Path(__file__).resolve().parent / 'layout_coordinates.json'
 
 
 def admin_demo_dashboard(request):
@@ -246,29 +241,14 @@ def structure_data_api(request):
 
 
 @csrf_exempt
-def upload_layout_api(request):
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
-    try:
-        payload = json.loads(request.body)
-        LAYOUT_COORDINATES_PATH.write_text(
-            json.dumps(payload, ensure_ascii=False, indent=2),
-            encoding='utf-8',
-        )
-        return JsonResponse({'success': True})
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON payload'}, status=400)
-    except Exception as exc:
-        return JsonResponse({'error': str(exc)}, status=500)
-
-
-@csrf_exempt
 def save_card_api(request):
     """API для сохранения карточки в базу данных"""
     if request.method != 'POST':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
     
     try:
+        import json
+        
         data = json.loads(request.body)
         uid = data.get('uid')
         name = data.get('name')
