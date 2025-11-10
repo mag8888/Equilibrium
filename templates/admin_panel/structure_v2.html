@@ -1067,6 +1067,27 @@
                     throw new Error(text || `HTTP ${response.status}`);
                 }
                 const payload = await response.json();
+                if (
+                    payload &&
+                    payload.structure &&
+                    Array.isArray(payload.structure.cards) &&
+                    payload.structure.cards.length === 0 &&
+                    payload.stats &&
+                    payload.stats.root
+                ) {
+                    const rootStats = payload.stats.root;
+                    payload.structure.cards.push({
+                        id: 'root',
+                        parent: null,
+                        name: rootStats.name || rootStats.username || 'Root',
+                        uid: rootStats.username ? String(rootStats.username).toUpperCase() : '0000001',
+                        level: rootStats.level || 0,
+                        directReferrals: rootStats.direct_referrals || 0,
+                        totalReferrals: rootStats.total_descendants || 0,
+                        bonusYellow: 0,
+                        payoutGreen: 0,
+                    });
+                }
                 if (payload && payload.structure && Array.isArray(payload.structure.cards)) {
                     isRestoringFromStorage = true;
                     hydrateStructureFromPayload(payload.structure, {
