@@ -2576,6 +2576,7 @@
             }
         }
 
+        const rootCard = canvas.querySelector('.card[data-id="root"]');
         if (rootCard) {
             let savedInvites;
             if (payload.directInvites && payload.directInvites[rootCard.dataset.id] !== undefined) {
