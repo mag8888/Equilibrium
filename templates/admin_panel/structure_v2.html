@@ -1339,12 +1339,12 @@
                 autoLayoutAfter = false,
                 saveState = true,
                 resetServerStats = false,
-                recalcLevels = false,
             } = options;
             if (!payload || !Array.isArray(payload.cards)) {
                 console.warn('hydrateStructureFromPayload: invalid payload', payload);
                 return false;
             }
+            const localDirectInvites = loadDirectInvitesFromLocalStorage();
             const rootCard = ensureRootCardExists();
             canvas.querySelectorAll('.card').forEach(card => {
                 if (card !== rootCard) {
@@ -1378,6 +1378,8 @@
                 card.dataset.level = String(levelValue);
                 if (item.name) card.dataset.name = item.name;
                 if (item.uid) card.dataset.uid = item.uid;
+                const directInviteValue = localDirectInvites.get(card.dataset.id) ?? parseInt(card.dataset.directInvites || '0', 10) ?? 0;
+                card.dataset.directInvites = String(directInviteValue);
                 if (item.status) card.dataset.status = item.status;
                 if (item.rank !== undefined) card.dataset.rank = item.rank;
                 card.dataset.directReferrals = String(
@@ -1731,6 +1733,19 @@
             }
             updateStats();
             initGuideLines();
+
+            const rootCard = ensureRootCardExists();
+            if (rootCard) {
+                const savedInvites = localDirectInvites.get(rootCard.dataset.id);
+                if (typeof savedInvites === 'number') {
+                    rootCard.dataset.directInvites = String(savedInvites);
+                }
+            }
+            canvas.querySelectorAll('.card').forEach(card => {
+                if (card !== rootCard) {
+                    card.remove();
+                }
+            });
         }
 
         initializeStructureCanvas();
@@ -2554,6 +2569,24 @@
                 }
             });
             return leftCount <= rightCount ? 'left' : 'right';
+        }
+
+        function loadDirectInvitesFromLocalStorage() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (!saved) return new Map();
+                const data = JSON.parse(saved);
+                if (!data.cards) return new Map();
+                const map = new Map();
+                data.cards.forEach(item => {
+                    if (!item || !item.id) return;
+                    map.set(String(item.id), parseInt(item.directInvites || '0', 10) || 0);
+                });
+                return map;
+            } catch (error) {
+                console.warn('Failed to load directInvites from localStorage', error);
+                return new Map();
+            }
         }
     </script>
 </body>
