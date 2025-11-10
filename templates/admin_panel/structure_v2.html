@@ -1081,6 +1081,12 @@
                             bonusYellow: 0,
                             payoutGreen: 0,
                         });
+                        if (!payload.structure.childMap) {
+                            payload.structure.childMap = [];
+                        }
+                        if (!Array.isArray(payload.structure.childMap)) {
+                            payload.structure.childMap = [];
+                        }
                     }
                 }
                 if (payload && payload.structure && Array.isArray(payload.structure.cards)) {
