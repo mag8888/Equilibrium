@@ -412,9 +412,7 @@
                 incrementDirectInvites(card);
                 await recalculateAllLevels();
                 renderCardContents(updatedParent);
-                if (updatedParent !== card) {
-                    renderCardContents(card);
-                }
+                renderCardContents(card);
                 savePositions();
                 updateStats();
             }
@@ -1260,7 +1258,7 @@
                     if (item.name) card.dataset.name = item.name;
                     if (item.uid) card.dataset.uid = item.uid;
                     if (item.directInvites !== undefined || item.totalReferrals !== undefined || card.dataset.directInvites !== undefined) {
-                        const invitesValue = item.directInvites ?? item.totalReferrals ?? card.dataset.directInvites ?? card.dataset.directReferrals ?? '0';
+                        const invitesValue = item.directInvites ?? card.dataset.directInvites ?? card.dataset.directReferrals ?? '0';
                         card.dataset.directInvites = String(invitesValue);
                     }
                     if (item.directReferrals !== undefined) {
