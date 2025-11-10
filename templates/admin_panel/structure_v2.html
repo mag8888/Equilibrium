@@ -1501,6 +1501,10 @@
 
             cardMap.forEach(card => updatePointsState(card));
 
+            // Восстанавливаем пустые слоты перед пересчетом и авторасстановкой,
+            // чтобы сетка отображала все потенциальные позиции.
+            ensureDefaultStructure();
+
             if (recalcLevels) {
                 isRestoringFromStorage = true;
                 try {
