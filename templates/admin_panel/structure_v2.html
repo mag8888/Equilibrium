@@ -2587,19 +2587,6 @@
                 return new Map();
             }
         }
-
-        const rootCard = canvas.querySelector('.card[data-id="root"]');
-        if (rootCard) {
-            let savedInvites;
-            if (payload.directInvites && payload.directInvites[rootCard.dataset.id] !== undefined) {
-                savedInvites = parseInt(payload.directInvites[rootCard.dataset.id], 10);
-            } else {
-                savedInvites = localDirectInvites.get(rootCard.dataset.id);
-            }
-            if (typeof savedInvites === 'number' && !Number.isNaN(savedInvites)) {
-                rootCard.dataset.directInvites = String(savedInvites);
-            }
-        }
     </script>
 </body>
 </html>
