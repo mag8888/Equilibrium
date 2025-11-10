@@ -1404,6 +1404,18 @@
                 cardMap.set(card.dataset.id, card);
             });
 
+            if (rootCard) {
+                let savedInvites;
+                if (payload.directInvites && payload.directInvites[rootCard.dataset.id] !== undefined) {
+                    savedInvites = parseInt(payload.directInvites[rootCard.dataset.id], 10);
+                } else {
+                    savedInvites = localDirectInvites.get(rootCard.dataset.id);
+                }
+                if (typeof savedInvites === 'number' && !Number.isNaN(savedInvites)) {
+                    rootCard.dataset.directInvites = String(savedInvites);
+                }
+            }
+
             if (payload.childMap && Array.isArray(payload.childMap)) {
                 payload.childMap.forEach(entry => {
                     const [parentId, children] = entry;
