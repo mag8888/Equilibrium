@@ -6,7 +6,7 @@
     <title>Структура v2 — Сетка, панорамирование, перетаскивание</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1f2937; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1f2937; padding-bottom: 180px; }
         .toolbar { position: fixed; top: 10px; left: 10px; z-index: 1000; display: flex; align-items: center; gap: 8px; }
         .zoom-controls { display: flex; gap: 6px; }
         .zoom-btn { width: 36px; justify-content: center; padding: 6px 0; font-size: 18px; line-height: 1; }
@@ -31,7 +31,7 @@
         .stats-panel.collapsed .stats-toggle-btn { color: #2563eb; }
         .btn { padding: 6px 10px; border: 1px solid #ddd; background: #fff; border-radius: 6px; cursor: pointer; color: #1f2937; font-weight: 500; }
         .btn:hover { background: #f3f4f6; }
-        .viewport { position: relative; width: 100vw; height: 100vh; overflow: hidden; background: #fafafa; }
+        .viewport { position: relative; width: 100vw; height: 100vh; overflow: hidden; background: #fafafa; padding-bottom: 140px; }
         .canvas { position: absolute; top: 0; left: 0; width: 6500px; height: 8450px; transform-origin: 0 0; }
         .grid { position: absolute; inset: 0; background-image: linear-gradient(#eee 1px, transparent 1px), linear-gradient(90deg, #eee 1px, transparent 1px); background-size: 40px 40px, 40px 40px; pointer-events: none; }
         .grid.heavy { background-image: linear-gradient(#eee 1px, transparent 1px), linear-gradient(90deg, #eee 1px, transparent 1px), linear-gradient(#e2e8f0 1px, transparent 1px), linear-gradient(90deg, #e2e8f0 1px, transparent 1px); background-size: 40px 40px, 40px 40px, 200px 200px, 200px 200px; }
@@ -109,16 +109,67 @@
         .point.disabled { background: #e5e7eb; border-color: #cbd5e1; cursor: not-allowed; }
         .guide-line,
         .guide-line-vertical { display: none; }
-        .registrations-panel { background: rgba(255,255,255,0.95); border-top: 1px solid #e5e7eb; padding: 16px; max-height: 320px; overflow-y: auto; font-family: inherit; }
-        .registrations-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .registrations-list { display: flex; flex-direction: column; gap: 8px; }
-        .registration-item { padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; align-items: center; }
-        .registration-meta { font-size: 12px; color: #6b7280; }
-        .registration-actions { display: flex; justify-content: flex-end; }
+        .registrations-panel {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 25;
+            background: rgba(255, 255, 255, 0.96);
+            border-top: 1px solid #e5e7eb;
+            padding: 14px 24px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 -12px 24px rgba(15, 23, 42, 0.06);
+            backdrop-filter: blur(6px);
+        }
+        .registrations-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0; }
+        .registrations-list { display: flex; gap: 12px; align-items: stretch; overflow-x: auto; padding-bottom: 6px; }
+        .registrations-list::-webkit-scrollbar { height: 8px; }
+        .registrations-list::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.6); border-radius: 4px; }
+        .registration-item {
+            padding: 12px 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: #fff;
+            min-width: 230px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .registration-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 22px rgba(15, 23, 42, 0.12);
+        }
+        .registration-item .registration-title { font-weight: 600; color: #1f2937; font-size: 15px; }
+        .registration-meta { font-size: 12px; color: #6b7280; line-height: 1.4; }
+        .registration-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: rgba(59, 130, 246, 0.12);
+            color: #1d4ed8;
+            font-weight: 500;
+            font-size: 12px;
+        }
+        .registration-chip.neutral {
+            background: rgba(148, 163, 184, 0.18);
+            color: #475569;
+        }
+        .registration-payment { font-size: 12px; display: flex; align-items: center; gap: 6px; }
+        .registration-payment.pending { color: #f97316; }
+        .registration-payment.completed { color: #16a34a; }
+        .registration-payment.failed { color: #dc2626; }
+        .registration-actions { display: flex; justify-content: flex-end; margin-top: auto; }
         .btn-small { padding: 4px 10px; font-size: 12px; border-radius: 6px; border: 1px solid #d1d5db; background: #fff; cursor: pointer; }
         .btn-small.primary { background: #3b82f6; color: #fff; border-color: #2563eb; }
         .btn-small[disabled] { opacity: 0.6; cursor: not-allowed; }
-        .registrations-empty { text-align: center; padding: 24px; color: #94a3b8; font-style: italic; }
+        .registrations-empty { text-align: center; padding: 24px; color: #94a3b8; font-style: italic; margin: 0 auto; }
     </style>
 </head>
 <body>
@@ -921,19 +972,35 @@
                 registrationQueueEl.innerHTML = '<div class="registrations-empty">Нет ожидающих участников</div>';
                 return;
             }
+            const statusInfo = {
+                pending: { icon: '⏳', text: 'Ожидание оплаты' },
+                completed: { icon: '✅', text: 'Оплата получена' },
+                failed: { icon: '⚠️', text: 'Ошибка оплаты' },
+            };
             const html = items.map(item => {
                 const registered = new Date(item.registered_at).toLocaleString();
                 const inviterInfo = item.invited_by
-                    ? `${item.invited_by} (${item.invited_by_referral || ''})`
-                    : '—';
+                    ? `${item.invited_by}${item.invited_by_referral ? ` · ${item.invited_by_referral}` : ''}`
+                    : null;
+                const statusKey = (item.payment_status || 'pending').toLowerCase();
+                const status = statusInfo[statusKey] || statusInfo.pending;
+                const statusClass = statusInfo[statusKey] ? statusKey : 'pending';
+                const paymentId = item.payment_id ? `#${item.payment_id}` : '—';
                 return `
                     <div class="registration-item">
                         <div>
-                            <div style="font-weight:600; color:#1f2937;">${item.username}</div>
-                            <div class="registration-meta">ID ${item.referral_code || '—'}</div>
+                            <div class="registration-title">👤 ${item.username}</div>
+                            <div class="registration-meta">ID: ${item.referral_code || '—'}</div>
                         </div>
-                        <div class="registration-meta">Пригласитель: ${inviterInfo}</div>
+                        <div class="registration-meta">
+                            ${inviterInfo
+                                ? `<span class="registration-chip">🤝 ${inviterInfo}</span>`
+                                : `<span class="registration-chip neutral">Без пригласителя</span>`
+                            }
+                        </div>
                         <div class="registration-meta">Регистрация: ${registered}</div>
+                        <div class="registration-meta">Платёж: ${paymentId}</div>
+                        <div class="registration-payment ${statusClass}">${status.icon} ${status.text}</div>
                         <div class="registration-actions">
                             <button class="btn-small primary" data-action="complete-registration" data-user-id="${item.id}">Принять оплату</button>
                         </div>
