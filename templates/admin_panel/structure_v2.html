@@ -377,41 +377,44 @@
                     if (!child.dataset.uid) child.dataset.uid = generateRandomId();
                     child.dataset.level = '0';
                     await saveCardToDatabase(child);
-                    return true;
+                    return targetCard;
                 }
 
                 if (children.length === 0) {
-                    return false;
+                    return null;
                 }
 
                 const candidates = children
                     .map(child => ({
                         element: child,
-                        invites: parseInt(child.dataset.directInvites || child.dataset.directReferrals || '0', 10),
-                        descendants: parseInt(child.dataset.totalReferrals || '0', 10),
+                        filled: countFilledChildren(child),
                         top: parseInt(child.style.top) || 0,
+                        left: parseInt(child.style.left) || 0,
                     }))
                     .sort((a, b) => {
-                        if (a.invites !== b.invites) return a.invites - b.invites;
-                        if (a.descendants !== b.descendants) return a.descendants - b.descendants;
-                        return a.top - b.top;
+                        if (a.filled !== b.filled) return a.filled - b.filled;
+                        if (a.top !== b.top) return a.top - b.top;
+                        if (a.left !== b.left) return a.left - b.left;
+                        return (a.element.dataset.id || '').localeCompare(b.element.dataset.id || '');
                     });
 
                 for (const candidate of candidates) {
-                    const added = await internalFill(candidate.element);
-                    if (added) {
-                        return true;
+                    const addedFor = await internalFill(candidate.element);
+                    if (addedFor) {
+                        return addedFor;
                     }
                 }
-                return false;
+                return null;
             }
 
-            const added = await internalFill(card);
-            if (added) {
-                incrementDirectInvites(card);
+            const updatedParent = await internalFill(card);
+            if (updatedParent) {
+                incrementDirectInvites(updatedParent);
                 await recalculateAllLevels();
-                autoLayoutCards();
-                renderCardContents(card);
+                renderCardContents(updatedParent);
+                if (updatedParent !== card) {
+                    renderCardContents(card);
+                }
                 savePositions();
                 updateStats();
             }
