@@ -2,12 +2,14 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass
+from decimal import Decimal
 from typing import Dict, List, Optional, Tuple
 
+from django.db.models import Sum
 from django.utils import timezone
 
 from users.models import User
-from mlm.models import MLMStructure
+from mlm.models import MLMStructure, Bonus, Payment
 
 
 @dataclass
@@ -112,6 +114,26 @@ def build_structure_dataset(
         count_descendants(root_user.id)
         calculate_level(root_user.id)
 
+    user_ids = [node.user_id for node in structures]
+    if root_user and root_user.id not in user_ids:
+        user_ids.append(root_user.id)
+
+    bonus_totals: Dict[int, Decimal] = {
+        entry["user"]: entry["total"]
+        for entry in Bonus.objects.filter(user_id__in=user_ids)
+        .values("user")
+        .annotate(total=Sum("amount"))
+    }
+
+    payout_totals: Dict[int, Decimal] = {
+        entry["user"]: entry["total"]
+        for entry in Payment.objects.filter(
+            user_id__in=user_ids, payment_type="withdrawal", status="completed"
+        )
+        .values("user")
+        .annotate(total=Sum("amount"))
+    }
+
     user_card_ids: Dict[int, str] = {}
     if root_user:
         user_card_ids[root_user.id] = "root"
@@ -159,6 +181,8 @@ def build_structure_dataset(
                 "directReferrals": direct_referrals,
                 "totalReferrals": total_referrals,
                 "directInvites": direct_referrals,
+                "bonusYellow": float(bonus_totals.get(node.user_id, Decimal("0"))),
+                "payoutGreen": float(payout_totals.get(node.user_id, Decimal("0"))),
             }
         )
         if parent_id:
@@ -187,6 +211,8 @@ def build_structure_dataset(
                 "directReferrals": root_direct,
                 "totalReferrals": root_total,
                 "directInvites": root_direct,
+                "bonusYellow": float(bonus_totals.get(root_user.id, Decimal("0"))),
+                "payoutGreen": float(payout_totals.get(root_user.id, Decimal("0"))),
             },
         )
 

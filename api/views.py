@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -6,13 +8,17 @@ from rest_framework.authentication import SessionAuthentication, TokenAuthentica
 from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
 from rest_framework.authtoken.models import Token
+from django.db import transaction
 from django.db.models import Q, Count, Sum
+from django.utils import timezone
 from users.models import User, UserProfile
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from mlm.models import MLMStructure, Payment, Bonus, Withdrawal, MLMSettings, MLMPartner
 from django.db.utils import ProgrammingError, OperationalError
 from django.core.management import call_command
+from mlm.services.placement import place_user_in_structure
+from mlm.services.bonuses import calculate_bonuses
 import traceback
 from .serializers import (
     UserSerializer, UserProfileSerializer, 
@@ -20,6 +26,7 @@ from .serializers import (
     BonusSerializer, WithdrawalSerializer
 )
 import json
+import uuid
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -86,6 +93,19 @@ class MLMViewSet(viewsets.ViewSet):
         except (ProgrammingError, OperationalError):
             # База или таблицы ещё не готовы
             return None
+
+    def _generate_auto_credentials(self):
+        suffix = uuid.uuid4().hex[:8]
+        username = f"partner_{suffix}"
+        email = f"{username}@example.com"
+        password = User.objects.make_random_password()
+        return username, email, password
+
+    def _get_registration_amount(self) -> Decimal:
+        settings = MLMSettings.objects.filter(is_active=True).first()
+        if settings and settings.registration_fee:
+            return settings.registration_fee
+        return Decimal("100.00")
 
     @action(detail=False, methods=['get'])
     def bonuses(self, request):
@@ -243,6 +263,145 @@ class MLMViewSet(viewsets.ViewSet):
         except Exception as e:
             # Любая ошибка на этом этапе не должна ломать фронт, но вернем деталь для диагностики
             return Response({'error': str(e)}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def register_partner(self, request):
+        """Регистрация нового пользователя без формы (через кнопку '+')."""
+        inviter_uid = (request.data or {}).get('inviter_uid')
+        if not inviter_uid:
+            return Response({'error': 'inviter_uid is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        inviter = User.objects.filter(referral_code__iexact=str(inviter_uid).strip()).first()
+        if not inviter:
+            return Response({'error': 'Inviter not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        username, email, password = self._generate_auto_credentials()
+        amount = self._get_registration_amount()
+
+        try:
+            with transaction.atomic():
+                new_user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    password=password,
+                    status='participant',
+                    invited_by=inviter,
+                )
+
+                payment = Payment.objects.create(
+                    user=new_user,
+                    amount=amount,
+                    payment_type='registration',
+                    status='pending',
+                    description='Pending registration payment',
+                )
+
+            return Response(
+                {
+                    'user': {
+                        'id': new_user.id,
+                        'username': new_user.username,
+                        'referral_code': new_user.referral_code,
+                        'status': new_user.status,
+                        'invited_by': inviter.username,
+                        'invited_by_referral': inviter.referral_code,
+                        'created_at': new_user.date_joined.isoformat(),
+                        'payment_id': payment.id,
+                    }
+                },
+                status=status.HTTP_201_CREATED,
+            )
+        except Exception as exc:
+            return Response({'error': str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['get'], permission_classes=[AllowAny])
+    def registrations_queue(self, request):
+        """Список участников, ожидающих оплаты / размещения."""
+        pending_users = (
+            User.objects.filter(status='participant', invited_by__isnull=False, mlm_structure__isnull=True)
+            .select_related('invited_by')
+            .order_by('date_joined')[:200]
+        )
+
+        items = []
+        for user in pending_users:
+            payment = (
+                Payment.objects.filter(user=user, payment_type='registration')
+                .order_by('-created_at')
+                .first()
+            )
+            items.append(
+                {
+                    'id': user.id,
+                    'username': user.username,
+                    'referral_code': user.referral_code,
+                    'status': user.status,
+                    'invited_by': user.invited_by.username if user.invited_by else None,
+                    'invited_by_referral': user.invited_by.referral_code if user.invited_by else None,
+                    'registered_at': user.date_joined.isoformat(),
+                    'payment_id': payment.id if payment else None,
+                    'payment_status': payment.status if payment else None,
+                }
+            )
+
+        return Response({'items': items})
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def complete_registration(self, request):
+        """Помечает платеж завершенным, размещает пользователя и начисляет бонусы."""
+        user_id = (request.data or {}).get('user_id')
+        if not user_id:
+            return Response({'error': 'user_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.select_related('invited_by').get(id=user_id)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        payment = (
+            Payment.objects.filter(user=user, payment_type='registration')
+            .order_by('-created_at')
+            .first()
+        )
+        if not payment:
+            payment = Payment.objects.create(
+                user=user,
+                amount=self._get_registration_amount(),
+                payment_type='registration',
+                status='pending',
+                description='Auto-created registration payment',
+            )
+
+        with transaction.atomic():
+            payment.status = 'completed'
+            payment.completed_at = timezone.now()
+            payment.save(update_fields=['status', 'completed_at'])
+
+            user.status = 'partner'
+            user.last_payment_date = timezone.now()
+            user.save(update_fields=['status', 'last_payment_date'])
+
+            placement = None
+            if user.invited_by:
+                try:
+                    placement = place_user_in_structure(user, user.invited_by)
+                except Exception as exc:
+                    # Если пользователь уже размещен, пропускаем
+                    if not MLMStructure.objects.filter(user=user).exists():
+                        raise exc
+
+            try:
+                calculate_bonuses(user, payment)
+            except Exception:
+                pass
+
+        return Response(
+            {
+                'success': True,
+                'user_id': user.id,
+                'placement_parent': placement.parent.username if placement and placement.parent else None,
+            }
+        )
 
     @action(detail=False, methods=['post', 'get'], permission_classes=[AllowAny])
     def migrate(self, request):
