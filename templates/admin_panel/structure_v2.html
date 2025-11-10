@@ -1733,19 +1733,6 @@
             }
             updateStats();
             initGuideLines();
-
-            const rootCard = ensureRootCardExists();
-            if (rootCard) {
-                const savedInvites = localDirectInvites.get(rootCard.dataset.id);
-                if (typeof savedInvites === 'number') {
-                    rootCard.dataset.directInvites = String(savedInvites);
-                }
-            }
-            canvas.querySelectorAll('.card').forEach(card => {
-                if (card !== rootCard) {
-                    card.remove();
-                }
-            });
         }
 
         initializeStructureCanvas();
