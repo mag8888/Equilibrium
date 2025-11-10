@@ -409,7 +409,7 @@
 
             const updatedParent = await internalFill(card);
             if (updatedParent) {
-                incrementDirectInvites(updatedParent);
+                incrementDirectInvites(card);
                 await recalculateAllLevels();
                 renderCardContents(updatedParent);
                 if (updatedParent !== card) {
@@ -556,7 +556,7 @@
 
             const directFilled = childNodes.filter(child => child && child.filled).length;
             node.directFilled = directFilled;
-            node.directInvites = directFilled;
+            node.directInvites = parseInt(node.element.dataset.directInvites || '0', 10);
             node.activeDescendants = childNodes.reduce((sum, child) => {
                     return sum + (child.activeDescendantsIncludingSelf || 0);
                 }, 0);
@@ -1175,12 +1175,7 @@
                     level: parseInt(card.dataset.level || '0'),
                     name: card.dataset.name || '',
                     uid: card.dataset.uid || '',
-                    directInvites: parseInt(card.dataset.directInvites || card.dataset.directReferrals || '0', 10),
-                    directReferrals: parseInt(card.dataset.directReferrals || '0', 10),
-                    totalReferrals: parseInt(card.dataset.totalReferrals || '0', 10),
-                    bonusYellow: parseFloat(card.dataset.bonusYellow || '0'),
-                    transitionRed: parseFloat(card.dataset.transitionRed || '0'),
-                    payoutGreen: parseFloat(card.dataset.payoutGreen || '0')
+                    directInvites: parseInt(card.dataset.directInvites || '0', 10)
                 })),
                 childMap: Array.from(childMap.entries()).map(([parent, children]) => [parent, Array.from(children)])
             };
