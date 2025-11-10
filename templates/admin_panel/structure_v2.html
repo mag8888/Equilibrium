@@ -243,7 +243,7 @@
             <button class="btn-small" id="refreshQueueBtn">Обновить</button>
         </div>
         <div class="registrations-list" id="registrationQueue">
-            <div class="registrations-empty">Нет ожидающих участников</div>
+            <div class="registrations-empty">Нет ожидающих участников.</div>
         </div>
     </div>
 
@@ -969,7 +969,7 @@
         function renderRegistrationQueue(items) {
             if (!registrationQueueEl) return;
             if (!items.length) {
-                registrationQueueEl.innerHTML = '<div class="registrations-empty">Нет ожидающих участников</div>';
+                registrationQueueEl.innerHTML = '<div class="registrations-empty">Нет ожидающих участников.</div>';
                 return;
             }
             const statusInfo = {
