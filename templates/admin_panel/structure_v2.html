@@ -1067,28 +1067,29 @@
                     throw new Error(text || `HTTP ${response.status}`);
                 }
                 const payload = await response.json();
-                if (payload && payload.structure && Array.isArray(payload.structure.cards)) {
-                    if (payload.structure.cards.length === 0) {
-                        const rootStats = payload.stats?.root ?? {};
-                        payload.structure.cards.push({
-                            id: 'root',
-                            parent: null,
-                            name: rootStats.name || rootStats.username || 'admin',
-                            uid: rootStats.username || '0000001',
-                            level: rootStats.level || 0,
-                            directReferrals: rootStats.direct_referrals || 0,
-                            totalReferrals: rootStats.total_descendants || 0,
-                            bonusYellow: 0,
-                            payoutGreen: 0,
-                        });
-                        if (!payload.structure.childMap) {
-                            payload.structure.childMap = [];
-                        }
-                        if (!Array.isArray(payload.structure.childMap)) {
-                            payload.structure.childMap = [];
-                        }
-                    }
+                let structure = payload?.structure;
+                if (!structure || !Array.isArray(structure.cards)) {
+                    structure = { cards: [], childMap: [], uidCounter: 1 };
                 }
+                if (!Array.isArray(structure.childMap)) {
+                    structure.childMap = [];
+                }
+                const statsRoot = payload?.stats?.root ?? {};
+                const hasRootCard = structure.cards.some(card => card && card.id === 'root');
+                if (!hasRootCard) {
+                    structure.cards.unshift({
+                        id: 'root',
+                        parent: null,
+                        name: statsRoot.name || statsRoot.username || 'admin',
+                        uid: statsRoot.username || '0000001',
+                        level: statsRoot.level || 0,
+                        directReferrals: statsRoot.direct_referrals || 0,
+                        totalReferrals: statsRoot.total_descendants || 0,
+                        bonusYellow: 0,
+                        payoutGreen: 0,
+                    });
+                }
+                payload.structure = structure;
                 if (payload && payload.structure && Array.isArray(payload.structure.cards)) {
                     isRestoringFromStorage = true;
                     hydrateStructureFromPayload(payload.structure, {
