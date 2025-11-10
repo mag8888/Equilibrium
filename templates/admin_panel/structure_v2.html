@@ -1048,15 +1048,7 @@
                     throw new Error(text || 'Ошибка подтверждения');
                 }
                 await fetchRegistrationQueue({ force: true });
-                const placementData = await fetchStructureFromServer({ showErrors: true, autoLayout: true });
-                if (placementData && placementData.structure) {
-                    hydrateStructureFromPayload(placementData.structure, {
-                        autoLayoutAfter: true,
-                        saveState: true,
-                        resetServerStats: true,
-                        recalcLevels: true,
-                    });
-                }
+                await fetchStructureFromServer({ showErrors: true, autoLayout: true });
             } catch (error) {
                 console.error('Ошибка завершения регистрации', error);
                 alert('Не удалось завершить регистрацию: ' + error.message);
