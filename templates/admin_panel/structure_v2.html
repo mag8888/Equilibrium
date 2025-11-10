@@ -2534,6 +2534,34 @@
             updateStats();
             await ensureRootInDatabase();
         }
+
+        function countFilledChildren(card) {
+            return Array.from(canvas.querySelectorAll(`.card[data-parent="${card.dataset.id}"]`)).filter(isCardFilled).length;
+        }
+
+        function chooseSideForNewChild(parentCard, existingChildren) {
+            if (existingChildren.length === 0) return 'middle';
+            if (existingChildren.length === 1) {
+                const existing = existingChildren[0];
+                const parentX = parseInt(parentCard.style.left) || 0;
+                const childX = parseInt(existing.style.left) || 0;
+                if (childX < parentX) return 'right';
+                if (childX > parentX) return 'left';
+                return 'left';
+            }
+            const parentX = parseInt(parentCard.style.left) || 0;
+            let leftCount = 0;
+            let rightCount = 0;
+            existingChildren.forEach(child => {
+                const childX = parseInt(child.style.left) || 0;
+                if (childX < parentX) {
+                    leftCount += 1;
+                } else {
+                    rightCount += 1;
+                }
+            });
+            return leftCount <= rightCount ? 'left' : 'right';
+        }
     </script>
 </body>
 </html>
