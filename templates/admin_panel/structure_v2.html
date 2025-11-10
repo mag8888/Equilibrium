@@ -1379,7 +1379,9 @@
                 card.dataset.level = String(levelValue);
                 if (item.name) card.dataset.name = item.name;
                 if (item.uid) card.dataset.uid = item.uid;
-                const directInviteValue = localDirectInvites.get(card.dataset.id) ?? parseInt(card.dataset.directInvites || '0', 10) ?? 0;
+                const directInviteValue = (serverDirectInvites && serverDirectInvites[card.dataset.id] !== undefined)
+                    ? parseInt(serverDirectInvites[card.dataset.id], 10)
+                    : localDirectInvites.get(card.dataset.id) ?? parseInt(card.dataset.directInvites || '0', 10) ?? 0;
                 card.dataset.directInvites = String(directInviteValue);
                 if (item.status) card.dataset.status = item.status;
                 if (item.rank !== undefined) card.dataset.rank = item.rank;
