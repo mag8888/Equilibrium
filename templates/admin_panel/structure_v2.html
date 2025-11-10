@@ -556,7 +556,7 @@
 
             const directFilled = childNodes.filter(child => child && child.filled).length;
             node.directFilled = directFilled;
-            node.directInvites = parseInt(node.element.dataset.directInvites || node.element.dataset.directReferrals || '0', 10);
+            node.directInvites = directFilled;
             node.activeDescendants = childNodes.reduce((sum, child) => {
                     return sum + (child.activeDescendantsIncludingSelf || 0);
                 }, 0);
@@ -564,6 +564,7 @@
 
                 const financial = calculateFinancialSummary(node);
                 node.element.dataset.directReferrals = String(node.directFilled);
+                node.element.dataset.directInvites = String(node.directInvites);
                 node.element.dataset.totalReferrals = String(node.activeDescendants);
                 node.element.dataset.bonusYellow = financial.yellow.toFixed(2);
                 node.element.dataset.transitionRed = financial.red.toFixed(2);
