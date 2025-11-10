@@ -129,39 +129,39 @@
         .registrations-list::-webkit-scrollbar { height: 8px; }
         .registrations-list::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.6); border-radius: 4px; }
         .registration-item {
-            padding: 12px 14px;
+            padding: 10px 12px;
             border: 1px solid #e2e8f0;
-            border-radius: 12px;
+            border-radius: 10px;
             background: #fff;
-            min-width: 230px;
+            min-width: 180px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+            gap: 6px;
+            box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
         .registration-item:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 22px rgba(15, 23, 42, 0.12);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 18px rgba(15, 23, 42, 0.12);
         }
-        .registration-item .registration-title { font-weight: 600; color: #1f2937; font-size: 15px; }
-        .registration-meta { font-size: 12px; color: #6b7280; line-height: 1.4; }
+        .registration-item .registration-title { font-weight: 600; color: #1f2937; font-size: 13px; }
+        .registration-meta { font-size: 11px; color: #6b7280; line-height: 1.35; }
         .registration-chip {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 4px 8px;
+            gap: 4px;
+            padding: 3px 6px;
             border-radius: 999px;
             background: rgba(59, 130, 246, 0.12);
             color: #1d4ed8;
             font-weight: 500;
-            font-size: 12px;
+            font-size: 11px;
         }
         .registration-chip.neutral {
             background: rgba(148, 163, 184, 0.18);
             color: #475569;
         }
-        .registration-payment { font-size: 12px; display: flex; align-items: center; gap: 6px; }
+        .registration-payment { font-size: 11px; display: flex; align-items: center; gap: 4px; }
         .registration-payment.pending { color: #f97316; }
         .registration-payment.completed { color: #16a34a; }
         .registration-payment.failed { color: #dc2626; }
@@ -1823,14 +1823,14 @@
         function getAnchorBottom(card) {
             const left = parseInt(card.style.left) || 0;
             const top = parseInt(card.style.top) || 0;
-            const width = Math.max(card.offsetWidth, 160);
-            const height = Math.max(card.offsetHeight, 80);
+            const width = Math.max(card.offsetWidth, 140);
+            const height = Math.max(card.offsetHeight, 70);
             return { x: left + width / 2, y: top + height };
         }
         function getAnchorTop(card) {
             const left = parseInt(card.style.left) || 0;
             const top = parseInt(card.style.top) || 0;
-            const width = Math.max(card.offsetWidth, 160);
+            const width = Math.max(card.offsetWidth, 140);
             return { x: left + width / 2, y: top };
         }
         function pathCubic(start, end) {
@@ -1883,18 +1883,19 @@
         function autoLayoutCards() {
             const cards = Array.from(canvas.querySelectorAll('.card'));
             if (cards.length === 0) return;
-
-            const CARD_WIDTH = 160;
-            const CARD_HEIGHT = 80;
-            const VERTICAL_GAP = 220;
+ 
+            const DEFAULT_CARD_WIDTH = 140;
+            const DEFAULT_CARD_HEIGHT = 72;
+            const VERTICAL_GAP = 200;
             const GRID_SIZE = 40;
             const TOP_MARGIN = 120;
             const NODE_GAP_X = 40;
             const SUBTREE_MARGIN = 40;
             const CANVAS_WIDTH = 6500;
-
+ 
             const nodeMap = new Map();
             const parentOf = new Map();
+            const dimensions = new Map();
             cards.forEach(card => {
                 const id = card.dataset.id;
                 nodeMap.set(id, { card, children: [] });
@@ -1902,15 +1903,19 @@
                 if (parentId) {
                     parentOf.set(id, parentId);
                 }
+                dimensions.set(id, {
+                    width: Math.max(card.offsetWidth, DEFAULT_CARD_WIDTH),
+                    height: Math.max(card.offsetHeight, DEFAULT_CARD_HEIGHT),
+                });
             });
-
+ 
             nodeMap.forEach((node, id) => {
                 const parentId = parentOf.get(id);
                 if (parentId && nodeMap.has(parentId)) {
                     nodeMap.get(parentId).children.push(id);
                 }
             });
-
+ 
             nodeMap.forEach(node => {
                 node.children.sort((a, b) => {
                     const aCard = nodeMap.get(a)?.card;
@@ -1921,7 +1926,7 @@
                     return a.localeCompare(b);
                 });
             });
-
+ 
             let roots = [];
             nodeMap.forEach((_, id) => {
                 if (!parentOf.has(id)) {
@@ -1929,18 +1934,24 @@
                 }
             });
             if (roots.length === 0) return;
-
-            const MIN_SUBTREE_WIDTH = CARD_WIDTH + SUBTREE_MARGIN * 2;
+ 
             const subtreeWidth = new Map();
-
+ 
+            function getBaseWidth(id) {
+                const dims = dimensions.get(id);
+                const cardWidth = dims ? dims.width : DEFAULT_CARD_WIDTH;
+                return cardWidth + SUBTREE_MARGIN * 2;
+            }
+ 
             function measureSubtree(id) {
                 const node = nodeMap.get(id);
                 if (!node) {
-                    return MIN_SUBTREE_WIDTH;
+                    return getBaseWidth(id);
                 }
                 if (!node.children.length) {
-                    subtreeWidth.set(id, MIN_SUBTREE_WIDTH);
-                    return MIN_SUBTREE_WIDTH;
+                    const width = getBaseWidth(id);
+                    subtreeWidth.set(id, width);
+                    return width;
                 }
                 let total = 0;
                 node.children.forEach((childId, index) => {
@@ -1950,71 +1961,60 @@
                         total += NODE_GAP_X;
                     }
                 });
-                total = Math.max(total, MIN_SUBTREE_WIDTH);
+                total = Math.max(total, getBaseWidth(id));
                 subtreeWidth.set(id, total);
                 return total;
             }
-
+ 
             roots.forEach(rootId => measureSubtree(rootId));
-
+ 
             const rootGap = 200;
             let totalRootsWidth = 0;
             roots.forEach((rootId, index) => {
-                const w = subtreeWidth.get(rootId) || MIN_SUBTREE_WIDTH;
+                const w = subtreeWidth.get(rootId) || getBaseWidth(rootId);
                 totalRootsWidth += w;
                 if (index < roots.length - 1) {
                     totalRootsWidth += rootGap;
                 }
             });
             let currentLeft = Math.max((CANVAS_WIDTH - totalRootsWidth) / 2, SUBTREE_MARGIN);
-
+ 
             function layoutSubtree(id, depth, left) {
                 const node = nodeMap.get(id);
                 if (!node) return;
-                const width = subtreeWidth.get(id) || MIN_SUBTREE_WIDTH;
+                const width = subtreeWidth.get(id) || getBaseWidth(id);
+                const dims = dimensions.get(id) || { width: DEFAULT_CARD_WIDTH, height: DEFAULT_CARD_HEIGHT };
                 const centerX = left + width / 2;
-                const y = TOP_MARGIN + depth * (CARD_HEIGHT + VERTICAL_GAP);
-                const snappedX = Math.round((centerX - CARD_WIDTH / 2) / GRID_SIZE) * GRID_SIZE;
+                const y = TOP_MARGIN + depth * (dims.height + VERTICAL_GAP);
+                const snappedX = Math.round((centerX - dims.width / 2) / GRID_SIZE) * GRID_SIZE;
                 const snappedY = Math.round(y / GRID_SIZE) * GRID_SIZE;
                 node.card.style.left = snappedX + 'px';
                 node.card.style.top = snappedY + 'px';
-
+ 
                 if (!node.children.length) {
                     return;
                 }
                 let childLeft = left;
                 node.children.forEach((childId, index) => {
-                    const childWidth = subtreeWidth.get(childId) || MIN_SUBTREE_WIDTH;
+                    const childSpan = subtreeWidth.get(childId) || getBaseWidth(childId);
                     layoutSubtree(childId, depth + 1, childLeft);
-                    childLeft += childWidth;
+                    childLeft += childSpan;
                     if (index < node.children.length - 1) {
                         childLeft += NODE_GAP_X;
                     }
                 });
             }
-
+ 
             roots.forEach((rootId, index) => {
-                const width = subtreeWidth.get(rootId) || MIN_SUBTREE_WIDTH;
+                const width = subtreeWidth.get(rootId) || getBaseWidth(rootId);
                 layoutSubtree(rootId, 0, currentLeft);
                 currentLeft += width;
                 if (index < roots.length - 1) {
                     currentLeft += rootGap;
                 }
             });
-
+ 
             updateAllConnections();
-            savePositions();
-            updateStats();
-            setTimeout(() => {
-                if (typeof showAllCards === 'function') {
-                    showAllCards();
-                } else if (btnCenter) {
-                    btnCenter.click();
-                } else {
-                    applyTransform();
-                }
-            }, 100);
-        }
 
         btnAutoLayout.onclick = () => autoLayoutCards();
 
@@ -2492,172 +2492,4350 @@
             // Находим все дочерние объекты root рекурсивно
             function getAllDescendants(parentId) {
                 const children = Array.from(canvas.querySelectorAll(`.card[data-parent="${parentId}"]`));
-                let allDescendants = [...children];
-                children.forEach(child => {
-                    allDescendants.push(...getAllDescendants(child.dataset.id));
-                });
-                return allDescendants;
+                return children.reduce((acc, child) => {
+                    acc.push(child);
+                    return acc.concat(getAllDescendants(child.dataset.id));
+                }, []);
             }
-            
-            const rootChildren = getAllDescendants('root');
-            
-            // Очищаем данные всех дочерних объектов root
-            rootChildren.forEach(card => {
-                delete card.dataset.name;
-                delete card.dataset.uid;
-                card.dataset.level = '0'; // Сбрасываем уровень на 0
-                card.dataset.directReferrals = '0';
-                card.dataset.directInvites = '0';
-                card.dataset.totalReferrals = '0';
-                card.dataset.bonusYellow = '0';
-                card.dataset.transitionRed = '0';
-                card.dataset.payoutGreen = '0';
-                renderCardContents(card);
+            const descendants = getAllDescendants(rootCard.dataset.id);
+            descendants.forEach(descendant => {
+                descendant.remove();
             });
-            
-            // Пересчитываем уровни всех карточек после очистки
-            await recalculateAllLevels();
-            
-            savePositions();
-            updateStats();
-            
-            // Показываем уведомление
-            const btn = btnClearTestData;
-            const originalText = btn.textContent;
-            btn.textContent = '✓ Очищено!';
-            btn.style.background = '#22c55e';
-            setTimeout(() => {
-                btn.textContent = originalText;
-                btn.style.background = '#f59e0b';
-            }, 2000);
-        }
-        
-        btnClearTestData.onclick = () => clearTestData();
-        btnClearAll.onclick = () => resetToRoot({ seedPlaceholders: true });
-        
-        async function clearBackendStructure() {
-            try {
-                const response = await fetch('/api/mlm/clear_partners/', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': getCookie('csrftoken') || ''
-                    }
-                });
-                if (!response.ok) {
-                    if (response.status !== 404) {
-                        console.error('Ошибка очистки базы партнеров:', await response.text());
-                    }
-                }
-            } catch (error) {
-                console.error('Ошибка при очистке партнеров в базе:', error);
-            }
-        }
-        
-        // Удалить все карточки кроме root и сбросить сохранение
-        async function resetToRoot(options = {}) {
-            const { seedPlaceholders = true } = options;
-            await clearBackendStructure();
-            
-            // Очищаем localStorage и шаблоны, чтобы не восстановились старые данные
-            localStorage.removeItem(STORAGE_KEY);
-            localStorage.removeItem(LAYOUT_TEMPLATE_KEY);
-            localStorage.removeItem(STATS_COLLAPSE_KEY);
-            
-            // Находим root карточку
-            let root = canvas.querySelector('.card[data-id="root"]');
-            const rootId = root ? root.dataset.id : null;
-            
-            // Удаляем ВСЕ карточки кроме root
-            const allCards = Array.from(canvas.querySelectorAll('.card'));
-            allCards.forEach(card => {
-                if (card && card.dataset.id !== rootId) {
-                    card.remove();
-                }
-            });
-            
-            // Очистить все связи
-            links.innerHTML = '';
-            
-            // Сбросить состояние
             childMap.clear();
-            uidCounter = 1;
-            
-            // Восстановить root карточку
-            root = ensureRootCardExists();
-            root.dataset.level = '0';
-            root.dataset.parent = '';
-            root.dataset.directInvites = '0';
-            root.dataset.directReferrals = '0';
-            root.dataset.totalReferrals = '0';
-            root.dataset.bonusYellow = '0';
-            root.dataset.transitionRed = '0';
-            root.dataset.payoutGreen = '0';
-            renderCardContents(root);
-            root.querySelectorAll('.point').forEach(p => p.remove());
-            attachPoints(root);
-            enableDrag(root);
-            
-            if (seedPlaceholders) {
-                ensureDefaultStructure();
-            }
-            
-            recalculateAllLevels({
-                preserveRootLevel: true,
-                forceRootLevel: 0,
-                skipSave: true
-            });
-            
-            savePositions();
             updateAllConnections();
+            savePositions();
             updateStats();
-            await ensureRootInDatabase();
         }
 
-        function countFilledChildren(card) {
-            return Array.from(canvas.querySelectorAll(`.card[data-parent="${card.dataset.id}"]`)).filter(isCardFilled).length;
+        btnClearTestData.onclick = () => clearTestData();
+        btnClearAll.onclick = () => clearTestData();
+
+        // Очистить все данные
+        btnClearAll.onclick = () => {
+            clearTestData();
+            // Дополнительные действия по очистке всех данных
+        };
+
+        // Сохранение позиции карточки
+        function saveCardPosition(card) {
+            const data = {
+                id: card.dataset.id,
+                parent: card.dataset.parent || null,
+                left: parseInt(card.style.left) || 0,
+                top: parseInt(card.style.top) || 0,
+                level: parseInt(card.dataset.level || '0'),
+                name: card.dataset.name || '',
+                uid: card.dataset.uid || '',
+                directInvites: parseInt(card.dataset.directInvites || '0', 10)
+            };
+            return data;
         }
 
-        function chooseSideForNewChild(parentCard, existingChildren) {
-            if (existingChildren.length === 0) return 'middle';
-            if (existingChildren.length === 1) {
-                const existing = existingChildren[0];
-                const parentX = parseInt(parentCard.style.left) || 0;
-                const childX = parseInt(existing.style.left) || 0;
-                if (childX < parentX) return 'right';
-                if (childX > parentX) return 'left';
-                return 'left';
-            }
-            const parentX = parseInt(parentCard.style.left) || 0;
-            let leftCount = 0;
-            let rightCount = 0;
-            existingChildren.forEach(child => {
-                const childX = parseInt(child.style.left) || 0;
-                if (childX < parentX) {
-                    leftCount += 1;
-                } else {
-                    rightCount += 1;
-                }
-            });
-            return leftCount <= rightCount ? 'left' : 'right';
+        // Сохранение позиции всех карточек
+        function saveAllCardPositions() {
+            const cards = Array.from(canvas.querySelectorAll('.card'));
+            return cards.map(saveCardPosition);
         }
 
-        function loadDirectInvitesFromLocalStorage() {
+        // Восстановление позиции карточки
+        function restoreCardPosition(card, data) {
+            card.dataset.id = data.id;
+            card.dataset.parent = data.parent;
+            card.style.left = data.left + 'px';
+            card.style.top = data.top + 'px';
+            card.dataset.level = String(data.level);
+            card.dataset.name = data.name;
+            card.dataset.uid = data.uid;
+            card.dataset.directInvites = String(data.directInvites);
+        }
+
+        // Восстановление позиции всех карточек
+        function restoreAllCardPositions(positions) {
+            positions.forEach(restoreCardPosition);
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
             try {
-                const saved = localStorage.getItem(STORAGE_KEY);
-                if (!saved) return new Map();
-                const data = JSON.parse(saved);
-                if (!data.cards) return new Map();
-                const map = new Map();
-                data.cards.forEach(item => {
-                    if (!item || !item.id) return;
-                    map.set(String(item.id), parseInt(item.directInvites || '0', 10) || 0);
-                });
-                return map;
-            } catch (error) {
-                console.warn('Failed to load directInvites from localStorage', error);
-                return new Map();
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
             }
         }
-    </script>
-</body>
-</html>
+
+        // Сохранение шаблона расположения детей для каждого родителя
+        function saveLayoutTemplate() {
+            const templates = {};
+            canvas.querySelectorAll('.card').forEach(parentCard => {
+                const parentId = parentCard.dataset.id;
+                const children = Array.from(canvas.querySelectorAll(`.card[data-parent="${parentId}"]`));
+                if (children.length === 0) return;
+                
+                const px = parseInt(parentCard.style.left) || 0;
+                const py = parseInt(parentCard.style.top) || 0;
+                
+                // Сохраняем относительные позиции детей
+                const childPositions = children.map(child => {
+                    const cx = parseInt(child.style.left) || 0;
+                    const cy = parseInt(child.style.top) || 0;
+                    return {
+                        offsetX: cx - px,
+                        offsetY: cy - py
+                    };
+                });
+                
+                templates[parentId] = childPositions;
+            });
+            localStorage.setItem(LAYOUT_TEMPLATE_KEY, JSON.stringify(templates));
+        }
+
+        // Загрузка шаблона расположения для родителя
+        function loadLayoutTemplate(parentId) {
+            const saved = localStorage.getItem(LAYOUT_TEMPLATE_KEY);
+            if (!saved) return null;
+            try {
+                const templates = JSON.parse(saved);
+                return templates[parentId] || null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохранение позиции всех карточек в localStorage
+        function savePositions() {
+            const positions = saveAllCardPositions();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            // Сохраняем шаблон расположения
+            saveLayoutTemplate();
+        }
+
+        // Восстановление позиции всех карточек из localStorage
+        function loadPositions() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return false;
+            try {
+                const positions = JSON.parse(saved);
+                restoreAllCardPositions(positions);
+                return true;
+            } catch (e) {
+                console.error('Failed to load positions:', e);
+                return false;
+            }
+        }
+
+        // Сохра
