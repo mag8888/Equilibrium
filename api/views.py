@@ -27,6 +27,7 @@ from .serializers import (
 )
 import json
 import uuid
+from django.utils.crypto import get_random_string
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -98,7 +99,7 @@ class MLMViewSet(viewsets.ViewSet):
         suffix = uuid.uuid4().hex[:8]
         username = f"partner_{suffix}"
         email = f"{username}@example.com"
-        password = User.objects.make_random_password()
+        password = get_random_string(length=12)
         return username, email, password
 
     def _get_registration_amount(self) -> Decimal:
