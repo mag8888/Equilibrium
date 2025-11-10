@@ -409,7 +409,6 @@
 
             const updatedParent = await internalFill(card);
             if (updatedParent) {
-                incrementDirectInvites(card);
                 await recalculateAllLevels();
                 renderCardContents(updatedParent);
                 renderCardContents(card);
