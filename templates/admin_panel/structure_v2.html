@@ -280,7 +280,7 @@
                 <div class="badge ${canLevelUp ? 'level-up' : ''}" title="Уровень ${displayLevel}. Для повышения нужно ${neededForNextLevel > 0 ? `еще ${neededForNextLevel} партнер${neededForNextLevel === 1 ? 'а' : 'ов'}` : 'готов к повышению'}">${displayLevel}</div>
                 ${!isRoot ? '<button class="delete-btn" title="Удалить карточку и всех её детей">×</button>' : ''}
                 <button class="add-child-btn" title="Добавить партнера через этого пригласителя">+</button>
-                ${!isEmpty ? `<div class="name">${card.dataset.name}</div><div class="uid">ID${card.dataset.uid}</div>` : '<div class="empty-placeholder">Свободное место</div>'}
+                ${!isEmpty ? `<div class="name">${card.dataset.name}</div><div class="uid">ID${card.dataset.uid}</div>` : '<div class="empty-placeholder">Свободное место — нажмите +</div>'}
                 ${financialHtml}
                 ${partners.length > 0 ? `<div class="progress-indicator"><div class="progress-bar" style="width: ${progressPercent}%"></div></div>` : ''}
             `;
