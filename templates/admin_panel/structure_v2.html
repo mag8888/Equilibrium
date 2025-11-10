@@ -1379,8 +1379,8 @@
                 card.dataset.level = String(levelValue);
                 if (item.name) card.dataset.name = item.name;
                 if (item.uid) card.dataset.uid = item.uid;
-                const directInviteValue = (serverDirectInvites && serverDirectInvites[card.dataset.id] !== undefined)
-                    ? parseInt(serverDirectInvites[card.dataset.id], 10)
+                const directInviteValue = (payload.directInvites && payload.directInvites[card.dataset.id] !== undefined)
+                    ? parseInt(payload.directInvites[card.dataset.id], 10)
                     : localDirectInvites.get(card.dataset.id) ?? parseInt(card.dataset.directInvites || '0', 10) ?? 0;
                 card.dataset.directInvites = String(directInviteValue);
                 if (item.status) card.dataset.status = item.status;
@@ -2576,6 +2576,18 @@
             } catch (error) {
                 console.warn('Failed to load directInvites from localStorage', error);
                 return new Map();
+            }
+        }
+
+        if (rootCard) {
+            let savedInvites;
+            if (payload.directInvites && payload.directInvites[rootCard.dataset.id] !== undefined) {
+                savedInvites = parseInt(payload.directInvites[rootCard.dataset.id], 10);
+            } else {
+                savedInvites = localDirectInvites.get(rootCard.dataset.id);
+            }
+            if (typeof savedInvites === 'number' && !Number.isNaN(savedInvites)) {
+                rootCard.dataset.directInvites = String(savedInvites);
             }
         }
     </script>
