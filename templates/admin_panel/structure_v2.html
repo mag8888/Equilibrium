@@ -465,6 +465,11 @@
             structure: null,
             stats: null,
         };
+        let isDraggingCanvas = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
+        let panStartX = 0;
+        let panStartY = 0;
 
         function showToast(message) {
             refs.toast.textContent = message;
@@ -941,6 +946,63 @@
             state.zoom = Math.min(2, Math.max(0.3, state.zoom * factor));
             applyTransform();
         }, { passive: false });
+
+        function startCanvasDrag(clientX, clientY) {
+            isDraggingCanvas = true;
+            dragStartX = clientX;
+            dragStartY = clientY;
+            panStartX = state.panX;
+            panStartY = state.panY;
+            refs.canvas.classList.add('is-dragging');
+        }
+
+        function moveCanvasDrag(clientX, clientY) {
+            if (!isDraggingCanvas) return;
+            const dx = clientX - dragStartX;
+            const dy = clientY - dragStartY;
+            state.panX = panStartX + dx;
+            state.panY = panStartY + dy;
+            applyTransform();
+        }
+
+        function endCanvasDrag() {
+            if (!isDraggingCanvas) return;
+            isDraggingCanvas = false;
+            refs.canvas.classList.remove('is-dragging');
+        }
+
+        refs.canvas.addEventListener('mousedown', event => {
+            if (event.button !== 0) return;
+            if (event.target.closest('.card')) return;
+            event.preventDefault();
+            startCanvasDrag(event.clientX, event.clientY);
+        });
+
+        window.addEventListener('mousemove', event => {
+            if (!isDraggingCanvas) return;
+            moveCanvasDrag(event.clientX, event.clientY);
+        });
+
+        window.addEventListener('mouseup', () => {
+            endCanvasDrag();
+        });
+
+        refs.canvas.addEventListener('touchstart', event => {
+            if (event.touches.length !== 1) return;
+            if (event.target.closest('.card')) return;
+            const touch = event.touches[0];
+            startCanvasDrag(touch.clientX, touch.clientY);
+        }, { passive: true });
+
+        refs.canvas.addEventListener('touchmove', event => {
+            if (!isDraggingCanvas || event.touches.length !== 1) return;
+            const touch = event.touches[0];
+            moveCanvasDrag(touch.clientX, touch.clientY);
+        }, { passive: false });
+
+        refs.canvas.addEventListener('touchend', () => {
+            endCanvasDrag();
+        });
 
         document.addEventListener('DOMContentLoaded', () => {
             loadStructure();

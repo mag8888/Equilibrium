@@ -114,7 +114,11 @@ def place_user_in_structure(new_user: User, inviter: Optional[User]) -> MLMStruc
     with transaction.atomic():
         parent_user = find_placement_parent(inviter) or inviter
 
-        parent_structure = getattr(parent_user, "mlm_structure", None)
+        try:
+            parent_structure = parent_user.mlm_structure
+        except MLMStructure.DoesNotExist:
+            parent_structure = None
+
         level = (parent_structure.level + 1) if parent_structure else 1
 
         placement = MLMStructure.objects.create(
