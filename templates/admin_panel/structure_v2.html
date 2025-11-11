@@ -172,6 +172,9 @@
             inset: 0;
             transform-origin: 0 0;
         }
+        #canvasInner.dragging {
+            cursor: grabbing;
+        }
         svg#connections {
             position: absolute;
             inset: 0;
@@ -187,6 +190,12 @@
             border: 1px solid rgba(15, 23, 42, 0.05);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             transform-origin: center;
+            cursor: grab;
+        }
+        .card.is-dragging {
+            cursor: grabbing;
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 30px 66px rgba(15, 23, 42, 0.22);
         }
         .card-header {
             display: flex;
@@ -434,7 +443,11 @@
             contentHeight: 0,
             structure: null,
             stats: null,
+            draggingCard: null,
+            dragOffset: { x: 0, y: 0 },
         };
+
+        const GRID_SIZE_PX = 40;
 
         function showToast(message) {
             refs.toast.textContent = message;
@@ -675,6 +688,7 @@
             refs.connections.setAttribute('width', width);
             refs.connections.setAttribute('height', height);
             const fragment = document.createDocumentFragment();
+            const cardElements = [];
             positions.forEach((pos, id) => {
                 const node = tree.nodes.get(id);
                 if (!node) return;
@@ -684,6 +698,7 @@
                 el.className = 'card';
                 el.style.left = `${left}px`;
                 el.style.top = `${top}px`;
+                el.dataset.id = node.id;
                 el.innerHTML = `
                     <div class="card-header">
                         <div class="title">${node.level === 0 ? '🌐' : '👤'} ${node.name}</div>
@@ -701,6 +716,7 @@
                         <div class="transition">🟡 Переходный: <strong>${formatMoney(node.bonus)}</strong></div>
                     </div>`;
                 fragment.appendChild(el);
+                cardElements.push({ element: el, node, pos });
                 const addBtn = el.querySelector('.card-add-btn');
                 if (addBtn && node.uid) {
                     addBtn.addEventListener('click', (event) => {
@@ -713,6 +729,9 @@
                 }
             });
             refs.canvasInner.appendChild(fragment);
+            cardElements.forEach(({ element, node }) => {
+                attachCardDragHandlers(element, node.id);
+            });
             const svgNs = 'http://www.w3.org/2000/svg';
             tree.nodes.forEach(node => {
                 if (!node.parent) return;
@@ -734,6 +753,20 @@
             fitToView();
         }
 
+        function attachCardDragHandlers(cardElement, nodeId) {
+            cardElement.addEventListener('mousedown', (event) => {
+                const isActionButton = event.target.closest('button');
+                if (isActionButton) return;
+                event.preventDefault();
+                state.draggingCard = cardElement;
+                cardElement.classList.add('is-dragging');
+                const rect = cardElement.getBoundingClientRect();
+                state.dragOffset.x = event.clientX - rect.left;
+                state.dragOffset.y = event.clientY - rect.top;
+                refs.canvasInner.classList.add('dragging');
+            });
+        }
+
         function applyTransform() {
             const container = refs.canvas.getBoundingClientRect();
             const contentW = state.contentWidth * state.zoom;
@@ -746,6 +779,10 @@
             refs.canvasInner.style.transform = transform;
             refs.connections.style.transform = transform;
             $('btn-zoom-reset').textContent = `${Math.round(state.zoom * 100)}%`;
+        }
+
+        function snapCoordinate(value) {
+            return Math.round(value / GRID_SIZE_PX) * GRID_SIZE_PX;
         }
 
         function fitToView() {
@@ -841,13 +878,96 @@
             });
         }
 
+        function registerCanvasDragEvents() {
+            refs.canvasInner.addEventListener('mousemove', (event) => {
+                if (!state.draggingCard) return;
+                const rect = refs.canvas.getBoundingClientRect();
+                const x = event.clientX - rect.left - state.dragOffset.x;
+                const y = event.clientY - rect.top - state.dragOffset.y;
+                const snapX = snapCoordinate(x / state.zoom);
+                const snapY = snapCoordinate(y / state.zoom);
+                state.draggingCard.style.left = `${snapX}px`;
+                state.draggingCard.style.top = `${snapY}px`;
+                updateConnections();
+            });
+            window.addEventListener('mouseup', () => {
+                if (!state.draggingCard) return;
+                state.draggingCard.classList.remove('is-dragging');
+                refs.canvasInner.classList.remove('dragging');
+                state.draggingCard = null;
+                updateConnections();
+                saveVisiblePositions();
+            });
+        }
+
+        function updateConnections() {
+            // Re-render connections based on current DOM positions
+            const pathElements = Array.from(refs.connections.querySelectorAll('path'));
+            pathElements.forEach(path => path.remove());
+            const cards = Array.from(refs.canvasInner.querySelectorAll('.card'));
+            const map = new Map();
+            cards.forEach(card => {
+                map.set(card.dataset.id, card);
+            });
+            if (!state.structure || !state.structure.cards) return;
+            const paddingX = 0;
+            const paddingY = 0;
+            const svgNs = 'http://www.w3.org/2000/svg';
+            state.structure.cards.forEach(card => {
+                if (!card.parent) return;
+                const parentEl = map.get(String(card.parent));
+                const childEl = map.get(String(card.id));
+                if (!parentEl || !childEl) return;
+                const startX = parseFloat(parentEl.style.left) + parentEl.offsetWidth / 2 + paddingX;
+                const startY = parseFloat(parentEl.style.top) + parentEl.offsetHeight;
+                const endX = parseFloat(childEl.style.left) + childEl.offsetWidth / 2 + paddingX;
+                const endY = parseFloat(childEl.style.top);
+                const dy = Math.max(60, (endY - startY) * 0.6);
+                const path = document.createElementNS(svgNs, 'path');
+                path.setAttribute('d', `M ${startX} ${startY} C ${startX} ${startY + dy}, ${endX} ${endY - dy}, ${endX} ${endY}`);
+                path.setAttribute('stroke', 'rgba(37,99,235,0.45)');
+                path.setAttribute('stroke-width', '2.4');
+                path.setAttribute('fill', 'none');
+                refs.connections.appendChild(path);
+            });
+        }
+
+        function saveVisiblePositions() {
+            const cards = Array.from(refs.canvasInner.querySelectorAll('.card'));
+            const payload = cards.map(card => ({
+                id: card.dataset.id,
+                left: parseFloat(card.style.left) || 0,
+                top: parseFloat(card.style.top) || 0,
+            }));
+            localStorage.setItem('structure_v2_layout', JSON.stringify(payload));
+        }
+
+        function restoreVisiblePositions(structure) {
+            const raw = localStorage.getItem('structure_v2_layout');
+            if (!raw) return structure;
+            try {
+                const stored = JSON.parse(raw);
+                const map = new Map(stored.map(item => [String(item.id), item]));
+                structure.cards.forEach(card => {
+                    const saved = map.get(String(card.id));
+                    if (saved) {
+                        card.left = saved.left;
+                        card.top = saved.top;
+                    }
+                });
+            } catch (error) {
+                console.error('restoreVisiblePositions', error);
+            }
+            return structure;
+        }
+
         async function loadStructure() {
             try {
                 refs.loader.style.display = 'grid';
                 refs.status.textContent = 'Загрузка…';
                 refs.status.className = 'status-badge';
                 const payload = await fetchJson(API_STRUCTURE);
-                const structure = ensureRoot(payload.structure, payload.stats);
+                const structure = restoreVisiblePositions(ensureRoot(payload.structure, payload.stats));
                 state.structure = structure;
                 state.stats = payload.stats || null;
                 renderTree(structure);
@@ -924,6 +1044,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadStructure();
             loadQueue();
+            registerCanvasDragEvents();
         });
     </script>
 </body>
