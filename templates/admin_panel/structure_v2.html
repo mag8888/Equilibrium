@@ -549,9 +549,11 @@
                 minY = Math.min(minY, y);
                 maxY = Math.max(maxY, y);
             });
-            const padding = 120;
-            const width = (maxX - minX || 1) + padding * 2;
-            const height = (maxY - minY || 1) + padding * 2;
+            const paddingX = 120;
+            const paddingTop = 260;
+            const paddingBottom = 140;
+            const width = (maxX - minX || 1) + paddingX * 2;
+            const height = (maxY - minY || 1) + paddingTop + paddingBottom;
             state.contentWidth = width;
             state.contentHeight = height;
             refs.canvasInner.style.width = `${width}px`;
@@ -563,8 +565,8 @@
             positions.forEach((pos, id) => {
                 const node = tree.nodes.get(id);
                 if (!node) return;
-                const left = pos.x - minX + padding;
-                const top = pos.y - minY + padding;
+                const left = pos.x - minX + paddingX;
+                const top = pos.y - minY + paddingTop;
                 const el = document.createElement('div');
                 el.className = 'card';
                 el.style.left = `${left}px`;
@@ -604,10 +606,10 @@
                 const parentPos = positions.get(node.parent);
                 const childPos = positions.get(node.id);
                 if (!parentPos || !childPos) return;
-                const startX = parentPos.x - minX + padding;
-                const startY = parentPos.y - minY + padding;
-                const endX = childPos.x - minX + padding;
-                const endY = childPos.y - minY + padding;
+                const startX = parentPos.x - minX + paddingX;
+                const startY = parentPos.y - minY + paddingTop;
+                const endX = childPos.x - minX + paddingX;
+                const endY = childPos.y - minY + paddingTop;
                 const dy = Math.max(60, (endY - startY) * 0.6);
                 const path = document.createElementNS(svgNs, 'path');
                 path.setAttribute('d', `M ${startX} ${startY} C ${startX} ${startY + dy}, ${endX} ${endY - dy}, ${endX} ${endY}`);
