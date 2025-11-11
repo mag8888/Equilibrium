@@ -67,7 +67,40 @@
         }
         main {
             grid-area: canvas;
-            padding: 16px 24px 24px 24px;
+            position: relative;
+            background: #eef2ff;
+            border-radius: 24px;
+            padding: 24px;
+        }
+        .queue-strip {
+            margin-top: 24px;
+            background: rgba(15, 23, 42, 0.05);
+            border-radius: 16px;
+            padding: 16px;
+            display: grid;
+            gap: 12px;
+        }
+        .queue-strip-title {
+            font-weight: 600;
+            color: #0f172a;
+            font-size: 14px;
+        }
+        .queue-strip-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+        .queue-chip {
+            background: white;
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 12px;
+            color: #334155;
+            box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+        .queue-chip strong {
+            color: #0f172a;
         }
         .canvas-container {
             background: linear-gradient(180deg, #ffffff, #f4f6fb);
@@ -302,6 +335,10 @@
                     <div id="canvasInner"></div>
                     <div class="queue-empty" id="canvas-loader" style="position:absolute; inset:0; display:grid; place-items:center; background: rgba(255,255,255,0.6);">Загрузка структуры…</div>
                 </div>
+                <div class="queue-strip" id="inlineQueue" hidden>
+                    <div class="queue-strip-title">🆕 Партнёры, ожидание размещения</div>
+                    <div class="queue-strip-items" id="inlineQueueItems"></div>
+                </div>
             </div>
         </main>
 
@@ -344,6 +381,8 @@
             statsList: $('stats-list'),
             statsUpdated: $('stats-updated'),
             queueBlock: $('queue-block'),
+            inlineQueue: $('inlineQueue'),
+            inlineQueueItems: $('inlineQueueItems'),
             footerStatus: $('footer-status'),
             toast: $('toast'),
         };
@@ -550,7 +589,7 @@
                 maxY = Math.max(maxY, y);
             });
             const paddingX = 120;
-            const paddingTop = 260;
+            const paddingTop = 140;
             const paddingBottom = 140;
             const width = (maxX - minX || 1) + paddingX * 2;
             const height = (maxY - minY || 1) + paddingTop + paddingBottom;
@@ -677,6 +716,8 @@
         function renderQueue(items) {
             if (!items || !items.length) {
                 refs.queueBlock.innerHTML = '<div class="queue-empty">Нет ожидающих участников.</div>';
+                refs.inlineQueue.hidden = false;
+                refs.inlineQueueItems.innerHTML = '<div class="queue-chip">Очередь пуста — ожидаем новых партнёров.</div>';
                 return;
             }
             const html = items.map(item => {
@@ -693,6 +734,18 @@
                     </div>`;
             }).join('');
             refs.queueBlock.innerHTML = html;
+            refs.inlineQueue.hidden = false;
+            refs.inlineQueueItems.innerHTML = items.map(item => {
+                const inviter = item.invited_by != null ? item.invited_by : '—';
+                const registered = item.registered_at ? new Date(item.registered_at).toLocaleTimeString() : '—';
+                return `
+                    <div class="queue-chip">
+                        <div><strong>👤 ${item.username}</strong></div>
+                        <div>Код: ${item.referral_code || '—'}</div>
+                        <div>Пригласил: ${inviter}</div>
+                        <div>Время: ${registered}</div>
+                    </div>`;
+            }).join('');
         }
 
         async function loadStructure() {
