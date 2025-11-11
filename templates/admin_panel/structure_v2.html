@@ -289,16 +289,20 @@
         const API_STRUCTURE = '/admin-panel/api/structure-data/';
         const API_QUEUE = '/api/mlm/registrations_queue/';
 
-        const canvas = document.getElementById('canvas');
-        const canvasInner = document.getElementById('canvasInner');
-        const connectionLayer = document.getElementById('connections');
-        const loader = document.getElementById('canvas-loader');
-        const statusBadge = document.getElementById('status-badge');
-        const statsList = document.getElementById('stats-list');
-        const statsUpdated = document.getElementById('stats-updated');
-        const queueBlock = document.getElementById('queue-block');
-        const footerStatus = document.getElementById('footer-status');
-        const toast = document.getElementById('toast');
+        const $ = (id) => document.getElementById(id);
+
+        const refs = {
+            canvas: $('canvas'),
+            canvasInner: $('canvasInner'),
+            connections: $('connections'),
+            loader: $('canvas-loader'),
+            status: $('status-badge'),
+            statsList: $('stats-list'),
+            statsUpdated: $('stats-updated'),
+            queueBlock: $('queue-block'),
+            footerStatus: $('footer-status'),
+            toast: $('toast'),
+        };
 
         const state = {
             zoom: 1,
@@ -306,21 +310,30 @@
             panY: 0,
             contentWidth: 0,
             contentHeight: 0,
+            structure: null,
+            stats: null,
         };
 
         function showToast(message) {
-            toast.textContent = message;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2200);
+            refs.toast.textContent = message;
+            refs.toast.classList.add('show');
+            setTimeout(() => refs.toast.classList.remove('show'), 2200);
         }
 
         async function fetchJson(url) {
-            const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
+            const response = await fetch(url, {
+                headers: { 'Accept': 'application/json' },
+                credentials: 'same-origin',
+            });
+            const rawText = await response.text();
             if (!response.ok) {
-                const text = await response.text();
-                throw new Error(text || `HTTP ${response.status}`);
+                throw new Error(rawText || `HTTP ${response.status}`);
             }
-            return response.json();
+            try {
+                return JSON.parse(rawText);
+            } catch (error) {
+                throw new Error('Получен неожиданный ответ от сервера.');
+            }
         }
 
         function ensureRoot(structure, stats) {
@@ -329,13 +342,13 @@
                     cards: [{
                         id: 'root',
                         parent: null,
-                        name: (stats && stats.root && stats.root.name) || 'admin',
-                        uid: (stats && stats.root && stats.root.username) || '0000001',
-                        level: (stats && stats.root && stats.root.level) || 0,
-                        directReferrals: (stats && stats.root && stats.root.direct_referrals) || 0,
-                        totalReferrals: (stats && stats.root && stats.root.total_descendants) || 0,
+                        name: stats && stats.root && stats.root.name ? stats.root.name : 'admin',
+                        uid: stats && stats.root && stats.root.username ? stats.root.username : '0000001',
+                        level: stats && stats.root && stats.root.level ? stats.root.level : 0,
+                        directReferrals: stats && stats.root && stats.root.direct_referrals ? stats.root.direct_referrals : 0,
+                        totalReferrals: stats && stats.root && stats.root.total_descendants ? stats.root.total_descendants : 0,
                     }],
-                    childMap: []
+                    childMap: [],
                 };
             }
             const hasRoot = structure.cards.some(card => card && String(card.id) === 'root');
@@ -416,14 +429,14 @@
         }
 
         function renderTree(structure) {
-            canvasInner.innerHTML = '';
-            connectionLayer.innerHTML = '';
+            refs.canvasInner.innerHTML = '';
+            refs.connections.innerHTML = '';
             if (!structure.cards.length) {
-                loader.style.display = 'grid';
-                loader.textContent = 'Нет данных';
+                refs.loader.style.display = 'grid';
+                refs.loader.textContent = 'Нет данных';
                 return;
             }
-            loader.style.display = 'none';
+            refs.loader.style.display = 'none';
             const tree = buildTree(structure);
             const positions = layoutTree(tree);
             let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
@@ -438,11 +451,11 @@
             const height = (maxY - minY || 1) + padding * 2;
             state.contentWidth = width;
             state.contentHeight = height;
-            canvasInner.style.width = `${width}px`;
-            canvasInner.style.height = `${height}px`;
-            connectionLayer.setAttribute('viewBox', `0 0 ${width} ${height}`);
-            connectionLayer.setAttribute('width', width);
-            connectionLayer.setAttribute('height', height);
+            refs.canvasInner.style.width = `${width}px`;
+            refs.canvasInner.style.height = `${height}px`;
+            refs.connections.setAttribute('viewBox', `0 0 ${width} ${height}`);
+            refs.connections.setAttribute('width', width);
+            refs.connections.setAttribute('height', height);
             const fragment = document.createDocumentFragment();
             positions.forEach((pos, id) => {
                 const node = tree.nodes.get(id);
@@ -464,7 +477,7 @@
                     </div>`;
                 fragment.appendChild(el);
             });
-            canvasInner.appendChild(fragment);
+            refs.canvasInner.appendChild(fragment);
             const svgNs = 'http://www.w3.org/2000/svg';
             tree.nodes.forEach(node => {
                 if (!node.parent) return;
@@ -477,5 +490,174 @@
                 const endY = childPos.y - minY + padding;
                 const dy = Math.max(60, (endY - startY) * 0.6);
                 const path = document.createElementNS(svgNs, 'path');
-                path.setAttribute('d',
+                path.setAttribute('d', `M ${startX} ${startY} C ${startX} ${startY + dy}, ${endX} ${endY - dy}, ${endX} ${endY}`);
+                path.setAttribute('stroke', 'rgba(37,99,235,0.45)');
+                path.setAttribute('stroke-width', '2.4');
+                path.setAttribute('fill', 'none');
+                refs.connections.appendChild(path);
+            });
+            fitToView();
+        }
+
+        function applyTransform() {
+            const container = refs.canvas.getBoundingClientRect();
+            const contentW = state.contentWidth * state.zoom;
+            const contentH = state.contentHeight * state.zoom;
+            const minX = Math.min(0, container.width - contentW);
+            const minY = Math.min(0, container.height - contentH);
+            state.panX = Math.min(Math.max(state.panX, minX), 0);
+            state.panY = Math.min(Math.max(state.panY, minY), 0);
+            const transform = `translate(${state.panX}px, ${state.panY}px) scale(${state.zoom})`;
+            refs.canvasInner.style.transform = transform;
+            refs.connections.style.transform = transform;
+            $('btn-zoom-reset').textContent = `${Math.round(state.zoom * 100)}%`;
+        }
+
+        function fitToView() {
+            const container = refs.canvas.getBoundingClientRect();
+            if (!state.contentWidth || !state.contentHeight) return;
+            const scale = Math.min(1, (container.width - 40) / state.contentWidth, (container.height - 40) / state.contentHeight);
+            state.zoom = scale;
+            state.panX = (container.width - state.contentWidth * scale) / 2;
+            state.panY = (container.height - state.contentHeight * scale) / 2;
+            applyTransform();
+        }
+
+        function renderStats(stats) {
+            if (!stats) {
+                refs.statsList.innerHTML = '<div class="queue-empty">Нет данных.</div>';
+                return;
+            }
+            const totals = stats.totals || {};
+            const rows = [
+                `<div class="stat-row"><span>Всего узлов</span><span>${totals.nodes != null ? totals.nodes : 0}</span></div>`,
+                `<div class="stat-row"><span>Партнёров</span><span>${totals.partners != null ? totals.partners : 0}</span></div>`,
+                `<div class="stat-row"><span>Участников</span><span>${totals.participants != null ? totals.participants : 0}</span></div>`
+            ];
+            const root = stats.root || {};
+            if (root.name) {
+                rows.push(`<div class="stat-row"><span>Корневой партнёр</span><span>${root.name}</span></div>`);
+                rows.push(`<div class="stat-row"><span>Прямые приглашения</span><span>${root.direct_referrals != null ? root.direct_referrals : 0}</span></div>`);
+            }
+            if (Array.isArray(stats.levels)) {
+                stats.levels.forEach(level => {
+                    rows.push(`<div class="stat-row"><span>Уровень ${level.level}</span><span>${level.total}</span></div>`);
+                });
+            }
+            refs.statsList.innerHTML = rows.join('');
+            if (stats.generated_at) {
+                const ts = new Date(stats.generated_at).toLocaleString();
+                refs.statsUpdated.textContent = ts;
+                refs.footerStatus.textContent = ts;
+            }
+        }
+
+        function renderQueue(items) {
+            if (!items || !items.length) {
+                refs.queueBlock.innerHTML = '<div class="queue-empty">Нет ожидающих участников.</div>';
+                return;
+            }
+            const html = items.map(item => {
+                const inviter = item.invited_by != null ? item.invited_by : '—';
+                const payment = item.payment_status != null ? item.payment_status : '—';
+                const registered = item.registered_at ? new Date(item.registered_at).toLocaleString() : '—';
+                const ref = item.referral_code != null ? item.referral_code : '—';
+                return `
+                    <div class="queue-item">
+                        <div>👤 ${item.username}</div>
+                        <div style="font-size:12px; color:#6b7280">ID: ${ref} · Пригласитель: ${inviter}</div>
+                        <div style="font-size:12px; color:#6b7280">Регистрация: ${registered}</div>
+                        <div style="font-size:12px; color:#6b7280">Статус оплаты: ${payment}</div>
+                    </div>`;
+            }).join('');
+            refs.queueBlock.innerHTML = html;
+        }
+
+        async function loadStructure() {
+            try {
+                refs.loader.style.display = 'grid';
+                refs.status.textContent = 'Загрузка…';
+                refs.status.className = 'status-badge';
+                const payload = await fetchJson(API_STRUCTURE);
+                const structure = ensureRoot(payload.structure, payload.stats);
+                state.structure = structure;
+                state.stats = payload.stats || null;
+                renderTree(structure);
+                renderStats(state.stats);
+                refs.status.textContent = 'Данные обновлены';
+                refs.status.className = 'status-badge success';
+            } catch (error) {
+                console.error(error);
+                refs.loader.style.display = 'grid';
+                refs.loader.textContent = 'Ошибка загрузки';
+                refs.status.textContent = 'Ошибка';
+                refs.status.className = 'status-badge warning';
+                showToast(error.message || 'Не удалось загрузить структуру');
+            }
+        }
+
+        async function loadQueue() {
+            try {
+                const payload = await fetchJson(API_QUEUE);
+                renderQueue(payload.items || []);
+            } catch (error) {
+                console.error(error);
+                refs.queueBlock.innerHTML = '<div class="queue-empty">Не удалось получить очередь.</div>';
+            }
+        }
+
+        function exportStructure() {
+            if (!state.structure) {
+                showToast('Нет данных для экспорта');
+                return;
+            }
+            const payload = {
+                generated_at: new Date().toISOString(),
+                structure: state.structure,
+                stats: state.stats,
+                viewport: {
+                    zoom: state.zoom,
+                    pan: { x: state.panX, y: state.panY },
+                },
+            };
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `structure_export_${Date.now()}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+            showToast('Экспорт выполнен');
+        }
+
+        document.getElementById('btn-reload').addEventListener('click', () => {
+            loadStructure();
+            loadQueue();
+        });
+        document.getElementById('btn-refresh-queue').addEventListener('click', loadQueue);
+        document.getElementById('btn-export').addEventListener('click', exportStructure);
+        document.getElementById('btn-zoom-in').addEventListener('click', () => { state.zoom = Math.min(2, state.zoom + 0.1); applyTransform(); });
+        document.getElementById('btn-zoom-out').addEventListener('click', () => { state.zoom = Math.max(0.3, state.zoom - 0.1); applyTransform(); });
+        document.getElementById('btn-zoom-reset').addEventListener('click', fitToView);
+        document.getElementById('btn-fit').addEventListener('click', fitToView);
+        document.getElementById('btn-center').addEventListener('click', () => {
+            state.panX = 0;
+            state.panY = 0;
+            applyTransform();
+        });
+        refs.canvas.addEventListener('wheel', event => {
+            event.preventDefault();
+            const factor = event.deltaY < 0 ? 1.1 : 0.9;
+            state.zoom = Math.min(2, Math.max(0.3, state.zoom * factor));
+            applyTransform();
+        }, { passive: false });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStructure();
+            loadQueue();
+        });
+    </script>
+</body>
+</html>
 
