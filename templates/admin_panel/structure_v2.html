@@ -77,7 +77,8 @@
             background: rgba(15, 23, 42, 0.05);
             border-radius: 16px;
             padding: 16px;
-            display: grid;
+            display: flex;
+            flex-direction: column;
             gap: 12px;
         }
         .queue-strip-title {
@@ -86,9 +87,22 @@
             font-size: 14px;
         }
         .queue-strip-items {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            display: flex;
             gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            scroll-snap-type: x proximity;
+        }
+        .queue-strip-items::-webkit-scrollbar {
+            height: 8px;
+        }
+        .queue-strip-items::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.6);
+            border-radius: 999px;
+        }
+        .queue-strip-items > .queue-chip {
+            scroll-snap-align: start;
+            min-width: 200px;
         }
         .queue-chip {
             background: white;
@@ -101,6 +115,34 @@
         }
         .queue-chip strong {
             color: #0f172a;
+        }
+        .queue-grid {
+            margin-bottom: 24px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            padding: 20px 24px;
+            display: grid;
+            gap: 16px;
+        }
+        .queue-grid[hidden] {
+            display: none;
+        }
+        .queue-grid-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .queue-grid-title {
+            font-weight: 600;
+            font-size: 15px;
+            color: #0f172a;
+        }
+        .queue-grid-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
         }
         .canvas-container {
             background: linear-gradient(180deg, #ffffff, #f4f6fb);
@@ -321,6 +363,13 @@
         </header>
 
         <main>
+            <div class="queue-grid" id="queueGrid" hidden>
+                <div class="queue-grid-header">
+                    <div class="queue-grid-title">🧩 Очередь партнёров (сеткой)</div>
+                    <div style="font-size:12px; color:#64748b;" id="queueGridCount"></div>
+                </div>
+                <div class="queue-grid-items" id="queueGridItems"></div>
+            </div>
             <div class="canvas-container">
                 <div class="canvas-toolbar">
                     <div class="status-badge" id="status-badge">Загрузка…</div>
@@ -383,6 +432,9 @@
             queueBlock: $('queue-block'),
             inlineQueue: $('inlineQueue'),
             inlineQueueItems: $('inlineQueueItems'),
+            queueGrid: $('queueGrid'),
+            queueGridItems: $('queueGridItems'),
+            queueGridCount: $('queueGridCount'),
             footerStatus: $('footer-status'),
             toast: $('toast'),
         };
@@ -718,6 +770,9 @@
                 refs.queueBlock.innerHTML = '<div class="queue-empty">Нет ожидающих участников.</div>';
                 refs.inlineQueue.hidden = false;
                 refs.inlineQueueItems.innerHTML = '<div class="queue-chip">Очередь пуста — ожидаем новых партнёров.</div>';
+                refs.queueGrid.hidden = true;
+                refs.queueGridItems.innerHTML = '';
+                refs.queueGridCount.textContent = '';
                 return;
             }
             const html = items.map(item => {
@@ -744,6 +799,21 @@
                         <div>Код: ${item.referral_code || '—'}</div>
                         <div>Пригласил: ${inviter}</div>
                         <div>Время: ${registered}</div>
+                    </div>`;
+            }).join('');
+            refs.queueGrid.hidden = false;
+            refs.queueGridCount.textContent = `Всего: ${items.length}`;
+            refs.queueGridItems.innerHTML = items.map(item => {
+                const inviter = item.invited_by != null ? item.invited_by : '—';
+                const registered = item.registered_at ? new Date(item.registered_at).toLocaleString() : '—';
+                const payment = item.payment_status != null ? item.payment_status : '—';
+                return `
+                    <div class="queue-chip">
+                        <div style="font-weight:600; margin-bottom:4px;">👤 ${item.username}</div>
+                        <div>Код: <strong>${item.referral_code || '—'}</strong></div>
+                        <div>Пригласил: <strong>${inviter}</strong></div>
+                        <div>Оплата: <strong>${payment}</strong></div>
+                        <div>Регистрация: ${registered}</div>
                     </div>`;
             }).join('');
         }
