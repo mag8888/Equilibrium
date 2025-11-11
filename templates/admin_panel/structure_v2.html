@@ -112,34 +112,64 @@
             color: #334155;
             box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
             border: 1px solid rgba(148, 163, 184, 0.3);
+            position: relative;
             display: grid;
-            gap: 6px;
+            gap: 4px;
         }
         .queue-chip strong {
             color: #0f172a;
         }
-        .queue-chip .queue-actions {
+        .queue-chip-actions {
             display: flex;
-            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 6px;
         }
-        .queue-action-btn {
+        .queue-chip-button {
             border: none;
-            border-radius: 10px;
-            background: linear-gradient(135deg, #22c55e, #16a34a);
+            background: #22c55e;
             color: white;
-            font-size: 12px;
+            border-radius: 8px;
             padding: 6px 10px;
+            font-size: 12px;
+            font-weight: 600;
             cursor: pointer;
             transition: transform 0.15s ease, box-shadow 0.15s ease;
         }
-        .queue-action-btn:hover {
+        .queue-chip-button:hover:not(:disabled) {
             transform: translateY(-1px);
-            box-shadow: 0 12px 24px rgba(34, 197, 94, 0.25);
+            box-shadow: 0 8px 18px rgba(34, 197, 94, 0.35);
         }
-        .queue-action-btn:disabled {
+        .queue-chip-button:disabled {
+            cursor: progress;
             opacity: 0.6;
-            cursor: default;
-            box-shadow: none;
+        }
+        .queue-grid {
+            margin-bottom: 24px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            padding: 20px 24px;
+            display: grid;
+            gap: 16px;
+        }
+        .queue-grid[hidden] {
+            display: none;
+        }
+        .queue-grid-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .queue-grid-title {
+            font-weight: 600;
+            font-size: 15px;
+            color: #0f172a;
+        }
+        .queue-grid-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
         }
         .canvas-container {
             background: linear-gradient(180deg, #ffffff, #f4f6fb);
@@ -172,9 +202,6 @@
             inset: 0;
             transform-origin: 0 0;
         }
-        #canvasInner.dragging {
-            cursor: grabbing;
-        }
         svg#connections {
             position: absolute;
             inset: 0;
@@ -190,12 +217,6 @@
             border: 1px solid rgba(15, 23, 42, 0.05);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             transform-origin: center;
-            cursor: grab;
-        }
-        .card.is-dragging {
-            cursor: grabbing;
-            transform: translateY(-6px) scale(1.02);
-            box-shadow: 0 30px 66px rgba(15, 23, 42, 0.22);
         }
         .card-header {
             display: flex;
@@ -443,11 +464,7 @@
             contentHeight: 0,
             structure: null,
             stats: null,
-            draggingCard: null,
-            dragOffset: { x: 0, y: 0 },
         };
-
-        const GRID_SIZE_PX = 40;
 
         function showToast(message) {
             refs.toast.textContent = message;
@@ -529,8 +546,11 @@
             }
         }
 
-        async function completeQueuePartner(userId, button) {
+        async function completeQueuedPartner(userId, button) {
+            if (!userId) return;
+            const originalText = button.textContent;
             try {
+                button.disabled = true;
                 button.textContent = '…';
                 const response = await fetch('/api/mlm/complete_registration/', {
                     method: 'POST',
@@ -546,21 +566,15 @@
                 if (!response.ok) {
                     throw new Error(raw || `HTTP ${response.status}`);
                 }
-                let payload = null;
-                try {
-                    payload = raw ? JSON.parse(raw) : null;
-                } catch (error) {
-                    throw new Error('Не удалось обработать ответ сервера.');
-                }
-                showToast('Бонусы пересчитаны, партнёр размещён.');
-                await Promise.all([loadQueue(), loadStructure()]);
-                return payload;
+                showToast('Партнёр размещён');
+                await loadStructure();
+                await loadQueue();
             } catch (error) {
                 console.error(error);
                 showToast(error.message || 'Не удалось завершить регистрацию');
-                throw error;
             } finally {
-                button.textContent = '$';
+                button.disabled = false;
+                button.textContent = originalText;
             }
         }
 
@@ -688,7 +702,6 @@
             refs.connections.setAttribute('width', width);
             refs.connections.setAttribute('height', height);
             const fragment = document.createDocumentFragment();
-            const cardElements = [];
             positions.forEach((pos, id) => {
                 const node = tree.nodes.get(id);
                 if (!node) return;
@@ -698,7 +711,6 @@
                 el.className = 'card';
                 el.style.left = `${left}px`;
                 el.style.top = `${top}px`;
-                el.dataset.id = node.id;
                 el.innerHTML = `
                     <div class="card-header">
                         <div class="title">${node.level === 0 ? '🌐' : '👤'} ${node.name}</div>
@@ -716,7 +728,6 @@
                         <div class="transition">🟡 Переходный: <strong>${formatMoney(node.bonus)}</strong></div>
                     </div>`;
                 fragment.appendChild(el);
-                cardElements.push({ element: el, node, pos });
                 const addBtn = el.querySelector('.card-add-btn');
                 if (addBtn && node.uid) {
                     addBtn.addEventListener('click', (event) => {
@@ -729,9 +740,6 @@
                 }
             });
             refs.canvasInner.appendChild(fragment);
-            cardElements.forEach(({ element, node }) => {
-                attachCardDragHandlers(element, node.id);
-            });
             const svgNs = 'http://www.w3.org/2000/svg';
             tree.nodes.forEach(node => {
                 if (!node.parent) return;
@@ -753,20 +761,6 @@
             fitToView();
         }
 
-        function attachCardDragHandlers(cardElement, nodeId) {
-            cardElement.addEventListener('mousedown', (event) => {
-                const isActionButton = event.target.closest('button');
-                if (isActionButton) return;
-                event.preventDefault();
-                state.draggingCard = cardElement;
-                cardElement.classList.add('is-dragging');
-                const rect = cardElement.getBoundingClientRect();
-                state.dragOffset.x = event.clientX - rect.left;
-                state.dragOffset.y = event.clientY - rect.top;
-                refs.canvasInner.classList.add('dragging');
-            });
-        }
-
         function applyTransform() {
             const container = refs.canvas.getBoundingClientRect();
             const contentW = state.contentWidth * state.zoom;
@@ -779,10 +773,6 @@
             refs.canvasInner.style.transform = transform;
             refs.connections.style.transform = transform;
             $('btn-zoom-reset').textContent = `${Math.round(state.zoom * 100)}%`;
-        }
-
-        function snapCoordinate(value) {
-            return Math.round(value / GRID_SIZE_PX) * GRID_SIZE_PX;
         }
 
         function fitToView() {
@@ -831,13 +821,12 @@
                 refs.inlineQueueItems.innerHTML = '<div class="queue-chip">Очередь пуста — ожидаем новых партнёров.</div>';
                 return;
             }
-            const ordered = [...items];
-            ordered.sort((a, b) => {
-                const aTime = a.registered_at ? new Date(a.registered_at).getTime() : 0;
-                const bTime = b.registered_at ? new Date(b.registered_at).getTime() : 0;
-                return bTime - aTime;
+            const sortedByNewest = [...items].sort((a, b) => {
+                const tsA = Date.parse(a.registered_at || a.date_joined || '') || 0;
+                const tsB = Date.parse(b.registered_at || b.date_joined || '') || 0;
+                return tsB - tsA;
             });
-            const html = ordered.map(item => {
+            const html = sortedByNewest.map(item => {
                 const inviter = item.invited_by != null ? item.invited_by : '—';
                 const payment = item.payment_status != null ? item.payment_status : '—';
                 const registered = item.registered_at ? new Date(item.registered_at).toLocaleString() : '—';
@@ -851,8 +840,7 @@
                     </div>`;
             }).join('');
             refs.queueBlock.innerHTML = html;
-            refs.inlineQueue.hidden = false;
-            refs.inlineQueueItems.innerHTML = ordered.map(item => {
+            refs.inlineQueueItems.innerHTML = sortedByNewest.map(item => {
                 const inviter = item.invited_by != null ? item.invited_by : '—';
                 const registered = item.registered_at ? new Date(item.registered_at).toLocaleTimeString() : '—';
                 return `
@@ -861,104 +849,17 @@
                         <div>Код: ${item.referral_code || '—'}</div>
                         <div>Пригласил: ${inviter}</div>
                         <div>Время: ${registered}</div>
-                        <div class="queue-actions">
-                            <button class="queue-action-btn" data-action="complete" data-user-id="${item.id}">$</button>
+                        <div class="queue-chip-actions">
+                            <button class="queue-chip-button" data-action="complete" data-user-id="${item.id}">$</button>
                         </div>
                     </div>`;
             }).join('');
             refs.inlineQueueItems.querySelectorAll('[data-action="complete"]').forEach(button => {
                 button.addEventListener('click', () => {
                     const userId = button.dataset.userId;
-                    if (!userId) return;
-                    button.disabled = true;
-                    completeQueuePartner(userId, button).finally(() => {
-                        button.disabled = false;
-                    });
+                    completeQueuedPartner(userId, button);
                 });
             });
-        }
-
-        function registerCanvasDragEvents() {
-            refs.canvasInner.addEventListener('mousemove', (event) => {
-                if (!state.draggingCard) return;
-                const rect = refs.canvas.getBoundingClientRect();
-                const x = event.clientX - rect.left - state.dragOffset.x;
-                const y = event.clientY - rect.top - state.dragOffset.y;
-                const snapX = snapCoordinate(x / state.zoom);
-                const snapY = snapCoordinate(y / state.zoom);
-                state.draggingCard.style.left = `${snapX}px`;
-                state.draggingCard.style.top = `${snapY}px`;
-                updateConnections();
-            });
-            window.addEventListener('mouseup', () => {
-                if (!state.draggingCard) return;
-                state.draggingCard.classList.remove('is-dragging');
-                refs.canvasInner.classList.remove('dragging');
-                state.draggingCard = null;
-                updateConnections();
-                saveVisiblePositions();
-            });
-        }
-
-        function updateConnections() {
-            // Re-render connections based on current DOM positions
-            const pathElements = Array.from(refs.connections.querySelectorAll('path'));
-            pathElements.forEach(path => path.remove());
-            const cards = Array.from(refs.canvasInner.querySelectorAll('.card'));
-            const map = new Map();
-            cards.forEach(card => {
-                map.set(card.dataset.id, card);
-            });
-            if (!state.structure || !state.structure.cards) return;
-            const paddingX = 0;
-            const paddingY = 0;
-            const svgNs = 'http://www.w3.org/2000/svg';
-            state.structure.cards.forEach(card => {
-                if (!card.parent) return;
-                const parentEl = map.get(String(card.parent));
-                const childEl = map.get(String(card.id));
-                if (!parentEl || !childEl) return;
-                const startX = parseFloat(parentEl.style.left) + parentEl.offsetWidth / 2 + paddingX;
-                const startY = parseFloat(parentEl.style.top) + parentEl.offsetHeight;
-                const endX = parseFloat(childEl.style.left) + childEl.offsetWidth / 2 + paddingX;
-                const endY = parseFloat(childEl.style.top);
-                const dy = Math.max(60, (endY - startY) * 0.6);
-                const path = document.createElementNS(svgNs, 'path');
-                path.setAttribute('d', `M ${startX} ${startY} C ${startX} ${startY + dy}, ${endX} ${endY - dy}, ${endX} ${endY}`);
-                path.setAttribute('stroke', 'rgba(37,99,235,0.45)');
-                path.setAttribute('stroke-width', '2.4');
-                path.setAttribute('fill', 'none');
-                refs.connections.appendChild(path);
-            });
-        }
-
-        function saveVisiblePositions() {
-            const cards = Array.from(refs.canvasInner.querySelectorAll('.card'));
-            const payload = cards.map(card => ({
-                id: card.dataset.id,
-                left: parseFloat(card.style.left) || 0,
-                top: parseFloat(card.style.top) || 0,
-            }));
-            localStorage.setItem('structure_v2_layout', JSON.stringify(payload));
-        }
-
-        function restoreVisiblePositions(structure) {
-            const raw = localStorage.getItem('structure_v2_layout');
-            if (!raw) return structure;
-            try {
-                const stored = JSON.parse(raw);
-                const map = new Map(stored.map(item => [String(item.id), item]));
-                structure.cards.forEach(card => {
-                    const saved = map.get(String(card.id));
-                    if (saved) {
-                        card.left = saved.left;
-                        card.top = saved.top;
-                    }
-                });
-            } catch (error) {
-                console.error('restoreVisiblePositions', error);
-            }
-            return structure;
         }
 
         async function loadStructure() {
@@ -967,7 +868,7 @@
                 refs.status.textContent = 'Загрузка…';
                 refs.status.className = 'status-badge';
                 const payload = await fetchJson(API_STRUCTURE);
-                const structure = restoreVisiblePositions(ensureRoot(payload.structure, payload.stats));
+                const structure = ensureRoot(payload.structure, payload.stats);
                 state.structure = structure;
                 state.stats = payload.stats || null;
                 renderTree(structure);
@@ -1044,7 +945,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadStructure();
             loadQueue();
-            registerCanvasDragEvents();
         });
     </script>
 </body>
