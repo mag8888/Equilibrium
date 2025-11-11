@@ -107,32 +107,76 @@
         }
         .card {
             position: absolute;
-            background: #fff;
-            border: 1px solid #d1d5db;
-            border-radius: 12px;
-            padding: 12px 14px;
-            min-width: 170px;
-            box-shadow: 0 10px 30px rgba(15,23,42,0.12);
-            transform: translate(-50%, -50%);
+            width: 200px;
+            padding: 16px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 18px 34px rgba(15, 23, 42, 0.12);
+            border: 1px solid rgba(15, 23, 42, 0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transform-origin: center;
         }
-        .card .title {
-            font-weight: 600;
+        .card-header {
             display: flex;
             align-items: center;
-            gap: 6px;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .card .title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+        .card-add-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 999px;
+            border: none;
+            background: #2563eb;
+            color: white;
+            display: grid;
+            place-items: center;
+            font-size: 18px;
+            line-height: 1;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .card-add-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 16px rgba(37, 99, 235, 0.25);
         }
         .card .subtitle {
-            font-size: 12px;
-            color: #6b7280;
-            margin-top: 4px;
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 12px;
         }
         .card .stats {
-            margin-top: 8px;
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 6px;
-            font-size: 11px;
+            font-size: 12px;
             color: #475569;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 12px;
+            margin-bottom: 12px;
+        }
+        .card .financial {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 4px;
+            font-size: 12px;
+            color: #334155;
+        }
+        .card .stats strong {
+            color: #0f172a;
+        }
+        .card .financial strong {
+            color: #15803d;
+        }
+        .card .financial .transition strong {
+            color: #b45309;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 26px 48px rgba(15, 23, 42, 0.18);
         }
         aside {
             grid-area: sidebar;
@@ -320,6 +364,26 @@
             setTimeout(() => refs.toast.classList.remove('show'), 2200);
         }
 
+        function formatMoney(value) {
+            const amount = Number(value || 0);
+            if (!Number.isFinite(amount)) return '$0';
+            return `$${amount.toLocaleString('en-US', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+            })}`;
+        }
+
+        function getCookie(name) {
+            const cookies = document.cookie ? document.cookie.split('; ') : [];
+            for (const cookie of cookies) {
+                const [key, ...rest] = cookie.split('=');
+                if (key === name) {
+                    return decodeURIComponent(rest.join('='));
+                }
+            }
+            return null;
+        }
+
         async function fetchJson(url) {
             const response = await fetch(url, {
                 headers: { 'Accept': 'application/json' },
@@ -333,6 +397,44 @@
                 return JSON.parse(rawText);
             } catch (error) {
                 throw new Error('Получен неожиданный ответ от сервера.');
+            }
+        }
+
+        async function registerPartner(inviterUid) {
+            try {
+                refs.status.textContent = 'Регистрируем…';
+                refs.status.className = 'status-badge';
+                const response = await fetch('/api/mlm/register_partner/', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken') || '',
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ inviter_uid: inviterUid }),
+                });
+                const raw = await response.text();
+                if (!response.ok) {
+                    throw new Error(raw || `HTTP ${response.status}`);
+                }
+                let payload = null;
+                try {
+                    payload = raw ? JSON.parse(raw) : null;
+                } catch (error) {
+                    throw new Error('Ответ сервера не распознан, но запрос выполнен.');
+                }
+                showToast('Партнёр добавлен в очередь.');
+                refs.status.textContent = 'Данные обновлены';
+                refs.status.className = 'status-badge success';
+                await Promise.all([loadQueue(), loadStructure()]);
+                return payload;
+            } catch (error) {
+                console.error(error);
+                showToast(error.message || 'Не удалось добавить партнёра');
+                refs.status.textContent = 'Ошибка';
+                refs.status.className = 'status-badge warning';
+                throw error;
             }
         }
 
@@ -383,6 +485,7 @@
                     direct: card.directReferrals != null ? card.directReferrals : 0,
                     total: card.totalReferrals != null ? card.totalReferrals : 0,
                     bonus: card.bonusYellow != null ? card.bonusYellow : 0,
+                    payout: card.payoutGreen != null ? card.payoutGreen : 0,
                     children: [],
                 });
             });
@@ -467,15 +570,32 @@
                 el.style.left = `${left}px`;
                 el.style.top = `${top}px`;
                 el.innerHTML = `
-                    <div class="title">${node.level === 0 ? '🌐' : '👤'} ${node.name}</div>
+                    <div class="card-header">
+                        <div class="title">${node.level === 0 ? '🌐' : '👤'} ${node.name}</div>
+                        <button class="card-add-btn" title="Добавить партнёра" data-uid="${node.uid}" ${node.uid ? '' : 'disabled'}>+</button>
+                    </div>
                     <div class="subtitle">ID ${node.uid || '—'}</div>
                     <div class="stats">
                         <div>Уровень: <strong>${node.level}</strong></div>
                         <div>Прямых: <strong>${node.direct}</strong></div>
                         <div>Всего: <strong>${node.total}</strong></div>
-                        <div>Бонус: <strong>${node.bonus}</strong></div>
+                        <div>Статус: <strong>${node.children.length > 0 ? 'Активен' : '—'}</strong></div>
+                    </div>
+                    <div class="financial">
+                        <div class="payout">🟢 Выплаты: <strong>${formatMoney(node.payout)}</strong></div>
+                        <div class="transition">🟡 Переходный: <strong>${formatMoney(node.bonus)}</strong></div>
                     </div>`;
                 fragment.appendChild(el);
+                const addBtn = el.querySelector('.card-add-btn');
+                if (addBtn && node.uid) {
+                    addBtn.addEventListener('click', (event) => {
+                        event.stopPropagation();
+                        addBtn.disabled = true;
+                        registerPartner(node.uid).finally(() => {
+                            addBtn.disabled = false;
+                        });
+                    });
+                }
             });
             refs.canvasInner.appendChild(fragment);
             const svgNs = 'http://www.w3.org/2000/svg';
