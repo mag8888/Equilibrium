@@ -36,15 +36,23 @@ DEBUG = env("DJANGO_DEBUG", default="1")
 if isinstance(DEBUG, str):
     DEBUG = _to_bool(DEBUG)
 
+# Allow hosts - Railway uses dynamic domains
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
-# Allow Railway domains
-railway_hosts = [
-    "equilibrium.up.railway.app",
-    "web-production-48c0.up.railway.app",
-    ".up.railway.app",  # This allows all subdomains of up.railway.app
-]
-ALLOWED_HOSTS.extend(railway_hosts)
 
+# In Railway production, add common domains
+_port = env("PORT", default="")
+if _port:
+    # Railway production - add common Railway domains
+    ALLOWED_HOSTS.extend([
+        "equilibrium.up.railway.app",
+        "web-production-48c0.up.railway.app",
+        env("RAILWAY_PUBLIC_DOMAIN", default=""),
+    ])
+    # Remove empty strings
+    ALLOWED_HOSTS = [h for h in ALLOWED_HOSTS if h]
+
+# Use X-Forwarded-Host header (Railway uses this)
+USE_X_FORWARDED_HOST = True
 
 # Application definition
 
