@@ -55,25 +55,17 @@ python manage.py migrate || {
     echo "⚠️ Migrations failed, but continuing..."
 }
 
-# Запуск Gunicorn (основной процесс должен быть первым для healthcheck)
+# Быстрая инициализация (не блокирующая, минимум операций)
+echo "🔧 Quick initialization (non-blocking)..."
+python manage.py auto_init 2>&1 | head -10 || echo "⚠️ Auto init skipped" &
+python manage.py create_superuser 2>&1 | head -10 || echo "⚠️ Root admin creation skipped" &
+
+# Запуск Gunicorn (основной процесс через exec для healthcheck)
 echo "🌐 Starting Gunicorn server..."
 PORT=${PORT:-8000}
 echo "🚀 Server will be available on port $PORT"
 echo "✅ Healthcheck endpoint: /health/"
+echo "✅ Gunicorn will start immediately for healthcheck"
 
-# Запускаем Gunicorn в фоне для быстрого ответа на healthcheck
-gunicorn $WSGI_MODULE --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --access-logfile - --error-logfile - &
-GUNICORN_PID=$!
-
-# Даем серверу время на запуск перед healthcheck
-sleep 2
-echo "✅ Gunicorn started, healthcheck should work now"
-
-# Инициализация базы данных (в фоне, не блокирует healthcheck)
-echo "🔧 Initializing database (background)..."
-(python manage.py auto_init && python manage.py create_superuser) 2>&1 | head -30 || {
-    echo "⚠️ Initialization completed with warnings"
-} &
-
-# Ждем Gunicorn (основной процесс)
-wait $GUNICORN_PID
+# Используем exec чтобы Gunicorn стал основным процессом контейнера
+exec gunicorn $WSGI_MODULE --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --access-logfile - --error-logfile -
