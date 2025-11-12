@@ -33,19 +33,13 @@ fi
 
 # Сбор статических файлов (быстрый, не блокирующий)
 echo "📦 Collecting static files (quick)..."
-timeout 20 python manage.py collectstatic --noinput 2>&1 | head -10 || {
+timeout 15 python manage.py collectstatic --noinput 2>&1 | head -10 || {
     echo "⚠️ Collectstatic timed out or failed, but continuing..."
 }
 
-# Проверка подключения к базе данных (быстрая, не блокирующая)
-echo "🔌 Testing database connection (quick check)..."
-timeout 5 python manage.py check --database default 2>&1 | head -5 || {
-    echo "⚠️ Database check timed out or failed, but continuing..."
-}
-
-# Применение миграций (быстрое, не блокирующее)
-echo "🗄️ Applying migrations (quick)..."
-timeout 30 python manage.py migrate --noinput 2>&1 | head -20 || {
+# Применение миграций (быстрое, не блокирующее) - БЕЗ проверки БД
+echo "🗄️ Applying migrations (quick, no DB check)..."
+timeout 20 python manage.py migrate --noinput 2>&1 | head -15 || {
     echo "⚠️ Migrations timed out or failed, but continuing..."
 }
 
@@ -58,12 +52,14 @@ echo "⏳ Starting Gunicorn now (this will be the main process)..."
 
 # Используем exec чтобы Gunicorn стал основным процессом контейнера
 # Это критично для Railway healthcheck - контейнер должен держаться живым
-# Инициализация будет выполнена после успешного запуска через отдельный механизм
+# Используем минимальные настройки для быстрого старта
 exec gunicorn $WSGI_MODULE \
     --bind 0.0.0.0:$PORT \
     --workers 1 \
     --timeout 120 \
     --access-logfile - \
     --error-logfile - \
-    --log-level info \
-    --preload
+    --log-level warning \
+    --preload \
+    --max-requests 1000 \
+    --max-requests-jitter 50
