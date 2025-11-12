@@ -31,10 +31,10 @@ else
     exit 1
 fi
 
-# Сбор статических файлов
-echo "📦 Collecting static files..."
-python manage.py collectstatic --noinput || {
-    echo "⚠️ Collectstatic failed, but continuing..."
+# Сбор статических файлов (быстрый, не блокирующий)
+echo "📦 Collecting static files (quick)..."
+timeout 20 python manage.py collectstatic --noinput 2>&1 | head -10 || {
+    echo "⚠️ Collectstatic timed out or failed, but continuing..."
 }
 
 # Проверка подключения к базе данных
@@ -49,10 +49,10 @@ python manage.py check --database default || {
     }
 }
 
-# Применение миграций
-echo "🗄️ Applying migrations..."
-python manage.py migrate || {
-    echo "⚠️ Migrations failed, but continuing..."
+# Применение миграций (быстрое, не блокирующее)
+echo "🗄️ Applying migrations (quick)..."
+timeout 30 python manage.py migrate --noinput 2>&1 | head -20 || {
+    echo "⚠️ Migrations timed out or failed, but continuing..."
 }
 
 # Запуск Gunicorn (основной процесс через exec для healthcheck)
