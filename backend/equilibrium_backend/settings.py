@@ -108,17 +108,20 @@ WSGI_APPLICATION = 'equilibrium_backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    'default': dj_database_url.parse(
-        env("DATABASE_URL", default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
-        conn_max_age=600,
-        conn_health_checks=False,  # Отключаем проверку здоровья БД при старте
-    )
-}
+# Настройки БД с отложенным подключением
+db_config = dj_database_url.parse(
+    env("DATABASE_URL", default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
+    conn_max_age=600,
+)
 
-# Отложенное подключение к БД - не блокирует старт приложения
-DATABASES['default']['OPTIONS'] = DATABASES['default'].get('OPTIONS', {})
-DATABASES['default']['OPTIONS']['connect_timeout'] = 5
+# Добавляем опции для отложенного подключения (не блокирует старт)
+if 'OPTIONS' not in db_config:
+    db_config['OPTIONS'] = {}
+db_config['OPTIONS']['connect_timeout'] = 5
+
+DATABASES = {
+    'default': db_config
+}
 
 
 # Password validation
