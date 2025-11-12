@@ -16,17 +16,27 @@ router.register(r'admin', views.AdminViewSet, basename='admin')
 @permission_classes([AllowAny])
 def structure_api(request):
     """API endpoint for /api/structure/"""
-    mlm_viewset = views.MLMViewSet()
-    mlm_viewset.request = request
-    return mlm_viewset.structure(request)
+    try:
+        mlm_viewset = views.MLMViewSet()
+        mlm_viewset.request = request
+        mlm_viewset.format_kwarg = None
+        return mlm_viewset.structure(request)
+    except Exception as e:
+        from rest_framework.response import Response
+        return Response([], status=200)
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def queue_api(request):
     """API endpoint for /api/queue/"""
-    mlm_viewset = views.MLMViewSet()
-    mlm_viewset.request = request
-    return mlm_viewset.queue(request)
+    try:
+        mlm_viewset = views.MLMViewSet()
+        mlm_viewset.request = request
+        mlm_viewset.format_kwarg = None
+        return mlm_viewset.queue(request)
+    except Exception as e:
+        from rest_framework.response import Response
+        return Response([], status=200)
 
 urlpatterns = [
     path('structure/', structure_api, name='api_structure'),

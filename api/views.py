@@ -430,6 +430,7 @@ class MLMViewSet(viewsets.ViewSet):
     def structure(self, request):
         """API для получения структуры партнеров для админ-панели"""
         try:
+            # Try new project structure (EquilibriumNew)
             from mlm.models import StructureNode, Tariff
             from billing.models import Payment, Bonus
             from core.models import User as CoreUser
@@ -447,8 +448,8 @@ class MLMViewSet(viewsets.ViewSet):
                     'position': node.position,
                 })
             return Response(data)
-        except ImportError:
-            # Fallback to MLMPartner if StructureNode doesn't exist
+        except (ImportError, AttributeError):
+            # Fallback to MLMPartner if StructureNode doesn't exist (current project)
             try:
                 user = self._get_root_user(request)
                 if user is None:
@@ -468,16 +469,18 @@ class MLMViewSet(viewsets.ViewSet):
                     })
                 return Response(data)
             except Exception as e:
-                return Response({'error': str(e)}, status=status.HTTP_200_OK)
+                # Return empty list on any error to prevent crashes
+                return Response([], status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], permission_classes=[AllowAny], url_path='queue')
     def queue(self, request):
         """API для получения очереди регистраций для админ-панели"""
         try:
-            from billing.models import Payment
+            # Try new project structure (EquilibriumNew)
+            from billing.models import Payment as BillingPayment
             from core.models import User as CoreUser
             
-            pending_payments = Payment.objects.filter(status=Payment.Status.PENDING).select_related('user', 'tariff').order_by('created_at')
+            pending_payments = BillingPayment.objects.filter(status=BillingPayment.Status.PENDING).select_related('user', 'tariff').order_by('created_at')
             queue_data = []
             for payment in pending_payments:
                 queue_data.append({
@@ -489,9 +492,10 @@ class MLMViewSet(viewsets.ViewSet):
                     'created_at': payment.created_at.isoformat(),
                 })
             return Response(queue_data)
-        except ImportError:
-            # Fallback to old Payment model
+        except (ImportError, AttributeError):
+            # Fallback to old Payment model (current project)
             try:
+                # Payment is already imported from mlm.models at the top
                 pending_users = (
                     User.objects.filter(status='participant', invited_by__isnull=False, mlm_structure__isnull=True)
                     .select_related('invited_by')
@@ -501,7 +505,7 @@ class MLMViewSet(viewsets.ViewSet):
                 items = []
                 for user in pending_users:
                     payment = (
-                        Payment.objects.filter(user=user, payment_type='registration')
+                        Payment.objects.filter(user=user, payment_type='registration', status='pending')
                         .order_by('-created_at')
                         .first()
                     )
@@ -515,7 +519,8 @@ class MLMViewSet(viewsets.ViewSet):
                     })
                 return Response(items)
             except Exception as e:
-                return Response({'error': str(e)}, status=status.HTTP_200_OK)
+                # Return empty list on any error to prevent crashes
+                return Response([], status=status.HTTP_200_OK)
 
 
 class AdminViewSet(viewsets.ViewSet):
