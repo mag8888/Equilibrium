@@ -426,6 +426,97 @@ class MLMViewSet(viewsets.ViewSet):
             'deleted_count': deleted_count
         })
 
+    @action(detail=False, methods=['get'], permission_classes=[AllowAny], url_path='structure')
+    def structure(self, request):
+        """API для получения структуры партнеров для админ-панели"""
+        try:
+            from mlm.models import StructureNode, Tariff
+            from billing.models import Payment, Bonus
+            from core.models import User as CoreUser
+            
+            nodes = StructureNode.objects.select_related('user', 'parent', 'tariff').all()
+            data = []
+            for node in nodes:
+                data.append({
+                    'id': node.id,
+                    'uid': str(node.user.id) if node.user else None,
+                    'name': node.user.username if node.user else 'Empty',
+                    'level': node.level,
+                    'parent_id': node.parent.id if node.parent else None,
+                    'tariff': node.tariff.name if node.tariff else None,
+                    'position': node.position,
+                })
+            return Response(data)
+        except ImportError:
+            # Fallback to MLMPartner if StructureNode doesn't exist
+            try:
+                user = self._get_root_user(request)
+                if user is None:
+                    return Response([], status=status.HTTP_200_OK)
+                
+                partners = MLMPartner.objects.filter(root_user=user, is_active=True)
+                data = []
+                for partner in partners:
+                    data.append({
+                        'id': partner.id,
+                        'uid': partner.unique_id,
+                        'name': partner.human_name,
+                        'level': partner.level,
+                        'parent_id': partner.parent.id if partner.parent else None,
+                        'tariff': None,
+                        'position': {'x': partner.position_x, 'y': partner.position_y},
+                    })
+                return Response(data)
+            except Exception as e:
+                return Response({'error': str(e)}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], permission_classes=[AllowAny], url_path='queue')
+    def queue(self, request):
+        """API для получения очереди регистраций для админ-панели"""
+        try:
+            from billing.models import Payment
+            from core.models import User as CoreUser
+            
+            pending_payments = Payment.objects.filter(status=Payment.Status.PENDING).select_related('user', 'tariff').order_by('created_at')
+            queue_data = []
+            for payment in pending_payments:
+                queue_data.append({
+                    'payment_id': payment.id,
+                    'user_id': payment.user.id,
+                    'username': payment.user.username,
+                    'tariff_name': payment.tariff.name if payment.tariff else 'N/A',
+                    'amount': str(payment.amount),
+                    'created_at': payment.created_at.isoformat(),
+                })
+            return Response(queue_data)
+        except ImportError:
+            # Fallback to old Payment model
+            try:
+                pending_users = (
+                    User.objects.filter(status='participant', invited_by__isnull=False, mlm_structure__isnull=True)
+                    .select_related('invited_by')
+                    .order_by('date_joined')[:200]
+                )
+                
+                items = []
+                for user in pending_users:
+                    payment = (
+                        Payment.objects.filter(user=user, payment_type='registration')
+                        .order_by('-created_at')
+                        .first()
+                    )
+                    items.append({
+                        'payment_id': payment.id if payment else None,
+                        'user_id': user.id,
+                        'username': user.username,
+                        'tariff_name': 'N/A',
+                        'amount': str(payment.amount) if payment else '0',
+                        'created_at': user.date_joined.isoformat(),
+                    })
+                return Response(items)
+            except Exception as e:
+                return Response({'error': str(e)}, status=status.HTTP_200_OK)
+
 
 class AdminViewSet(viewsets.ViewSet):
     """API для админ-панели"""
