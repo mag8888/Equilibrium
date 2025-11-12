@@ -6,8 +6,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 # Копируем requirements.txt из backend (приоритет) или корня
-COPY backend/requirements.txt ./requirements.txt 2>/dev/null || COPY requirements.txt ./requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+COPY backend/requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt || pip install --no-cache-dir -r ../requirements.txt
 
 # Копируем ТОЛЬКО backend директорию (новый проект)
 COPY backend/ ./backend/
