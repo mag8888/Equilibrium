@@ -19,18 +19,19 @@ echo "📁 Creating staticfiles directory..."
 mkdir -p staticfiles
 
 # Определяем структуру проекта
-# В Docker образе мы всегда используем backend/
-if [ -f "manage.py" ]; then
-    echo "📁 Using backend/ structure (current directory)..."
+# В Docker образе start.sh находится в /app, backend в /app/backend
+if [ -f "/app/backend/manage.py" ]; then
+    echo "📁 Detected backend/ structure in /app/backend..."
+    cd /app/backend
     WSGI_MODULE="equilibrium_backend.wsgi:application"
-elif [ -f "../backend/manage.py" ]; then
-    echo "📁 Detected backend/ structure, switching to backend directory..."
-    cd ../backend
+elif [ -f "manage.py" ]; then
+    echo "📁 Using current directory (already in backend)..."
     WSGI_MODULE="equilibrium_backend.wsgi:application"
 else
-    echo "❌ No manage.py found in backend/!"
+    echo "❌ No manage.py found!"
     echo "🔍 Current directory: $(pwd)"
-    echo "🔍 Files: $(ls -la)"
+    echo "🔍 Files in /app: $(ls -la /app 2>/dev/null || echo 'cannot list')"
+    echo "🔍 Files in /app/backend: $(ls -la /app/backend 2>/dev/null || echo 'cannot list')"
     exit 1
 fi
 

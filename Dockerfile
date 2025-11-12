@@ -12,11 +12,12 @@ RUN pip install --no-cache-dir -r requirements.txt || pip install --no-cache-dir
 # Копируем ТОЛЬКО backend директорию (новый проект)
 COPY backend/ ./backend/
 
-# Копируем start.sh
-COPY start.sh ./start.sh
-RUN chmod +x ./start.sh
+# Копируем start.sh в корень /app
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
 
 # Устанавливаем рабочую директорию в backend
 WORKDIR /app/backend
 
-CMD ["../start.sh"]
+# Запускаем start.sh из корня
+CMD ["/app/start.sh"]
