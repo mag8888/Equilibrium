@@ -549,6 +549,8 @@ class AdminViewSet(viewsets.ViewSet):
             if User.objects.filter(username=username).exists():
                 user = User.objects.get(username=username)
                 if user.is_superuser:
+                    # Проверяем и создаем MLM структуру если нужно
+                    self._ensure_mlm_structure(user)
                     return Response({
                         'status': 'exists',
                         'message': f'Суперпользователь {username} уже существует',
@@ -561,6 +563,7 @@ class AdminViewSet(viewsets.ViewSet):
                     user.email = email
                     user.set_password(password)
                     user.save()
+                    self._ensure_mlm_structure(user)
                     return Response({
                         'status': 'updated',
                         'message': f'Пользователь {username} повышен до суперпользователя',
@@ -572,16 +575,52 @@ class AdminViewSet(viewsets.ViewSet):
                     email=email,
                     password=password
                 )
+                self._ensure_mlm_structure(user)
                 return Response({
                     'status': 'created',
                     'message': f'Суперпользователь {username} создан успешно',
                     'username': username
                 }, status=status.HTTP_201_CREATED)
         except Exception as e:
+            import traceback
             return Response({
                 'status': 'error',
-                'error': str(e)
+                'error': str(e),
+                'traceback': traceback.format_exc()
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def _ensure_mlm_structure(self, user):
+        """Создает MLM структуру и MLMPartner для root admin"""
+        try:
+            # Создаем MLM структуру
+            mlm_structure, created = MLMStructure.objects.get_or_create(
+                user=user,
+                defaults={
+                    'parent': None,
+                    'position': 0,
+                    'level': 0,
+                    'is_active': True,
+                }
+            )
+            
+            # Создаем MLMPartner для root admin, если это первый пользователь или партнер не существует
+            if User.objects.count() == 1 or not MLMPartner.objects.filter(root_user=user, unique_id='0000001').exists():
+                MLMPartner.objects.get_or_create(
+                    root_user=user,
+                    unique_id='0000001',
+                    defaults={
+                        'human_name': 'Admin',
+                        'level': 0,
+                        'position_x': 0,
+                        'position_y': 240,
+                        'parent': None,
+                        'created_at': timezone.now(),
+                        'is_active': True,
+                    }
+                )
+        except Exception as e:
+            # Игнорируем ошибки если модели не существуют (новая структура проекта)
+            pass
 
     @action(detail=False, methods=['get'])
     def statistics(self, request):
