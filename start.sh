@@ -55,27 +55,25 @@ python manage.py migrate || {
     echo "⚠️ Migrations failed, but continuing..."
 }
 
-# Инициализация базы данных
-echo "🔧 Initializing database..."
-python manage.py auto_init || {
-    echo "⚠️ Auto init failed, but continuing..."
-}
-
-# Создание root admin (если не существует)
-echo "👤 Creating root admin..."
-python manage.py create_superuser || {
-    echo "⚠️ Root admin creation failed, but continuing..."
-}
-
-# Дополнительная проверка: убеждаемся что root admin и MLMPartner существуют
-echo "🔍 Verifying root admin setup..."
-python manage.py create_superuser --force || {
-    echo "⚠️ Root admin verification failed, but continuing..."
-}
-
-# Запуск Gunicorn
+# Запуск Gunicorn (основной процесс должен быть первым для healthcheck)
 echo "🌐 Starting Gunicorn server..."
 PORT=${PORT:-8000}
 echo "🚀 Server will be available on port $PORT"
 echo "✅ Healthcheck endpoint: /health/"
-exec gunicorn $WSGI_MODULE --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --access-logfile - --error-logfile -
+
+# Запускаем Gunicorn в фоне для быстрого ответа на healthcheck
+gunicorn $WSGI_MODULE --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --access-logfile - --error-logfile - &
+GUNICORN_PID=$!
+
+# Даем серверу время на запуск перед healthcheck
+sleep 2
+echo "✅ Gunicorn started, healthcheck should work now"
+
+# Инициализация базы данных (в фоне, не блокирует healthcheck)
+echo "🔧 Initializing database (background)..."
+(python manage.py auto_init && python manage.py create_superuser) 2>&1 | head -30 || {
+    echo "⚠️ Initialization completed with warnings"
+} &
+
+# Ждем Gunicorn (основной процесс)
+wait $GUNICORN_PID
