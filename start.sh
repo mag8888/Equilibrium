@@ -31,35 +31,31 @@ else
     exit 1
 fi
 
-# Сбор статических файлов (быстрый, не блокирующий)
-echo "📦 Collecting static files (quick)..."
-timeout 15 python manage.py collectstatic --noinput 2>&1 | head -10 || {
-    echo "⚠️ Collectstatic timed out or failed, but continuing..."
+# Минимальная подготовка - только самое необходимое
+echo "📦 Quick setup (minimal)..."
+timeout 10 python manage.py collectstatic --noinput 2>&1 | head -5 || echo "⚠️ Collectstatic skipped"
+
+# Применение миграций (быстрое, не блокирующее)
+echo "🗄️ Applying migrations (quick)..."
+timeout 15 python manage.py migrate --noinput 2>&1 | head -10 || {
+    echo "⚠️ Migrations timed out, but continuing..."
 }
 
-# Применение миграций (быстрое, не блокирующее) - БЕЗ проверки БД
-echo "🗄️ Applying migrations (quick, no DB check)..."
-timeout 20 python manage.py migrate --noinput 2>&1 | head -15 || {
-    echo "⚠️ Migrations timed out or failed, but continuing..."
-}
-
-# Запуск Gunicorn (основной процесс через exec для healthcheck)
-echo "🌐 Starting Gunicorn server..."
+# Запуск Gunicorn СРАЗУ (основной процесс через exec для healthcheck)
+echo "🌐 Starting Gunicorn server NOW..."
 PORT=${PORT:-8000}
 echo "🚀 Server will be available on port $PORT"
 echo "✅ Healthcheck endpoint: /health/"
-echo "⏳ Starting Gunicorn now (this will be the main process)..."
+echo "⏳ Gunicorn starting as main process (exec)..."
 
 # Используем exec чтобы Gunicorn стал основным процессом контейнера
-# Это критично для Railway healthcheck - контейнер должен держаться живым
-# Используем минимальные настройки для быстрого старта
+# Минимальные настройки для максимально быстрого старта
 exec gunicorn $WSGI_MODULE \
     --bind 0.0.0.0:$PORT \
     --workers 1 \
-    --timeout 120 \
+    --timeout 60 \
     --access-logfile - \
     --error-logfile - \
-    --log-level warning \
+    --log-level error \
     --preload \
-    --max-requests 1000 \
-    --max-requests-jitter 50
+    --graceful-timeout 30
