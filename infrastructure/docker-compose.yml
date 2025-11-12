@@ -1,0 +1,45 @@
+version: '3.9'
+
+services:
+  backend:
+    build:
+      context: ../backend
+      dockerfile: ../infrastructure/docker/Dockerfile.backend
+    env_file:
+      - .env
+    volumes:
+      - ../backend:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: ../infrastructure/docker/Dockerfile.frontend
+    volumes:
+      - ../frontend:/app
+    ports:
+      - "5173:5173"
+    command: npm run dev -- --host
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: equilibrium
+      POSTGRES_USER: equilibrium
+      POSTGRES_PASSWORD: equilibrium
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:
