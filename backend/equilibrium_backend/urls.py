@@ -24,8 +24,9 @@ from equilibrium_backend.health import health_check
 from core.views import admin_dashboard, admin_structure_api, admin_queue_api
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    # Healthcheck должен быть ПЕРВЫМ для быстрого ответа
     path('health/', health_check, name='health'),
+    path('admin/', admin.site.urls),
     path('api/structure/', admin_structure_api, name='admin_structure_api'),
     path('api/queue/', admin_queue_api, name='admin_queue_api'),
     path('api/', include('api.urls')),

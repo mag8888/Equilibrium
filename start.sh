@@ -83,14 +83,20 @@ except Exception as e:
 # Минимальные настройки для максимально быстрого старта
 # Добавляем info логи для диагностики
 echo "✅ Starting Gunicorn..."
+echo "📝 Final check - WSGI module: $WSGI_MODULE"
+echo "📝 Final check - PORT: $PORT"
+echo "📝 Final check - Current dir: $(pwd)"
+
+# Запускаем Gunicorn с максимальной диагностикой
 exec gunicorn $WSGI_MODULE \
     --bind 0.0.0.0:$PORT \
     --workers 1 \
     --timeout 60 \
     --access-logfile - \
     --error-logfile - \
-    --log-level info \
+    --log-level debug \
     --preload \
     --graceful-timeout 30 \
     --capture-output \
-    --enable-stdio-inheritance
+    --enable-stdio-inheritance \
+    --reload
