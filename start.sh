@@ -54,13 +54,16 @@ echo "🌐 Starting Gunicorn server..."
 PORT=${PORT:-8000}
 echo "🚀 Server will be available on port $PORT"
 echo "✅ Healthcheck endpoint: /health/"
-
-# Инициализация в фоне (не блокирует запуск Gunicorn)
-echo "🔧 Starting initialization (background)..."
-python manage.py auto_init 2>&1 | head -10 || echo "⚠️ Auto init skipped" &
-python manage.py create_superuser 2>&1 | head -10 || echo "⚠️ Root admin creation skipped" &
+echo "⏳ Starting Gunicorn now (this will be the main process)..."
 
 # Используем exec чтобы Gunicorn стал основным процессом контейнера
 # Это критично для Railway healthcheck - контейнер должен держаться живым
-echo "✅ Starting Gunicorn as main process..."
-exec gunicorn $WSGI_MODULE --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --access-logfile - --error-logfile -
+# Инициализация будет выполнена после успешного запуска через отдельный механизм
+exec gunicorn $WSGI_MODULE \
+    --bind 0.0.0.0:$PORT \
+    --workers 1 \
+    --timeout 120 \
+    --access-logfile - \
+    --error-logfile - \
+    --log-level info \
+    --preload
