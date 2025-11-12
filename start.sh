@@ -50,15 +50,19 @@ PORT=${PORT:-8000}
 echo "🚀 Server will be available on port $PORT"
 echo "✅ Healthcheck endpoint: /health/"
 echo "⏳ Gunicorn starting as main process (exec)..."
+echo "📝 Current directory: $(pwd)"
+echo "📝 Python path: $PYTHONPATH"
 
 # Используем exec чтобы Gunicorn стал основным процессом контейнера
 # Минимальные настройки для максимально быстрого старта
+# Добавляем info логи для диагностики
 exec gunicorn $WSGI_MODULE \
     --bind 0.0.0.0:$PORT \
     --workers 1 \
     --timeout 60 \
     --access-logfile - \
     --error-logfile - \
-    --log-level error \
+    --log-level info \
     --preload \
-    --graceful-timeout 30
+    --graceful-timeout 30 \
+    --capture-output

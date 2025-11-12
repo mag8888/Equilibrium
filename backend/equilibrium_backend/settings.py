@@ -112,8 +112,13 @@ DATABASES = {
     'default': dj_database_url.parse(
         env("DATABASE_URL", default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
         conn_max_age=600,
+        conn_health_checks=False,  # Отключаем проверку здоровья БД при старте
     )
 }
+
+# Отложенное подключение к БД - не блокирует старт приложения
+DATABASES['default']['OPTIONS'] = DATABASES['default'].get('OPTIONS', {})
+DATABASES['default']['OPTIONS']['connect_timeout'] = 5
 
 
 # Password validation
