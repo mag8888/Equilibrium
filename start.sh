@@ -44,18 +44,11 @@ timeout 15 python manage.py migrate --noinput 2>&1 | head -10 || {
     echo "⚠️ Migrations timed out, but continuing..."
 }
 
-# Запуск простого healthcheck сервера в фоне (не требует Django)
-echo "🏥 Starting simple healthcheck server..."
-HEALTHCHECK_PORT=${HEALTHCHECK_PORT:-8001}
-python3 ../simple_healthcheck.py &
-HEALTHCHECK_PID=$!
-echo "✅ Healthcheck server started on port $HEALTHCHECK_PORT (PID: $HEALTHCHECK_PID)"
-
 # Запуск Gunicorn СРАЗУ (основной процесс через exec для healthcheck)
 echo "🌐 Starting Gunicorn server NOW..."
 PORT=${PORT:-8000}
 echo "🚀 Server will be available on port $PORT"
-echo "✅ Healthcheck endpoint: /health/ (also on port $HEALTHCHECK_PORT)"
+echo "✅ Healthcheck endpoint: /health/"
 echo "⏳ Gunicorn starting as main process (exec)..."
 echo "📝 Current directory: $(pwd)"
 echo "📝 Python path: $PYTHONPATH"
