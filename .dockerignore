@@ -1,0 +1,6 @@
+frontend/
+infrastructure/
+.git
+.gitignore
+Dockerfile
+nixpacks.toml
