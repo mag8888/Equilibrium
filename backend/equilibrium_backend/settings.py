@@ -36,7 +36,7 @@ DEBUG = env("DJANGO_DEBUG", default="1")
 if isinstance(DEBUG, str):
     DEBUG = _to_bool(DEBUG)
 
-ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
+ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["localhost", "127.0.0.1", "*.up.railway.app", "*.railway.app"])
 
 
 # Application definition
