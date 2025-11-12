@@ -42,3 +42,4 @@ DEPLOY_*.md
 !start.sh
 !railway.json
 !requirements.txt
+!.dockerignore

@@ -12,9 +12,8 @@ RUN pip install --no-cache-dir -r requirements.txt || pip install --no-cache-dir
 # Копируем ТОЛЬКО backend директорию (новый проект)
 COPY backend/ ./backend/
 
-# Копируем start.sh и railway.json
+# Копируем start.sh
 COPY start.sh ./start.sh
-COPY railway.json ./railway.json 2>/dev/null || true
 RUN chmod +x ./start.sh
 
 # Устанавливаем рабочую директорию в backend
