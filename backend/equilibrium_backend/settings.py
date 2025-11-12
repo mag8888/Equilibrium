@@ -41,6 +41,7 @@ if isinstance(DEBUG, str):
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
 
 # Always add Railway domains (production deployment)
+# These domains are always needed when deployed to Railway
 railway_domains = [
     "equilibrium.up.railway.app",
     "web-production-48c0.up.railway.app",
