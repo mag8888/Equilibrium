@@ -66,9 +66,10 @@ class MLMViewSet(viewsets.ViewSet):
     authentication_classes = [TokenAuthentication, SessionAuthentication]
 
     def _get_root_user(self, request):
-        """Возвращает пользователя-владельца структуры. Если не авторизован — демо-пользователь.
+        """Возвращает root admin пользователя-владельца структуры.
         При отсутствии БД/таблиц возвращает None вместо 500."""
-        if request.user and request.user.is_authenticated:
+        if request.user and request.user.is_authenticated and request.user.is_superuser:
+            # Если авторизован суперпользователь, используем его
             return request.user
         try:
             # Попытка применить миграции при первом обращении к API
@@ -78,19 +79,26 @@ class MLMViewSet(viewsets.ViewSet):
             except Exception:
                 pass
                 
-            demo_user, created = User.objects.get_or_create(
-                username='mlm_demo',
-                defaults={
-                    'email': 'mlm_demo@example.com',
-                },
-            )
-            if created:
-                try:
-                    demo_user.set_password('mlm_demo_password')
-                    demo_user.save(update_fields=['password'])
-                except Exception:
-                    pass
-            return demo_user
+            # Ищем root admin (первый суперпользователь)
+            root_admin = User.objects.filter(is_superuser=True).order_by('id').first()
+            
+            if not root_admin:
+                # Если нет суперпользователя, создаём root admin
+                root_admin, created = User.objects.get_or_create(
+                    username='admin',
+                    defaults={
+                        'email': 'admin@example.com',
+                        'is_superuser': True,
+                        'is_staff': True,
+                    },
+                )
+                if created:
+                    try:
+                        root_admin.set_password('admin123')
+                        root_admin.save(update_fields=['password'])
+                    except Exception:
+                        pass
+            return root_admin
         except (ProgrammingError, OperationalError):
             # База или таблицы ещё не готовы
             return None

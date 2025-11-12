@@ -1,6 +1,8 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from mlm.models import MLMStructure, MLMPartner
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -66,7 +68,7 @@ class Command(BaseCommand):
                             self.style.SUCCESS(f'✅ Пользователь {username} повышен до суперпользователя!')
                         )
             else:
-                User.objects.create_superuser(
+                user = User.objects.create_superuser(
                     username=username,
                     email=email,
                     password=password
@@ -77,3 +79,41 @@ class Command(BaseCommand):
                 self.stdout.write(f'   Логин: {username}')
                 self.stdout.write(f'   Пароль: {password}')
                 self.stdout.write(f'   Email: {email}')
+                
+                # Создаем MLM структуру для root admin
+                try:
+                    mlm_structure, created = MLMStructure.objects.get_or_create(
+                        user=user,
+                        defaults={
+                            'parent': None,
+                            'position': 0,
+                            'level': 0,
+                            'is_active': True,
+                        }
+                    )
+                    if created:
+                        self.stdout.write(
+                            self.style.SUCCESS('✅ Создана MLM структура для root admin')
+                        )
+                    
+                    # Создаем MLMPartner для root admin, если это первый пользователь
+                    if User.objects.count() == 1:
+                        if not MLMPartner.objects.filter(root_user=user, unique_id='0000001').exists():
+                            MLMPartner.objects.create(
+                                unique_id='0000001',
+                                human_name='Admin',
+                                level=0,
+                                position_x=0,
+                                position_y=240,
+                                parent=None,
+                                root_user=user,
+                                created_at=timezone.now(),
+                                is_active=True,
+                            )
+                            self.stdout.write(
+                                self.style.SUCCESS('👑 Root admin добавлен как первый партнер (0*) с ID 0000001')
+                            )
+                except Exception as e:
+                    self.stdout.write(
+                        self.style.WARNING(f'⚠️ Не удалось создать MLM структуру: {str(e)}')
+                    )

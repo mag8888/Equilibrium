@@ -16,14 +16,59 @@ class Command(BaseCommand):
         
         try:
             with transaction.atomic():
-                # Создаем суперпользователя если его нет
-                if not User.objects.filter(username='admin').exists():
-                    User.objects.create_superuser('admin', 'admin@example.com', 'admin123')
+                # Создаем root admin как первого пользователя
+                from mlm.models import MLMStructure
+                
+                root_admin, created = User.objects.get_or_create(
+                    username='admin',
+                    defaults={
+                        'email': 'admin@example.com',
+                        'is_superuser': True,
+                        'is_staff': True,
+                    }
+                )
+                if created:
+                    root_admin.set_password('admin123')
+                    root_admin.save()
                     self.stdout.write(
-                        self.style.SUCCESS('✅ Создан суперпользователь: admin / admin123')
+                        self.style.SUCCESS('✅ Создан root admin: admin / admin123')
                     )
                 else:
-                    self.stdout.write('✅ Суперпользователь уже существует')
+                    # Убеждаемся, что admin - суперпользователь
+                    if not root_admin.is_superuser:
+                        root_admin.is_superuser = True
+                        root_admin.is_staff = True
+                        root_admin.save()
+                        self.stdout.write(
+                            self.style.SUCCESS('✅ Пользователь admin повышен до root admin')
+                        )
+                    else:
+                        self.stdout.write('✅ Root admin уже существует')
+
+                # Создаем MLM структуру для root admin
+                mlm_structure, created = MLMStructure.objects.get_or_create(
+                    user=root_admin,
+                    defaults={
+                        'parent': None,
+                        'position': 0,
+                        'level': 0,
+                        'is_active': True,
+                    }
+                )
+                if created:
+                    self.stdout.write(
+                        self.style.SUCCESS('✅ Создана MLM структура для root admin')
+                    )
+                else:
+                    # Убеждаемся, что root admin - корень структуры
+                    if mlm_structure.parent is not None or mlm_structure.level != 0:
+                        mlm_structure.parent = None
+                        mlm_structure.level = 0
+                        mlm_structure.position = 0
+                        mlm_structure.save()
+                        self.stdout.write(
+                            self.style.SUCCESS('✅ MLM структура root admin обновлена')
+                        )
 
                 # Создаем настройки MLM если их нет
                 if not MLMSettings.objects.filter(is_active=True).exists():
@@ -41,35 +86,22 @@ class Command(BaseCommand):
                 else:
                     self.stdout.write('✅ Настройки MLM уже существуют')
 
-                # Создаем демо-пользователя, под которым хранится структура
-                demo_user, created = User.objects.get_or_create(
-                    username='mlm_demo',
-                    defaults={'email': 'mlm_demo@example.com'}
-                )
-                if created:
-                    demo_user.set_password('mlm_demo_password')
-                    demo_user.save(update_fields=['password'])
-                    self.stdout.write(self.style.SUCCESS('✅ Создан демо-пользователь mlm_demo'))
-                else:
-                    self.stdout.write('✅ Демо-пользователь mlm_demo уже существует')
-
-                # Добавляем IVA как первого партнера Level 0* для demo пользователя
-                if not MLMPartner.objects.filter(root_user=demo_user, human_name='IVA').exists():
-                    uid = str(random.randint(1000000, 9999999))
+                # Добавляем root admin как первого партнера Level 0* в MLMPartner
+                if not MLMPartner.objects.filter(root_user=root_admin, unique_id='0000001').exists():
                     MLMPartner.objects.create(
-                        unique_id=uid,
-                        human_name='IVA',
+                        unique_id='0000001',
+                        human_name='Admin',
                         level=0,
                         position_x=0,
                         position_y=240,
                         parent=None,
-                        root_user=demo_user,
+                        root_user=root_admin,
                         created_at=timezone.now(),
                         is_active=True,
                     )
-                    self.stdout.write(self.style.SUCCESS(f'👑 Добавлен первый партнер IVA (0*) c ID {uid}'))
+                    self.stdout.write(self.style.SUCCESS('👑 Добавлен root admin как первый партнер (0*) с ID 0000001'))
                 else:
-                    self.stdout.write('👑 Партнер IVA уже существует — пропускаем')
+                    self.stdout.write('👑 Root admin партнер уже существует — пропускаем')
 
                 self.stdout.write(
                     self.style.SUCCESS('✅ Автоматическая инициализация завершена!')
