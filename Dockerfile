@@ -9,7 +9,7 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY backend /app/backend
-COPY start.sh /app/start.sh
-RUN chmod +x /app/start.sh
 
-CMD ["/app/start.sh"]
+WORKDIR /app/backend
+
+CMD sh -c "python manage.py migrate --noinput && gunicorn equilibrium_backend.wsgi:application --bind 0.0.0.0:\${PORT:-8000}"
