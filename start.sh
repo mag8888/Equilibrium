@@ -94,9 +94,8 @@ exec gunicorn $WSGI_MODULE \
     --timeout 60 \
     --access-logfile - \
     --error-logfile - \
-    --log-level debug \
+    --log-level info \
     --preload \
     --graceful-timeout 30 \
     --capture-output \
-    --enable-stdio-inheritance \
-    --reload
+    --enable-stdio-inheritance
