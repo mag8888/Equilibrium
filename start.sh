@@ -52,10 +52,19 @@ echo "✅ Healthcheck endpoint: /health/"
 echo "⏳ Gunicorn starting as main process (exec)..."
 echo "📝 Current directory: $(pwd)"
 echo "📝 Python path: $PYTHONPATH"
+echo "📝 WSGI module: $WSGI_MODULE"
+
+# Проверяем что Django может импортироваться
+echo "🔍 Testing Django import..."
+python -c "import django; print(f'Django version: {django.get_version()}')" || {
+    echo "❌ Django import failed!"
+    exit 1
+}
 
 # Используем exec чтобы Gunicorn стал основным процессом контейнера
 # Минимальные настройки для максимально быстрого старта
 # Добавляем info логи для диагностики
+echo "✅ Starting Gunicorn..."
 exec gunicorn $WSGI_MODULE \
     --bind 0.0.0.0:$PORT \
     --workers 1 \
@@ -65,4 +74,5 @@ exec gunicorn $WSGI_MODULE \
     --log-level info \
     --preload \
     --graceful-timeout 30 \
-    --capture-output
+    --capture-output \
+    --enable-stdio-inheritance
