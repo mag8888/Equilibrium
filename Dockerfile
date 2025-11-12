@@ -5,19 +5,19 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# Копируем requirements.txt и устанавливаем зависимости
-COPY requirements.txt ./
+# Копируем requirements.txt из backend (приоритет) или корня
+COPY backend/requirements.txt ./requirements.txt 2>/dev/null || COPY requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Копируем весь проект (и корневую структуру, и backend если есть)
-COPY . .
+# Копируем ТОЛЬКО backend директорию (новый проект)
+COPY backend/ ./backend/
 
-# Копируем start.sh в корень
+# Копируем start.sh и railway.json
 COPY start.sh ./start.sh
+COPY railway.json ./railway.json 2>/dev/null || true
 RUN chmod +x ./start.sh
 
-# Устанавливаем рабочую директорию в зависимости от структуры
-# Если есть backend/manage.py, используем backend, иначе корень
-WORKDIR /app
+# Устанавливаем рабочую директорию в backend
+WORKDIR /app/backend
 
-CMD ["./start.sh"]
+CMD ["../start.sh"]
