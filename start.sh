@@ -37,16 +37,10 @@ timeout 20 python manage.py collectstatic --noinput 2>&1 | head -10 || {
     echo "⚠️ Collectstatic timed out or failed, but continuing..."
 }
 
-# Проверка подключения к базе данных
-echo "🔌 Testing database connection..."
-python manage.py check --database default || {
-    echo "❌ Database connection failed!"
-    echo "🔍 Trying to connect with psql..."
-    PGPASSWORD="$DATABASE_PASSWORD" psql -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER" -d "$DATABASE_NAME" -c "SELECT 1;" || {
-        echo "❌ Direct psql connection also failed!"
-        echo "🔍 Checking if PostgreSQL service is running..."
-        echo "🔍 Variables: HOST=$DATABASE_HOST, PORT=$DATABASE_PORT, USER=$DATABASE_USER, DB=$DATABASE_NAME"
-    }
+# Проверка подключения к базе данных (быстрая, не блокирующая)
+echo "🔌 Testing database connection (quick check)..."
+timeout 5 python manage.py check --database default 2>&1 | head -5 || {
+    echo "⚠️ Database check timed out or failed, but continuing..."
 }
 
 # Применение миграций (быстрое, не блокирующее)
