@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import os
 import environ
 import dj_database_url
 
@@ -39,17 +40,18 @@ if isinstance(DEBUG, str):
 # Allow hosts - Railway uses dynamic domains
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
 
-# In Railway production, add common domains
-_port = env("PORT", default="")
-if _port:
-    # Railway production - add common Railway domains
-    ALLOWED_HOSTS.extend([
-        "equilibrium.up.railway.app",
-        "web-production-48c0.up.railway.app",
-        env("RAILWAY_PUBLIC_DOMAIN", default=""),
-    ])
-    # Remove empty strings
-    ALLOWED_HOSTS = [h for h in ALLOWED_HOSTS if h]
+# Always add Railway domains (production deployment)
+railway_domains = [
+    "equilibrium.up.railway.app",
+    "web-production-48c0.up.railway.app",
+]
+# Add RAILWAY_PUBLIC_DOMAIN if set
+railway_public = os.environ.get("RAILWAY_PUBLIC_DOMAIN", "")
+if railway_public:
+    railway_domains.append(railway_public)
+ALLOWED_HOSTS.extend(railway_domains)
+# Remove duplicates and empty strings
+ALLOWED_HOSTS = list(dict.fromkeys([h for h in ALLOWED_HOSTS if h]))
 
 # Use X-Forwarded-Host header (Railway uses this)
 USE_X_FORWARDED_HOST = True
