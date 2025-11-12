@@ -528,6 +528,53 @@ class AdminViewSet(viewsets.ViewSet):
     permission_classes = [IsAdminUser]
     authentication_classes = [TokenAuthentication, SessionAuthentication]
 
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def create_root_admin(self, request):
+        """Создать root admin пользователя (для первоначальной настройки)"""
+        try:
+            username = request.data.get('username', 'admin')
+            email = request.data.get('email', 'admin@trinary-mlm.com')
+            password = request.data.get('password', 'admin123')
+            
+            User = get_user_model()
+            
+            if User.objects.filter(username=username).exists():
+                user = User.objects.get(username=username)
+                if user.is_superuser:
+                    return Response({
+                        'status': 'exists',
+                        'message': f'Суперпользователь {username} уже существует',
+                        'username': username
+                    }, status=status.HTTP_200_OK)
+                else:
+                    # Делаем существующего пользователя суперпользователем
+                    user.is_superuser = True
+                    user.is_staff = True
+                    user.email = email
+                    user.set_password(password)
+                    user.save()
+                    return Response({
+                        'status': 'updated',
+                        'message': f'Пользователь {username} повышен до суперпользователя',
+                        'username': username
+                    }, status=status.HTTP_200_OK)
+            else:
+                user = User.objects.create_superuser(
+                    username=username,
+                    email=email,
+                    password=password
+                )
+                return Response({
+                    'status': 'created',
+                    'message': f'Суперпользователь {username} создан успешно',
+                    'username': username
+                }, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({
+                'status': 'error',
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     @action(detail=False, methods=['get'])
     def statistics(self, request):
         """Получить статистику системы"""
