@@ -9,9 +9,10 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY backend /app/backend
-COPY start.sh /app/start.sh
-RUN chmod +x /app/start.sh
 
 WORKDIR /app/backend
 
-CMD ["/app/start.sh"]
+COPY start.sh ./start.sh
+RUN chmod +x ./start.sh
+
+CMD ["./start.sh"]
