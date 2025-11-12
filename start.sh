@@ -61,6 +61,23 @@ python -c "import django; print(f'Django version: {django.get_version()}')" || {
     exit 1
 }
 
+# Проверяем что WSGI модуль может загрузиться (без подключения к БД)
+echo "🔍 Testing WSGI module import..."
+python -c "
+import os
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'equilibrium_backend.settings')
+try:
+    from django.core.wsgi import get_wsgi_application
+    print('✅ WSGI module can be imported')
+except Exception as e:
+    print(f'❌ WSGI import failed: {e}')
+    import traceback
+    traceback.print_exc()
+    exit(1)
+" || {
+    echo "⚠️ WSGI import test failed, but continuing..."
+}
+
 # Используем exec чтобы Gunicorn стал основным процессом контейнера
 # Минимальные настройки для максимально быстрого старта
 # Добавляем info логи для диагностики
