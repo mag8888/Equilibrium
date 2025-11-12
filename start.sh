@@ -40,12 +40,20 @@ python manage.py migrate
 
 # Инициализация базы данных
 echo "🔧 Initializing database..."
-python manage.py auto_init
+python manage.py auto_init || {
+    echo "⚠️ Auto init failed, but continuing..."
+}
 
 # Создание root admin (если не существует)
 echo "👤 Creating root admin..."
 python manage.py create_superuser || {
     echo "⚠️ Root admin creation failed, but continuing..."
+}
+
+# Дополнительная проверка: убеждаемся что root admin и MLMPartner существуют
+echo "🔍 Verifying root admin setup..."
+python manage.py create_superuser --force || {
+    echo "⚠️ Root admin verification failed, but continuing..."
 }
 
 # Запуск Gunicorn

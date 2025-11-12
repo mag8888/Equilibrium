@@ -54,6 +54,7 @@ class Command(BaseCommand):
                     self.stdout.write(
                         self.style.SUCCESS(f'✅ Суперпользователь {username} обновлён!')
                     )
+                    user = existing_user
                 else:
                     if existing_user.is_superuser:
                         self.stdout.write(
@@ -67,6 +68,48 @@ class Command(BaseCommand):
                         self.stdout.write(
                             self.style.SUCCESS(f'✅ Пользователь {username} повышен до суперпользователя!')
                         )
+                    user = existing_user
+                
+                # Создаем MLM структуру для существующего пользователя, если нужно
+                try:
+                    mlm_structure, created = MLMStructure.objects.get_or_create(
+                        user=user,
+                        defaults={
+                            'parent': None,
+                            'position': 0,
+                            'level': 0,
+                            'is_active': True,
+                        }
+                    )
+                    if created:
+                        self.stdout.write(
+                            self.style.SUCCESS('✅ Создана MLM структура для root admin')
+                        )
+                    
+                    # Создаем MLMPartner для root admin, если его еще нет
+                    mlm_partner, partner_created = MLMPartner.objects.get_or_create(
+                        root_user=user,
+                        unique_id='0000001',
+                        defaults={
+                            'human_name': 'Admin',
+                            'level': 0,
+                            'position_x': 0,
+                            'position_y': 240,
+                            'parent': None,
+                            'created_at': timezone.now(),
+                            'is_active': True,
+                        }
+                    )
+                    if partner_created:
+                        self.stdout.write(
+                            self.style.SUCCESS('👑 Root admin добавлен как первый партнер (0*) с ID 0000001')
+                        )
+                    else:
+                        self.stdout.write('👑 Root admin партнер уже существует')
+                except Exception as e:
+                    self.stdout.write(
+                        self.style.WARNING(f'⚠️ Не удалось создать MLM структуру: {str(e)}')
+                    )
             else:
                 user = User.objects.create_superuser(
                     username=username,
@@ -96,24 +139,29 @@ class Command(BaseCommand):
                             self.style.SUCCESS('✅ Создана MLM структура для root admin')
                         )
                     
-                    # Создаем MLMPartner для root admin, если это первый пользователь
-                    if User.objects.count() == 1:
-                        if not MLMPartner.objects.filter(root_user=user, unique_id='0000001').exists():
-                            MLMPartner.objects.create(
-                                unique_id='0000001',
-                                human_name='Admin',
-                                level=0,
-                                position_x=0,
-                                position_y=240,
-                                parent=None,
-                                root_user=user,
-                                created_at=timezone.now(),
-                                is_active=True,
-                            )
-                            self.stdout.write(
-                                self.style.SUCCESS('👑 Root admin добавлен как первый партнер (0*) с ID 0000001')
-                            )
+                    # Создаем MLMPartner для root admin, если его еще нет
+                    mlm_partner, partner_created = MLMPartner.objects.get_or_create(
+                        root_user=user,
+                        unique_id='0000001',
+                        defaults={
+                            'human_name': 'Admin',
+                            'level': 0,
+                            'position_x': 0,
+                            'position_y': 240,
+                            'parent': None,
+                            'created_at': timezone.now(),
+                            'is_active': True,
+                        }
+                    )
+                    if partner_created:
+                        self.stdout.write(
+                            self.style.SUCCESS('👑 Root admin добавлен как первый партнер (0*) с ID 0000001')
+                        )
+                    else:
+                        self.stdout.write('👑 Root admin партнер уже существует')
                 except Exception as e:
                     self.stdout.write(
                         self.style.WARNING(f'⚠️ Не удалось создать MLM структуру: {str(e)}')
                     )
+                    import traceback
+                    self.stdout.write(traceback.format_exc())
