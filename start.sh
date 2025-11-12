@@ -76,4 +76,6 @@ python manage.py create_superuser --force || {
 # Запуск Gunicorn
 echo "🌐 Starting Gunicorn server..."
 PORT=${PORT:-8000}
-exec gunicorn $WSGI_MODULE --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+echo "🚀 Server will be available on port $PORT"
+echo "✅ Healthcheck endpoint: /health/"
+exec gunicorn $WSGI_MODULE --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --access-logfile - --error-logfile -
