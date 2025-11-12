@@ -12,10 +12,9 @@ RUN pip install --no-cache-dir -r requirements.txt || pip install --no-cache-dir
 # Копируем ТОЛЬКО backend директорию (новый проект)
 COPY backend/ ./backend/
 
-# Копируем start.sh и simple_healthcheck.py
+# Копируем start.sh
 COPY start.sh ./start.sh
-COPY backend/simple_healthcheck.py ./simple_healthcheck.py
-RUN chmod +x ./start.sh ./simple_healthcheck.py
+RUN chmod +x ./start.sh
 
 # Устанавливаем рабочую директорию в backend
 WORKDIR /app/backend
