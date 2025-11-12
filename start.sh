@@ -18,9 +18,24 @@ find . -type f -name "*.pyc" -delete 2>/dev/null || true
 echo "📁 Creating staticfiles directory..."
 mkdir -p staticfiles
 
+# Определяем структуру проекта
+if [ -f "backend/manage.py" ]; then
+    echo "📁 Detected backend/ structure, switching to backend directory..."
+    cd backend
+    WSGI_MODULE="equilibrium_backend.wsgi:application"
+elif [ -f "manage.py" ]; then
+    echo "📁 Using root structure..."
+    WSGI_MODULE="mlm_system.wsgi:application"
+else
+    echo "❌ No manage.py found!"
+    exit 1
+fi
+
 # Сбор статических файлов
 echo "📦 Collecting static files..."
-python manage.py collectstatic --noinput
+python manage.py collectstatic --noinput || {
+    echo "⚠️ Collectstatic failed, but continuing..."
+}
 
 # Проверка подключения к базе данных
 echo "🔌 Testing database connection..."
@@ -36,7 +51,9 @@ python manage.py check --database default || {
 
 # Применение миграций
 echo "🗄️ Applying migrations..."
-python manage.py migrate
+python manage.py migrate || {
+    echo "⚠️ Migrations failed, but continuing..."
+}
 
 # Инициализация базы данных
 echo "🔧 Initializing database..."
@@ -58,4 +75,5 @@ python manage.py create_superuser --force || {
 
 # Запуск Gunicorn
 echo "🌐 Starting Gunicorn server..."
-exec gunicorn mlm_system.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+PORT=${PORT:-8000}
+exec gunicorn $WSGI_MODULE --bind 0.0.0.0:$PORT --workers 2 --timeout 120
