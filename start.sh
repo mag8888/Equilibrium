@@ -42,6 +42,12 @@ python manage.py migrate
 echo "🔧 Initializing database..."
 python manage.py auto_init
 
+# Создание root admin (если не существует)
+echo "👤 Creating root admin..."
+python manage.py create_superuser || {
+    echo "⚠️ Root admin creation failed, but continuing..."
+}
+
 # Запуск Gunicorn
 echo "🌐 Starting Gunicorn server..."
 exec gunicorn mlm_system.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120
