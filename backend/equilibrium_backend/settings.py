@@ -21,7 +21,23 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env(
     DJANGO_DEBUG=(bool, True),
 )
-environ.Env.read_env(BASE_DIR.parent / ".env")
+
+# Загружаем .env только если файл существует (Railway использует переменные окружения)
+# Проверяем несколько возможных путей для .env файла
+_env_paths = [
+    BASE_DIR.parent / ".env",  # В корне проекта (рядом с backend/)
+    BASE_DIR / ".env",         # В директории backend/
+    Path("/app/.env"),         # В Docker контейнере (если есть)
+]
+
+for _env_file in _env_paths:
+    if _env_file.exists() and _env_file.is_file():
+        try:
+            environ.Env.read_env(_env_file)
+            break  # Загрузили первый найденный файл
+        except Exception:
+            # Игнорируем ошибки чтения .env (Railway использует переменные окружения)
+            pass
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
