@@ -1,6 +1,7 @@
 #!/bin/bash
 
 echo "🚀 Starting TRINARY MLM System..."
+echo "🧪 TEST BUILD - Branch: test-build"
 
 # Проверка переменных окружения
 echo "🔍 Checking environment variables..."
